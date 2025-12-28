@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, Loader2, Mail, Lock, Sparkles, Brain, Zap, Shield, UserPlus, Check, X, Globe } from 'lucide-react'
+import { AlertCircle, Loader2, Mail, Lock, UserPlus, Check, X } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { useEffect, useState } from 'react'
 import { getTenantFromSubdomain } from '@/lib/tenant'
@@ -14,6 +14,7 @@ import { apiRequest } from '@/services/api'
 import { Tenant } from '@/types'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { SystemInfoSidebar } from '@/components/SystemInfoSidebar'
 
 // Componente do ícone do Google com cores oficiais
 const GoogleIcon = () => (
@@ -38,58 +39,6 @@ const GoogleIcon = () => (
 )
 
 // Ilustração SVG para o lado esquerdo
-const EducationIllustration = () => (
-  <svg
-    viewBox="0 0 600 600"
-    className="w-full h-full"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <defs>
-      <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#3B82F6" stopOpacity="1" />
-        <stop offset="100%" stopColor="#8B5CF6" stopOpacity="1" />
-      </linearGradient>
-    </defs>
-    {/* Background shapes */}
-    <circle cx="100" cy="100" r="80" fill="url(#grad1)" opacity="0.1" />
-    <circle cx="500" cy="500" r="100" fill="url(#grad1)" opacity="0.1" />
-    
-    {/* Book/Education icon */}
-    <path
-      d="M300 150 L200 200 L300 250 L400 200 Z"
-      fill="url(#grad1)"
-      opacity="0.8"
-    />
-    <path
-      d="M200 200 L200 400 L300 450 L300 250 Z"
-      fill="url(#grad1)"
-      opacity="0.6"
-    />
-    <path
-      d="M300 250 L300 450 L400 400 L400 200 Z"
-      fill="url(#grad1)"
-      opacity="0.4"
-    />
-    
-    {/* Graduation cap */}
-    <path
-      d="M250 180 L350 180 L350 200 L300 220 L250 200 Z"
-      fill="#3B82F6"
-    />
-    <circle cx="300" cy="200" r="20" fill="#8B5CF6" opacity="0.3" />
-    
-    {/* Stars/achievements */}
-    <path
-      d="M150 300 L155 310 L165 310 L157 317 L160 327 L150 322 L140 327 L143 317 L135 310 L145 310 Z"
-      fill="#FBBF24"
-    />
-    <path
-      d="M450 350 L453 357 L460 357 L455 362 L458 369 L450 365 L442 369 L445 362 L440 357 L447 357 Z"
-      fill="#FBBF24"
-    />
-  </svg>
-)
 
 // Função de validação de senha no padrão Auth0
 interface PasswordValidation {
@@ -333,6 +282,20 @@ export default function Login() {
         
         if (error) {
           const errorMsg = error.message || 'Erro ao fazer login'
+          
+          // Se o erro for sobre email não verificado, mostrar toast e redirecionar para OTP
+          if (errorMsg.includes('Email not confirmed')
+            ) {
+            logger.info('Email verification required, redirecting to OTP', 'LoginPage', { email })
+            toast.warning('Você ainda não verificou seu email.', {
+              duration: 3000,
+            })
+            
+            // Redirecionar imediatamente sem delay
+            navigate(`/verificar-otp?email=${encodeURIComponent(email)}`, { replace: true })
+            return
+          }
+          
           // Se for erro de credenciais, marcar campos como erro e mostrar apenas toast
           if (errorMsg.includes('Invalid login credentials') || errorMsg.includes('credenciais')) {
             setEmailError('Email ou senha incorretos')
@@ -367,20 +330,46 @@ export default function Login() {
             if (!currentSession.user.email_confirmed_at) {
               logger.info('Email not confirmed, redirecting to OTP verification', 'LoginPage')
               navigate(`/verificar-otp?email=${encodeURIComponent(currentSession.user.email || email)}`, { replace: true })
+              return // Importante: retornar para não continuar o fluxo
             } else {
               // Se email está confirmado, redirecionar para selecionar escola
               logger.info('Email confirmed, redirecting to select school', 'LoginPage')
               navigate('/selecionar-escola', { replace: true })
+              return // Importante: retornar para não continuar o fluxo
             }
           } else {
-            // Se não há sessão, o redirecionamento será feito pelo useEffect quando a sessão for atualizada
-            logger.info('No session yet, waiting for AuthContext to update', 'LoginPage')
+            // Se não há sessão, verificar novamente após um tempo maior
+            logger.info('No session yet, waiting longer for AuthContext to update', 'LoginPage')
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            
+            const { data: { session: retrySession } } = await supabase.auth.getSession()
+            if (retrySession?.user) {
+              if (!retrySession.user.email_confirmed_at) {
+                logger.info('Email not confirmed after retry, redirecting to OTP verification', 'LoginPage')
+                navigate(`/verificar-otp?email=${encodeURIComponent(retrySession.user.email || email)}`, { replace: true })
+                return
+              } else {
+                navigate('/selecionar-escola', { replace: true })
+                return
+              }
+            }
           }
         }
       }
     } catch (error: any) {
       logger.error('Auth error', 'LoginPage', { email, isSignup, error: error.message })
       const errorMessage = error.message || 'Erro inesperado. Tente novamente.'
+      
+      // Se o erro for relacionado a email não verificado, redirecionar para OTP
+      if (errorMessage.includes('não verificado') || 
+          errorMessage.includes('Email não verificado') ||
+          errorMessage.includes('email not verified') ||
+          errorMessage.includes('email_verified')) {
+        logger.info('Email verification required, redirecting to OTP', 'LoginPage', { email })
+        navigate(`/verificar-otp?email=${encodeURIComponent(email)}`, { replace: true })
+        return
+      }
+      
       setAuthError(errorMessage)
       toast.error(errorMessage, {
         duration: 5000,
@@ -402,6 +391,7 @@ export default function Login() {
     setShowEmailFields(false)
   }
 
+
   if (loadingTenant) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -416,86 +406,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Lado Esquerdo - Informações do Sistema */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 bg-gradient-to-br from-blue-500/10 via-indigo-500/10 to-purple-500/10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        {/* Imagem de fundo */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-20">
-          <div className="w-[800px] h-[800px]">
-            <EducationIllustration />
-          </div>
-        </div>
-        {/* Conteúdo centralizado verticalmente */}
-        <div className="relative z-10 max-w-2xl w-full">
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="p-5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg">
-              <Sparkles className="h-12 w-12 text-white" />
-            </div>
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              SmartGesti Ensino
-            </h1>
-          </div>
-          <p className="text-3xl font-semibold text-gray-800 mb-4 text-center">
-            Sistema de Gestão Escolar
-          </p>
-          <p className="text-2xl text-gray-600 mb-12 text-center">
-            AI First - Transformando a educação com inteligência artificial
-          </p>
-          
-          {/* Features */}
-          <div className="space-y-6">
-            <div className="flex items-start gap-5">
-              <div className="p-4 rounded-lg bg-blue-100 text-blue-600 mt-0.5">
-                <Brain className="h-7 w-7" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Inteligência Artificial</h3>
-                <p className="text-lg text-gray-600">Automação inteligente de processos educacionais</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-5">
-              <div className="p-4 rounded-lg bg-purple-100 text-purple-600 mt-0.5">
-                <Zap className="h-7 w-7" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Performance</h3>
-                <p className="text-lg text-gray-600">Sistema rápido e eficiente para sua instituição</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-5">
-              <div className="p-4 rounded-lg bg-green-100 text-green-600 mt-0.5">
-                <Shield className="h-7 w-7" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">Segurança</h3>
-                <p className="text-lg text-gray-600">Proteção total dos dados da sua escola</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Footer */}
-          <div className="mt-12 pt-8 border-t border-gray-300/50">
-            <div className="text-center space-y-3">
-              <p className="text-base text-gray-700 font-medium">
-                Sistema de Gestão Escolar Inteligente
-              </p>
-              <a 
-                href="https://www.smartgesti.com.br" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-lg text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-200"
-              >
-                <Globe className="h-5 w-5" />
-                www.smartgesti.com.br
-              </a>
-              <p className="text-sm text-gray-500 mt-2">
-                © 2024 SmartGesti. Todos os direitos reservados.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SystemInfoSidebar />
 
       {/* Lado Direito - Formulário */}
       <div className="flex-1 flex items-center justify-center p-4 lg:p-12">
@@ -515,10 +426,10 @@ export default function Login() {
           </CardHeader>
           <CardContent className="p-8">
             <Tabs 
-              value={activeTab}
-              onValueChange={handleTabChange}
-              className="w-full"
-            >
+                value={activeTab}
+                onValueChange={handleTabChange}
+                className="w-full"
+              >
               <TabsList className="grid w-full grid-cols-2 mb-8 h-12 bg-gray-100/50 p-1">
                 <TabsTrigger 
                   value="login" 

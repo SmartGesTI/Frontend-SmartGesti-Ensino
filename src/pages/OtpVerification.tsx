@@ -10,11 +10,15 @@ import { Mail, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { SystemInfoSidebar } from '@/components/SystemInfoSidebar'
+import { apiRequest } from '@/services/api'
+import { Tenant } from '@/types'
 
 export default function OtpVerification() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { verifyOtp, resendOtp } = useAuth()
+  const tenantSubdomain = getTenantFromSubdomain()
   
   const email = searchParams.get('email') || ''
   // Supabase pode gerar tokens de 6 ou 8 dígitos, vamos suportar até 8
@@ -26,8 +30,27 @@ export default function OtpVerification() {
   const [attempts, setAttempts] = useState(0)
   const [resendTimer, setResendTimer] = useState(60)
   const [canResend, setCanResend] = useState(false)
+  const [tenant, setTenant] = useState<Tenant | null>(null)
+  const [loadingTenant, setLoadingTenant] = useState(true)
   
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  // Carregar tenant
+  useEffect(() => {
+    if (tenantSubdomain) {
+      apiRequest<Tenant>(`/api/tenants/${tenantSubdomain}`)
+        .then((data) => {
+          setTenant(data)
+        })
+        .catch((err) => {
+          logger.warn('Tenant not found', 'OtpVerification', { subdomain: tenantSubdomain, error: err })
+          setTenant({ name: tenantSubdomain } as Tenant)
+        })
+        .finally(() => setLoadingTenant(false))
+    } else {
+      setLoadingTenant(false)
+    }
+  }, [tenantSubdomain])
 
   // Timer para reenvio
   useEffect(() => {
@@ -172,17 +195,47 @@ export default function OtpVerification() {
       if (error) {
         setAttempts(attempts + 1)
         
-        if (error.message.includes('expired') || error.message.includes('expirado')) {
-          setError('Código expirado. Solicite um novo código.')
-        } else if (error.message.includes('invalid') || error.message.includes('inválido')) {
-          setError('Código inválido. Verifique e tente novamente.')
+        const errorMsg = error.message.toLowerCase()
+        
+        // Verificar se o token expirou
+        if (errorMsg.includes('expired') || 
+            errorMsg.includes('expirado') || 
+            errorMsg.includes('expirou') ||
+            errorMsg.includes('token has expired') ||
+            errorMsg.includes('código expirado') ||
+            errorMsg.includes('otp expired')) {
+          const errorMessage = 'Código expirado. Solicite um novo código.'
+          setError(errorMessage)
+          toast.error(errorMessage, {
+            duration: 5000,
+          })
+          // Limpar os inputs quando o código expirar
+          setOtp(['', '', '', '', '', '', '', ''])
+          setOtpLength(8)
+          inputRefs.current[0]?.focus()
+        } else if (errorMsg.includes('invalid') || 
+                   errorMsg.includes('inválido') ||
+                   errorMsg.includes('incorrect') ||
+                   errorMsg.includes('incorreto') ||
+                   errorMsg.includes('wrong') ||
+                   errorMsg.includes('errado')) {
+          const errorMessage = 'Código inválido. Verifique e tente novamente.'
+          setError(errorMessage)
+          toast.error(errorMessage, {
+            duration: 4000,
+          })
         } else {
-          setError(error.message || 'Erro ao verificar código. Tente novamente.')
+          const errorMessage = error.message || 'Erro ao verificar código. Tente novamente.'
+          setError(errorMessage)
+          toast.error(errorMessage, {
+            duration: 5000,
+          })
         }
         
         logger.error('OTP verification failed', error.message, 'OtpVerification', {
           email,
           attempts: attempts + 1,
+          errorType: errorMsg.includes('expired') ? 'expired' : errorMsg.includes('invalid') ? 'invalid' : 'other',
         })
       } else {
         logger.info('OTP verified successfully', 'OtpVerification', { email })
@@ -306,27 +359,48 @@ export default function OtpVerification() {
     }
   }
 
+  if (loadingTenant) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-sm text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
-      <Card className="w-full max-w-md shadow-xl border-0">
-        <CardHeader className="text-center space-y-4 pb-6">
-          <div className="flex justify-center">
-            <div className="rounded-full bg-primary/10 p-4">
-              <Mail className="h-12 w-12 text-primary" />
-            </div>
-          </div>
-          <CardTitle className="text-3xl font-bold text-gray-900">Verifique seu Email</CardTitle>
-          <CardDescription className="text-base">
-            Digite o código enviado para
-            <br />
-            <strong className="text-foreground font-semibold">{email}</strong>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Lado Esquerdo - Informações do Sistema */}
+      <SystemInfoSidebar variant="security" />
+
+      {/* Lado Direito - Formulário */}
+      <div className="flex-1 flex items-center justify-center p-4 lg:p-12">
+        <Card className="w-full max-w-2xl shadow-2xl border-2 border-gray-200 bg-white">
+          <CardHeader className="text-center bg-gray-100/50 pb-6 pt-8 px-8 border-b-2 border-gray-200">
+            {tenant?.logo_url && (
+              <div className="mb-4 flex justify-center">
+                <img src={tenant.logo_url} alt={tenant.name} className="h-14 w-auto" />
+              </div>
+            )}
+            <CardTitle className="text-4xl font-bold text-blue-600 mb-2 flex items-center justify-center gap-2">
+              <Mail className="h-8 w-8 text-blue-600" />
+              Verifique seu Email
+            </CardTitle>
+            <CardDescription className="text-base text-gray-600">
+              Digite o código enviado para
+              <br />
+              <strong className="text-gray-800 font-semibold">{email}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-8 space-y-6">
           {error && (
-            <Alert variant="destructive" className="animate-in fade-in">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+            <Alert variant="destructive" className="animate-in fade-in border-red-500">
+              <div className="flex items-center justify-center gap-2">
+                <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <AlertDescription className="text-red-600 text-center">{error}</AlertDescription>
+              </div>
             </Alert>
           )}
 
@@ -340,11 +414,11 @@ export default function OtpVerification() {
           )}
 
           <div className="space-y-6">
-            <div className="flex justify-center gap-3 flex-wrap">
-              {otp.map((digit, index) => (
+            <div className="flex justify-center gap-2.5">
+              {otp.slice(0, otpLength).map((digit, index) => (
                 <Input
                   key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
+                  ref={(el) => { if (el) inputRefs.current[index] = el }}
                   type="text"
                   inputMode="numeric"
                   maxLength={1}
@@ -353,21 +427,20 @@ export default function OtpVerification() {
                   onPaste={index === 0 ? handlePaste : undefined}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   disabled={isVerifying || attempts >= 3}
-                  className="w-14 h-16 text-center text-2xl font-bold focus-visible:ring-2 focus-visible:ring-primary"
+                  className="w-12 h-14 text-center text-xl font-bold focus-visible:ring-2 focus-visible:ring-primary"
                   autoFocus={index === 0}
-                  style={{ display: index < otpLength ? 'block' : 'none' }}
                 />
               ))}
             </div>
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-sm text-center text-gray-600">
               Digite o código de {otpLength} dígitos recebido por email
             </p>
 
             <Button
               onClick={() => handleVerify()}
               disabled={isVerifying || otp.slice(0, otpLength).some(d => d === '') || attempts >= 3}
-              className="w-full h-11"
-              size="lg"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold"
+              size="sm"
             >
               {isVerifying ? (
                 <>
@@ -387,7 +460,8 @@ export default function OtpVerification() {
                 onClick={handleResend}
                 disabled={isResending || !canResend || attempts >= 3}
                 variant="outline"
-                className="w-full h-11"
+                className="w-full border-gray-300 hover:bg-gray-100 text-gray-700"
+                size="sm"
               >
                 {isResending ? (
                   <>
@@ -407,26 +481,30 @@ export default function OtpVerification() {
                 )}
               </Button>
 
-              <div className="text-sm text-center text-muted-foreground space-y-2 pt-2">
-                <p className="font-semibold text-foreground">
+              <div className="text-sm text-center text-gray-600 space-y-2 pt-2">
+                <p className="font-semibold text-gray-800">
                   Não recebeu o código?
                 </p>
                 <div className="space-y-1 text-left max-w-sm mx-auto">
                   <p>1. Verifique a pasta de spam/lixo eletrônico</p>
                   <p>2. Aguarde alguns minutos (emails podem ter delay)</p>
-                  <p>3. Verifique se "Confirm email" está habilitado no Supabase Dashboard</p>
-                  <p>4. Clique em "Reenviar Código" após 60 segundos</p>
+                  <p>3. Clique em "Reenviar Código" após 60 segundos</p>
                 </div>
-                <p className="text-xs text-muted-foreground/70 mt-4">
-                  Se o problema persistir, verifique as configurações de email no Supabase Dashboard.
-                  <br />
-                  Consulte: <code className="text-xs bg-muted px-1 py-0.5 rounded">docs/SUPABASE_EMAIL_DIAGNOSTIC.md</code>
+                <p className="text-xs text-gray-500 mt-4">
+                  Precisa de Ajuda? Contate o{' '}
+                  <a 
+                    href="mailto:administracao@smartgesti.com.br" 
+                    className="text-blue-600 hover:text-blue-700 font-semibold underline"
+                  >
+                    suporte
+                  </a>
                 </p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   )
 }
