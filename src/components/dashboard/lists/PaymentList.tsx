@@ -7,11 +7,31 @@ interface PaymentListProps extends LoadableProps {
   maxItems?: number
 }
 
-const statusConfig: Record<PaymentStatus, { icon: typeof CheckCircle; bg: string; text: string }> = {
-  pago: { icon: CheckCircle, bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400' },
-  parcial: { icon: Clock, bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400' },
-  pendente: { icon: Clock, bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400' },
-  atrasado: { icon: AlertCircle, bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400' },
+const statusConfig: Record<PaymentStatus, { icon: typeof CheckCircle; iconBg: string; text: string; card: string }> = {
+  pago: { 
+    icon: CheckCircle, 
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/30', 
+    text: 'text-emerald-600 dark:text-emerald-400',
+    card: 'bg-gradient-to-r from-emerald-50 to-emerald-100 border-l-4 border-emerald-400 dark:from-gray-800/50 dark:to-gray-800/50 dark:border-l-0'
+  },
+  parcial: { 
+    icon: Clock, 
+    iconBg: 'bg-amber-100 dark:bg-amber-900/30', 
+    text: 'text-amber-600 dark:text-amber-400',
+    card: 'bg-gradient-to-r from-amber-50 to-amber-100 border-l-4 border-amber-400 dark:from-gray-800/50 dark:to-gray-800/50 dark:border-l-0'
+  },
+  pendente: { 
+    icon: Clock, 
+    iconBg: 'bg-gray-100 dark:bg-gray-800', 
+    text: 'text-gray-600 dark:text-gray-400',
+    card: 'bg-gradient-to-r from-gray-50 to-gray-100 border-l-4 border-gray-400 dark:from-gray-800/50 dark:to-gray-800/50 dark:border-l-0'
+  },
+  atrasado: { 
+    icon: AlertCircle, 
+    iconBg: 'bg-red-100 dark:bg-red-900/30', 
+    text: 'text-red-600 dark:text-red-400',
+    card: 'bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-400 dark:from-gray-800/50 dark:to-gray-800/50 dark:border-l-0'
+  },
 }
 
 export function PaymentList({ payments, maxItems, isLoading = false }: PaymentListProps) {
@@ -30,10 +50,10 @@ export function PaymentList({ payments, maxItems, isLoading = false }: PaymentLi
         return (
           <div 
             key={pagamento.id}
-            className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50"
+            className={`flex items-center justify-between p-2 rounded-lg ${config.card}`}
           >
             <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${config.bg}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${config.iconBg}`}>
                 <Icon className={`w-4 h-4 ${config.text}`} />
               </div>
               <div>
