@@ -72,13 +72,13 @@ export default function Dashboard() {
                 <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">Informações do Usuário</h3>
                 <div className="space-y-2">
                   <p>
-                    <strong>Nome:</strong> {userData?.full_name || user?.name || 'N/A'}
+                    <strong>Nome:</strong> {userData?.full_name || userData?.email || 'N/A'}
                   </p>
                   <p>
                     <strong>Email:</strong> {userData?.email || user?.email || 'N/A'}
                   </p>
-                  {user?.picture && (
-                    <img src={user.picture} alt="Avatar" className="w-16 h-16 rounded-full" />
+                  {userData?.avatar_url && (
+                    <img src={userData.avatar_url} alt="Avatar" className="w-16 h-16 rounded-full" />
                   )}
                 </div>
               </div>

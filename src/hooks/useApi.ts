@@ -41,7 +41,7 @@ export function useApi<T = any>(
     onError,
   } = options;
 
-  const { session, user, loading: authLoading } = useAuth();
+  const { session, user } = useAuth();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);

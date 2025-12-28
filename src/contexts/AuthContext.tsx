@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     
     if (error) {
-      logger.error('Sign in error', error.message, 'AuthContext', { email })
+      logger.error('Sign in error', 'AuthContext', { email, error: error.message })
     }
     
     return { error }
@@ -95,14 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           'Se você está usando Gmail SMTP, certifique-se de usar uma "App Password" (não a senha normal). ' +
           'Consulte: docs/SUPABASE_GMAIL_SMTP_TROUBLESHOOTING.md'
         
-        logger.error('Sign up error - Email sending failed', error.message, 'AuthContext', { 
+        logger.error('Sign up error - Email sending failed', 'AuthContext', { 
           email, 
-          error,
+          error: error.message,
           status: (error as any).status,
           hint: 'Gmail requires App Password for SMTP. Check: https://myaccount.google.com/apppasswords'
         })
       } else {
-        logger.error('Sign up error', error.message, 'AuthContext', { email, error })
+        logger.error('Sign up error', 'AuthContext', { email, error: error.message })
       }
       
       // Retornar o erro original, mas com mensagem melhorada
@@ -150,7 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     
     if (error) {
-      logger.error('Google sign in error', error.message, 'AuthContext', { error })
+      logger.error('Google sign in error', 'AuthContext', { error: error.message })
       throw error
     }
     
@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     if (error) {
-      logger.error('Sign out error', error.message, 'AuthContext')
+      logger.error('Sign out error', 'AuthContext', { error: error.message })
     } else {
       logger.info('User signed out successfully', 'AuthContext')
     }
@@ -173,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     
     if (error) {
-      logger.error('Reset password error', error.message, 'AuthContext', { email })
+      logger.error('Reset password error', 'AuthContext', { email, error: error.message })
     } else {
       logger.info('Password reset email sent', 'AuthContext', { email })
     }
@@ -191,7 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     
     if (error) {
-      logger.error('Resend confirmation email error', error.message, 'AuthContext', { email })
+      logger.error('Resend confirmation email error', 'AuthContext', { email, error: error.message })
     } else {
       logger.info('Confirmation email resent', 'AuthContext', { email })
     }
@@ -209,7 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     
     if (error) {
-      logger.error('OTP verification error', error.message, 'AuthContext', { email })
+      logger.error('OTP verification error', 'AuthContext', { email, error: error.message })
     } else {
       logger.info('OTP verified successfully', 'AuthContext', { email })
     }
@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     
     if (error) {
-      logger.error('Resend OTP error', error.message, 'AuthContext', { email })
+      logger.error('Resend OTP error', 'AuthContext', { email, error: error.message })
     } else {
       logger.info('OTP resent successfully', 'AuthContext', { email })
     }

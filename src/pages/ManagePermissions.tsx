@@ -35,7 +35,10 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
   const { data: roles } = useQuery({
     queryKey: ['roles', tenantId],
     queryFn: async () => {
-      const token = await getAccessTokenSilently();
+      if (!session?.access_token) {
+        throw new Error('No access token available');
+      }
+      const token = session.access_token;
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/roles`,
         {
@@ -53,7 +56,10 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
   const { data: invitations } = useQuery({
     queryKey: ['invitations', tenantId],
     queryFn: async () => {
-      const token = await getAccessTokenSilently();
+      if (!session?.access_token) {
+        throw new Error('No access token available');
+      }
+      const token = session.access_token;
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/invitations`,
         {
@@ -71,7 +77,10 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
   // Mutation para criar convite
   const createInviteMutation = useMutation({
     mutationFn: async (data: { email: string; role_id: string }) => {
-      const token = await getAccessTokenSilently();
+      if (!session?.access_token) {
+        throw new Error('No access token available');
+      }
+      const token = session.access_token;
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/invitations`,
         data,

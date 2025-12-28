@@ -89,7 +89,10 @@ export function useInvitations(tenantId: string) {
   // Mutation para cancelar convite
   const cancelInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
-      const token = await getAccessTokenSilently();
+      if (!session?.access_token) {
+        throw new Error('No access token available');
+      }
+      const token = session.access_token;
       await axios.post(
         `${API_URL}/api/invitations/${invitationId}/cancel`,
         {},

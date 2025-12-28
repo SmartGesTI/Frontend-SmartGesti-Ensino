@@ -36,7 +36,7 @@ export default function EmailVerification() {
 
       toast.success('Email de verificação reenviado! Verifique sua caixa de entrada.')
     } catch (error: any) {
-      logger.error('Failed to resend email', error.message, 'EmailVerification')
+      logger.error('Failed to resend email', 'EmailVerification', { error: error.message })
       toast.error('Erro ao reenviar email: ' + (error.message || 'Erro desconhecido'))
     } finally {
       setIsResending(false)

@@ -233,8 +233,9 @@ export default function OtpVerification() {
           })
         }
         
-        logger.error('OTP verification failed', error.message, 'OtpVerification', {
+        logger.error('OTP verification failed', 'OtpVerification', {
           email,
+          error: error.message,
           attempts: attempts + 1,
           errorType: errorMsg.includes('expired') ? 'expired' : errorMsg.includes('invalid') ? 'invalid' : 'other',
         })
@@ -299,7 +300,7 @@ export default function OtpVerification() {
           // Redirecionar para selecionar escola (que vai para aguardando aprovação se não tiver tenant_id)
           navigate('/selecionar-escola', { replace: true })
         } catch (syncError: any) {
-          logger.error('Failed to sync user after OTP verification', syncError.message, 'OtpVerification', {
+          logger.error('Failed to sync user after OTP verification', 'OtpVerification', {
             error: syncError.message,
             email,
           })
@@ -312,7 +313,8 @@ export default function OtpVerification() {
         }
       }
     } catch (error: any) {
-      logger.error('OTP verification exception', error.message, 'OtpVerification', {
+      logger.error('OTP verification exception', 'OtpVerification', {
+        error: error.message,
         stack: error.stack,
       })
       setError('Erro inesperado. Tente novamente.')
@@ -353,7 +355,7 @@ export default function OtpVerification() {
         inputRefs.current[0]?.focus()
       }
     } catch (error: any) {
-      logger.error('Resend OTP exception', error.message, 'OtpVerification')
+      logger.error('Resend OTP exception', 'OtpVerification', { error: error.message })
       toast.error('Erro ao reenviar código')
     } finally {
       setIsResending(false)

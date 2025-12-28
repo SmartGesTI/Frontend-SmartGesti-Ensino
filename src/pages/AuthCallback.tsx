@@ -46,7 +46,8 @@ export default function AuthCallback() {
           const errorDescription = hashParams.get('error_description')
           
           if (error) {
-            logger.error('OAuth error in callback', error, 'AuthCallback', {
+            logger.error('OAuth error in callback', 'AuthCallback', {
+              error,
               errorDescription,
             })
             navigate(`/login?error=${encodeURIComponent(error)}`, { replace: true })
@@ -65,7 +66,7 @@ export default function AuthCallback() {
         const { data, error } = await supabase.auth.getSession()
         
         if (error) {
-          logger.error('Auth callback error', error.message, 'AuthCallback')
+          logger.error('Auth callback error', 'AuthCallback', { error: error.message })
           navigate('/login?error=auth_failed', { replace: true })
           return
         }
@@ -127,7 +128,8 @@ export default function AuthCallback() {
           navigate('/login', { replace: true })
         }
       } catch (error: any) {
-        logger.error('Auth callback exception', error.message, 'AuthCallback', {
+        logger.error('Auth callback exception', 'AuthCallback', {
+          error: error.message,
           stack: error.stack,
         })
         navigate('/login?error=unknown', { replace: true })

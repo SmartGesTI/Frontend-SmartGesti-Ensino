@@ -76,7 +76,7 @@ export function AuthSync() {
         // Marcar como sincronizado para este token
         sessionStorage.setItem(syncKey, token)
       } catch (error: any) {
-        logger.error('Failed to sync user', error.message, 'AuthSync', {
+        logger.error('Failed to sync user', 'AuthSync', {
           error: error.message,
           userId: user?.id,
         })

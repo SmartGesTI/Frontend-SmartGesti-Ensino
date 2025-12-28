@@ -1,5 +1,4 @@
 import { useAuth } from '@/contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -9,7 +8,6 @@ import { logger } from '@/lib/logger'
 import { getTenantFromSubdomain } from '@/lib/tenant'
 import { useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/services/api'
-import { useAccessToken } from '@/hooks/useAccessToken'
 import { useState } from 'react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useQueryClient } from '@tanstack/react-query'
@@ -23,9 +21,7 @@ interface Tenant {
 
 export default function PendingApproval() {
   const { user, signOut } = useAuth()
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { token, isReady } = useAccessToken()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const tenantSubdomain = getTenantFromSubdomain()
 

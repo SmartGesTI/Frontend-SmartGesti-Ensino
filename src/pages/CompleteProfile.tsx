@@ -145,7 +145,7 @@ export default function CompleteProfile() {
           const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
           
           // Fazer upload para Supabase Storage
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from('avatars')
             .upload(fileName, avatarFile, {
               cacheControl: '3600',
@@ -153,8 +153,9 @@ export default function CompleteProfile() {
             })
 
           if (uploadError) {
-            logger.error('Failed to upload avatar', uploadError.message, 'CompleteProfile', {
-              error: uploadError,
+            logger.error('Failed to upload avatar', 'CompleteProfile', {
+              error: uploadError.message,
+              uploadError,
             })
             throw new Error(`Erro ao fazer upload da imagem: ${uploadError.message}`)
           }
@@ -171,8 +172,9 @@ export default function CompleteProfile() {
             publicUrl,
           })
         } catch (uploadErr: any) {
-          logger.error('Avatar upload exception', uploadErr.message, 'CompleteProfile', {
-            error: uploadErr,
+          logger.error('Avatar upload exception', 'CompleteProfile', {
+            error: uploadErr.message,
+            uploadErr,
           })
           throw new Error(`Erro ao fazer upload da imagem: ${uploadErr.message}`)
         }
@@ -276,7 +278,7 @@ export default function CompleteProfile() {
     } catch (err: any) {
       const errorMessage = err.message || 'Erro ao completar perfil'
       setError(errorMessage)
-      logger.error('Failed to complete profile', errorMessage, 'CompleteProfile', {
+      logger.error('Failed to complete profile', 'CompleteProfile', {
         error: errorMessage,
         email: user?.email,
       })

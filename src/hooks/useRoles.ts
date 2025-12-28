@@ -57,7 +57,10 @@ export function useRoles(tenantId: string) {
   // Mutation para atribuir role
   const assignRoleMutation = useMutation({
     mutationFn: async (data: AssignRoleData) => {
-      const token = await getAccessTokenSilently();
+      if (!session?.access_token) {
+        throw new Error('No access token available');
+      }
+      const token = session.access_token;
       const response = await axios.post(
         `${API_URL}/api/roles/assign`,
         {
