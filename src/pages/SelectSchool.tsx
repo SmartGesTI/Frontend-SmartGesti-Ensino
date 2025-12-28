@@ -64,12 +64,10 @@ export default function SelectSchool() {
     }
 
     // 3. Verificar tenant_id
+    // IMPORTANTE: Se for owner, pode não ter tenant_id ainda (será vinculado automaticamente)
     if (!currentUser.tenant_id) {
-      logger.warn('User has no tenant_id, redirecting to pending approval', 'SelectSchool', {
-        userId: currentUser.id,
-        email: currentUser.email,
-      })
-      navigate('/aguardando-aprovacao', { replace: true })
+      // Verificar se é owner antes de redirecionar para aprovação
+      checkIfOwnerWithoutTenant(currentUser.id, currentUser.email)
       return
     }
 
@@ -80,7 +78,56 @@ export default function SelectSchool() {
     }
   }, [currentUser, userLoading, schools, schoolsLoading, navigate])
 
-  // Função auxiliar para verificar ownership
+  // Função auxiliar para verificar ownership quando não tem tenant_id
+  const checkIfOwnerWithoutTenant = async (userId: string, userEmail: string) => {
+    try {
+      if (!token) {
+        navigate('/aguardando-aprovacao', { replace: true })
+        return
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/users/status`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-tenant-id': tenantSubdomain || '',
+          },
+        }
+      )
+
+      if (response.ok) {
+        const status = await response.json()
+        
+        // Se for owner, recarregar dados do usuário para pegar tenant_id atualizado
+        if (status.isOwner) {
+          logger.info('User is owner, reloading user data to get tenant_id', 'SelectSchool', {
+            userId,
+            email: userEmail,
+          })
+          
+          // Aguardar um pouco para o backend sincronizar
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          
+          // Recarregar a página ou refetch do usuário
+          window.location.reload()
+          return
+        }
+      }
+      
+      // Se não for owner, redirecionar para aprovação
+      logger.warn('User has no tenant_id and is not owner, redirecting to pending approval', 'SelectSchool', {
+        userId,
+        email: userEmail,
+      })
+      navigate('/aguardando-aprovacao', { replace: true })
+    } catch (error) {
+      logger.error('Failed to check owner status', 'SelectSchool', { error })
+      navigate('/aguardando-aprovacao', { replace: true })
+    }
+  }
+
+  // Função auxiliar para verificar ownership quando tem tenant_id
   const checkIfOwner = async (userId: string, tenantId: string) => {
     try {
       if (!token) return

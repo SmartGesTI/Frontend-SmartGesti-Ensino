@@ -219,11 +219,44 @@ export default function CompleteProfile() {
       }
 
       // Verificar se tem tenant_id para decidir o redirecionamento
-      // Se não tiver tenant_id, vai para aguardando aprovação
-      // Se tiver tenant_id, vai para selecionar escola
+      // IMPORTANTE: Se for owner, já deve ter tenant_id vinculado automaticamente
+      // Se não tiver tenant_id, verificar se é owner antes de redirecionar para aprovação
       if (!data.user?.tenant_id) {
-        // Sem tenant_id = aguardando aprovação
-        logger.info('User has no tenant_id, redirecting to pending approval', 'CompleteProfile', {
+        // Verificar se é owner de algum tenant
+        try {
+          const statusResponse = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/users/status`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                ...(tenantSubdomain && { 'x-tenant-id': tenantSubdomain }),
+              },
+            }
+          )
+          
+          if (statusResponse.ok) {
+            const status = await statusResponse.json()
+            
+            // Se for owner, recarregar dados do usuário para pegar tenant_id atualizado
+            if (status.isOwner) {
+              logger.info('User is owner, reloading user data to get tenant_id', 'CompleteProfile', {
+                userId: data.user?.id,
+              })
+              
+              // Aguardar um pouco e recarregar dados do usuário
+              await new Promise(resolve => setTimeout(resolve, 1000))
+              
+              // Redirecionar para selecionar escola (o SelectSchool vai verificar novamente)
+              navigate('/selecionar-escola', { replace: true })
+              return
+            }
+          }
+        } catch (statusError) {
+          logger.warn('Failed to check owner status', 'CompleteProfile', { error: statusError })
+        }
+        
+        // Sem tenant_id e não é owner = aguardando aprovação
+        logger.info('User has no tenant_id and is not owner, redirecting to pending approval', 'CompleteProfile', {
           userId: data.user?.id,
         })
         setTimeout(() => {
