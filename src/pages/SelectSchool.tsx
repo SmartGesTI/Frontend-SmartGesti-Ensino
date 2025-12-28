@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { apiRequest } from '@/services/api'
 import { School, User } from '@/types'
 import { logger } from '@/lib/logger'
@@ -10,6 +11,20 @@ import { getTenantFromSubdomain } from '@/lib/tenant'
 import { useEffect } from 'react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
+// Componente Skeleton para os cards de escola
+function SchoolCardSkeleton() {
+  return (
+    <Card className="border-2 border-border bg-card">
+      <CardContent className="p-6">
+        <Skeleton className="h-6 w-3/4 mb-3" />
+        <Skeleton className="h-4 w-1/2 mb-2" />
+        <Skeleton className="h-4 w-full mb-4" />
+        <Skeleton className="h-9 w-full mt-4" />
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function SelectSchool() {
   const navigate = useNavigate()
   const { token, isReady, isLoading: tokenLoading } = useAccessToken()
@@ -17,23 +32,25 @@ export default function SelectSchool() {
 
   // Buscar dados do usuário atual
   const { data: currentUser, isLoading: userLoading } = useQuery({
-    queryKey: ['current-user', token],
+    queryKey: ['current-user', tenantSubdomain],
     queryFn: async () => {
       if (!token) throw new Error('No token available')
       return apiRequest<User>('/api/users/me', {}, token)
     },
     enabled: isReady && !!token,
+    staleTime: 30000, // 30 segundos
   })
 
   // Buscar TODAS as escolas da instituição (não apenas as que o usuário é membro)
   const { data: schools, isLoading: schoolsLoading } = useQuery({
-    queryKey: ['schools-all', token],
+    queryKey: ['schools-all', tenantSubdomain],
     queryFn: async () => {
       if (!token) throw new Error('No token available')
       // Usar ?all=true para buscar todas as escolas da instituição (baseado no subdomain)
       return apiRequest<School[]>('/api/schools?all=true', {}, token)
     },
     enabled: isReady && !!token,
+    staleTime: 30000, // 30 segundos
   })
 
   // Lógica de redirecionamento com prioridades
@@ -176,21 +193,11 @@ export default function SelectSchool() {
     navigate(`/escola/${school.slug}/painel`, { replace: true })
   }
 
-  const isLoading = tokenLoading || userLoading || schoolsLoading
+  const isLoadingInitial = tokenLoading || userLoading
+  const isLoadingSchools = schoolsLoading
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Carregando escolas...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Se não tem escolas disponíveis
-  if (!schools || schools.length === 0) {
+  // Se não tem escolas disponíveis (após carregar)
+  if (!isLoadingInitial && !isLoadingSchools && (!schools || schools.length === 0)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background p-4">
         <Card className="w-full max-w-md shadow-2xl border-2 border-border bg-card">
@@ -230,26 +237,34 @@ export default function SelectSchool() {
         </CardHeader>
         <CardContent className="p-8">
           <div className="grid gap-6 md:grid-cols-2">
-            {schools.map((school) => (
-              <Card
-                key={school.id}
-                className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-blue-500 border-2 border-border bg-card"
-                onClick={() => handleSelectSchool(school)}
-              >
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-100">{school.name}</h3>
-                  {school.code && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Código: <span className="font-medium">{school.code}</span></p>
-                  )}
-                  {school.address && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{school.address}</p>
-                  )}
-                  <Button className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold" size="sm">
-                    Acessar
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {isLoadingSchools ? (
+              // Skeleton cards enquanto carrega
+              <>
+                <SchoolCardSkeleton />
+                <SchoolCardSkeleton />
+              </>
+            ) : (
+              schools?.map((school) => (
+                <Card
+                  key={school.id}
+                  className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-blue-500 border-2 border-border bg-card"
+                  onClick={() => handleSelectSchool(school)}
+                >
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-100">{school.name}</h3>
+                    {school.code && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Código: <span className="font-medium">{school.code}</span></p>
+                    )}
+                    {school.address && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{school.address}</p>
+                    )}
+                    <Button className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold" size="sm">
+                      Acessar
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

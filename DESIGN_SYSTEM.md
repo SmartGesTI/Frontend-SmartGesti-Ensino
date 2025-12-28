@@ -500,6 +500,105 @@ bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800
 
 ---
 
+## 🖥️ Skeleton (Loading Placeholder)
+
+O componente `Skeleton` é usado para mostrar placeholders animados enquanto o conteúdo está carregando, melhorando a experiência do usuário.
+
+### Import
+
+```tsx
+import { Skeleton } from '@/components/ui/skeleton'
+```
+
+### Uso Básico
+
+```tsx
+// Linha de texto
+<Skeleton className="h-4 w-full" />
+
+// Título
+<Skeleton className="h-6 w-3/4" />
+
+// Avatar circular
+<Skeleton className="h-12 w-12 rounded-full" />
+
+// Botão
+<Skeleton className="h-9 w-24" />
+```
+
+### Card Skeleton Completo
+
+```tsx
+function CardSkeleton() {
+  return (
+    <Card className="border-2 border-border bg-card">
+      <CardContent className="p-6">
+        <Skeleton className="h-6 w-3/4 mb-3" />      {/* Título */}
+        <Skeleton className="h-4 w-1/2 mb-2" />      {/* Subtítulo */}
+        <Skeleton className="h-4 w-full mb-4" />     {/* Descrição */}
+        <Skeleton className="h-9 w-full mt-4" />     {/* Botão */}
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+### Table Row Skeleton
+
+```tsx
+function TableRowSkeleton() {
+  return (
+    <tr>
+      <td className="p-4"><Skeleton className="h-4 w-24" /></td>
+      <td className="p-4"><Skeleton className="h-4 w-32" /></td>
+      <td className="p-4"><Skeleton className="h-4 w-20" /></td>
+      <td className="p-4"><Skeleton className="h-8 w-16" /></td>
+    </tr>
+  )
+}
+```
+
+### Lista de Items Skeleton
+
+```tsx
+function ListSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+### Classes do Skeleton
+
+```tsx
+// Cores (light/dark)
+bg-gray-200 dark:bg-gray-700
+
+// Animação
+animate-pulse
+
+// Border radius padrão
+rounded-md
+```
+
+### Boas Práticas
+
+1. **Manter proporções**: O skeleton deve ter dimensões similares ao conteúdo real
+2. **Evitar loaders duplos**: Prefira skeleton ao invés de spinners para listas/cards
+3. **Feedback imediato**: Mostrar skeleton enquanto dados carregam, não após delay
+
+---
+
 ## 🔘 Botões Coloridos Completos
 
 ```tsx

@@ -3,13 +3,19 @@ import { useAuth } from '@/contexts/AuthContext'
 import { logger } from '@/lib/logger'
 import { getTenantFromSubdomain } from '@/lib/tenant'
 
+// Chave única para controlar sync por sessão (persiste entre re-mounts do StrictMode)
+const SYNC_SESSION_KEY = 'auth_sync_session'
+
 /**
  * Componente que sincroniza automaticamente o usuário com o backend após login
  * Deve ser montado dentro do AuthProvider
+ * 
+ * Usa sessionStorage para garantir que sync só acontece 1x por sessão,
+ * mesmo com React StrictMode que causa double-render em dev.
  */
 export function AuthSync() {
   const { user, session, loading } = useAuth()
-  const hasSynced = useRef(false)
+  const isSyncingRef = useRef(false)
 
   useEffect(() => {
     const syncUser = async () => {
@@ -17,10 +23,24 @@ export function AuthSync() {
       // - Ainda está carregando
       // - Não está autenticado
       // - Não tem sessão/token
-      // - Já sincronizou nesta sessão
-      if (loading || !user || !session?.access_token || hasSynced.current) {
+      if (loading || !user || !session?.access_token) {
         return
       }
+
+      // Verificar se já sincronizou nesta sessão (usando sessionStorage para persistir entre re-mounts)
+      const syncKey = `${SYNC_SESSION_KEY}_${user.id}`
+      const lastSyncToken = sessionStorage.getItem(syncKey)
+      
+      // Se o token é o mesmo, já sincronizou
+      if (lastSyncToken === session.access_token) {
+        return
+      }
+
+      // Evitar chamadas paralelas (StrictMode pode disparar useEffect 2x rapidamente)
+      if (isSyncingRef.current) {
+        return
+      }
+      isSyncingRef.current = true
 
       try {
         logger.info('Starting user sync', 'AuthSync', {
@@ -28,11 +48,9 @@ export function AuthSync() {
           userEmail: user.email,
         })
 
-        // Obter token de acesso da sessão
         const token = session.access_token
         const tenantSubdomain = getTenantFromSubdomain()
 
-        // Chamar endpoint de sincronização
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sync`, {
           method: 'POST',
           headers: {
@@ -55,22 +73,20 @@ export function AuthSync() {
           tenantId: data.user?.tenant_id,
         })
 
-        // Marcar como sincronizado
-        hasSynced.current = true
+        // Marcar como sincronizado para este token
+        sessionStorage.setItem(syncKey, token)
       } catch (error: any) {
         logger.error('Failed to sync user', error.message, 'AuthSync', {
           error: error.message,
           userId: user?.id,
         })
-        
-        // Não bloquear a aplicação por erro de sync
-        // O sync será tentado novamente em outras requisições
+      } finally {
+        isSyncingRef.current = false
       }
     }
 
     syncUser()
-  }, [user, session, loading])
+  }, [user?.id, session?.access_token, loading])
 
-  // Este componente não renderiza nada
   return null
 }

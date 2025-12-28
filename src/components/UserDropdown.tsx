@@ -5,13 +5,20 @@ import { useNavigate } from 'react-router-dom'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@radix-ui/react-dropdown-menu'
-import { User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { User, Settings, LogOut, ChevronDown, Hand } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { clearAllSessionData } from '@/lib/storage'
 import { cn } from '@/lib/utils'
@@ -26,22 +33,31 @@ export function UserDropdown({ className }: UserDropdownProps) {
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setIsOpen(false)
+    setShowLogoutModal(true)
+  }
+
+  const handleLogoutConfirm = async () => {
     if (isLoggingOut) return
 
     try {
       setIsLoggingOut(true)
       logger.info('Logout initiated', 'UserDropdown', { userId: user?.id })
 
+      // Limpar dados primeiro
       queryClient.clear()
       logger.reset()
       clearAllSessionData()
       await signOut()
 
+      // Aguardar um momento para o usuário ver a mensagem
       setTimeout(() => {
-        window.location.replace('/login')
-      }, 100)
+        // Usar navigate ao invés de window.location para evitar flick
+        navigate('/login', { replace: true })
+      }, 1500)
     } catch (error) {
       logger.error('Error during logout', 'UserDropdown', { error })
       
@@ -53,8 +69,12 @@ export function UserDropdown({ className }: UserDropdownProps) {
         console.error('Error clearing storage:', e)
       }
       
-      window.location.replace('/login')
+      navigate('/login', { replace: true })
     }
+  }
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false)
   }
 
   const getUserInitials = () => {
@@ -159,30 +179,69 @@ export function UserDropdown({ className }: UserDropdownProps) {
         {/* Logout */}
         <div className="py-1">
           <DropdownMenuItem
-            onClick={handleLogout}
-            disabled={isLoggingOut}
+            onClick={handleLogoutClick}
             className={cn(
               'relative flex cursor-pointer select-none items-center gap-3 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors',
               'text-red-600 dark:text-red-400',
               'hover:bg-red-50 dark:hover:bg-red-950/50',
-              'focus:bg-red-50 dark:focus:bg-red-950/50',
-              isLoggingOut && 'opacity-50 cursor-not-allowed'
+              'focus:bg-red-50 dark:focus:bg-red-950/50'
             )}
           >
-            {isLoggingOut ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                <span>Saindo...</span>
-              </>
-            ) : (
-              <>
-                <LogOut className="h-4 w-4" />
-                <span>Sair</span>
-              </>
-            )}
+            <LogOut className="h-4 w-4" />
+            <span>Sair</span>
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>
+
+      {/* Modal de Logout */}
+      <Dialog open={showLogoutModal} onOpenChange={setShowLogoutModal}>
+        <DialogContent hideCloseButton className="max-w-sm text-center">
+          {!isLoggingOut ? (
+            <>
+              <DialogHeader className="items-center">
+                <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">
+                  <Hand className="h-8 w-8 text-white" />
+                </div>
+                <DialogTitle className="text-xl">Deseja sair?</DialogTitle>
+                <DialogDescription className="text-center">
+                  Você tem certeza que deseja encerrar sua sessão?
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex gap-3 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={handleLogoutCancel}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleLogoutConfirm}
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="py-6">
+              <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30 animate-pulse">
+                <Hand className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Até logo!
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-1">
+                Obrigado por usar o SmartGesti Ensino.
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-500">
+                Volte sempre! 👋
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DropdownMenu>
   )
 }

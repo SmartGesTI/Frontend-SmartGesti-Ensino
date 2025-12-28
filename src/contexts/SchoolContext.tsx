@@ -31,7 +31,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['school', slug, token],
+    queryKey: ['school', slug, tenantSubdomain],
     queryFn: async () => {
       if (!slug || !token) {
         throw new Error('School slug or token not available')

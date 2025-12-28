@@ -173,6 +173,10 @@ export default function Login() {
   }
 
   const handleGoogleAuth = async () => {
+    // Feedback imediato - setar loading antes de qualquer operação
+    setIsSubmitting(true)
+    setAuthError(null)
+    
     logger.info('Google login button clicked', 'LoginPage', {
       tenant: tenant?.name,
       tenantSubdomain,
@@ -190,13 +194,14 @@ export default function Login() {
       }
     }
 
-    setAuthError(null)
     try {
       await signInWithGoogle()
+      // Não resetar isSubmitting aqui pois o OAuth vai redirecionar
     } catch (error: any) {
       logger.error('Error initiating Google OAuth', 'LoginPage', { error })
       const errorMessage = error.message || 'Erro ao iniciar login com Google'
       setAuthError(errorMessage)
+      setIsSubmitting(false)
       toast.error(errorMessage, {
         duration: 5000,
       })
@@ -463,12 +468,12 @@ export default function Login() {
                   {/* Botão Google */}
                   <Button
                     onClick={handleGoogleAuth}
-                    disabled={loading || isSubmitting}
+                    disabled={isSubmitting}
                     variant="google"
                     className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all pb-0 mb-0"
                     size="lg"
                   >
-                    {loading ? (
+                    {isSubmitting ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
                         Carregando...
@@ -495,7 +500,7 @@ export default function Login() {
                       variant="outline"
                       className="w-full h-12 text-base font-semibold border-2 border-primary/30 hover:border-primary/50 hover:bg-primary/5 text-primary hover:text-primary"
                       size="lg"
-                      disabled={isSubmitting || loading}
+                      disabled={isSubmitting}
                     >
                       <Mail className="h-5 w-5 mr-2" />
                       Entrar com Email
@@ -519,7 +524,7 @@ export default function Login() {
                               setEmailError('Email inválido')
                             }
                           }}
-                          disabled={isSubmitting || loading}
+                          disabled={isSubmitting}
                           required
                           autoComplete="email"
                           className="h-11"
@@ -544,7 +549,7 @@ export default function Login() {
                               setPasswordError('A senha é obrigatória')
                             }
                           }}
-                          disabled={isSubmitting || loading}
+                          disabled={isSubmitting}
                           required
                           minLength={6}
                           autoComplete="current-password"
@@ -564,18 +569,18 @@ export default function Login() {
                             setAuthError(null)
                           }}
                           className="flex-1 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-700"
-                          disabled={isSubmitting || loading}
+                          disabled={isSubmitting}
                           size="sm"
                         >
                           Cancelar
                         </Button>
                         <Button
                           type="submit"
-                          disabled={isSubmitting || loading || !email || !password || !isValidEmail(email)}
+                          disabled={isSubmitting || !email || !password || !isValidEmail(email)}
                           className="flex-1 font-semibold bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg transition-all"
                           size="sm"
                         >
-                          {isSubmitting || loading ? (
+                          {isSubmitting ? (
                             <>
                               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                               Entrando...
@@ -606,12 +611,12 @@ export default function Login() {
                   {/* Botão Google */}
                   <Button
                     onClick={handleGoogleAuth}
-                    disabled={loading || isSubmitting}
+                    disabled={isSubmitting}
                     variant="google"
                     className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all pb-0 mb-0"
                     size="lg"
                   >
-                    {loading ? (
+                    {isSubmitting ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
                         Carregando...
@@ -650,7 +655,7 @@ export default function Login() {
                             setEmailError('Email inválido')
                           }
                         }}
-                        disabled={isSubmitting || loading}
+                        disabled={isSubmitting}
                         required
                         autoComplete="email"
                         className="h-11"
@@ -690,7 +695,7 @@ export default function Login() {
                             }
                           }
                         }}
-                        disabled={isSubmitting || loading}
+                        disabled={isSubmitting}
                         required
                         minLength={10}
                         autoComplete="new-password"
@@ -722,7 +727,7 @@ export default function Login() {
                             setConfirmPasswordError('As senhas não coincidem')
                           }
                         }}
-                        disabled={isSubmitting || loading}
+                        disabled={isSubmitting}
                         required
                         minLength={10}
                         autoComplete="new-password"
@@ -735,7 +740,6 @@ export default function Login() {
                       type="submit"
                       disabled={
                         isSubmitting || 
-                        loading || 
                         !email || 
                         !password || 
                         !confirmPassword || 
@@ -747,7 +751,7 @@ export default function Login() {
                       className="w-full font-semibold bg-emerald-500 hover:bg-emerald-600 text-white shadow-md hover:shadow-lg transition-all"
                       size="sm"
                     >
-                      {isSubmitting || loading ? (
+                      {isSubmitting ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Criando conta...

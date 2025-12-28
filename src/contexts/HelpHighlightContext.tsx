@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react'
 
-type HighlightTarget = 'school-selector' | 'theme-toggle' | 'notifications' | 'user-menu' | null
+type HighlightTarget = 'school-selector' | 'theme-toggle' | 'notifications' | 'user-menu' | 'sidebar-toggle' | 'search-bar' | null
 
 interface HelpHighlightContextType {
   highlightedElement: HighlightTarget

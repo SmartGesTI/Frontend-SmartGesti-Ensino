@@ -5,6 +5,7 @@ import { apiRequest } from '@/services/api'
 import { School } from '@/types'
 import { logger } from '@/lib/logger'
 import { useAccessToken } from '@/hooks/useAccessToken'
+import { getTenantFromSubdomain } from '@/lib/tenant'
 import { Building2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,10 +17,12 @@ export function SchoolSelector({ className }: SchoolSelectorProps) {
   const { token, isReady } = useAccessToken()
   const { slug: currentSlug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
+  const tenantSubdomain = getTenantFromSubdomain()
 
   // Buscar TODAS as escolas da instituição para permitir troca
+  // Usa mesma queryKey que SelectSchool para compartilhar cache
   const { data: schools, isLoading: isLoadingSchools } = useQuery({
-    queryKey: ['schools-all', token],
+    queryKey: ['schools-all', tenantSubdomain],
     queryFn: async () => {
       if (!token) throw new Error('No token available')
       return apiRequest<School[]>('/api/schools?all=true', {}, token)

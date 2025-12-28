@@ -30,51 +30,61 @@ export function Navbar({ className }: NavbarProps) {
         {/* Lado Esquerdo - Botão Toggle + Busca */}
         <div className="flex items-center gap-3 flex-1">
           {/* Botão Toggle Sidebar */}
-          <button
-            onClick={toggleSidebar}
-            className={cn(
-              'hidden lg:flex items-center justify-center w-10 h-10 rounded-lg',
-              'text-gray-500 dark:text-gray-400',
-              'hover:bg-gray-100 dark:hover:bg-gray-800',
-              'hover:text-gray-700 dark:hover:text-gray-200',
-              'transition-all duration-200',
-              'focus:outline-none focus:ring-2 focus:ring-blue-500/20'
-            )}
-            aria-label={isExpanded ? 'Recolher menu' : 'Expandir menu'}
-          >
-            {isExpanded ? (
-              <PanelLeftClose className="w-5 h-5" />
-            ) : (
-              <PanelLeft className="w-5 h-5" />
-            )}
-          </button>
+          <div className={cn(
+            'hidden lg:block',
+            highlightClasses.base,
+            highlightedElement === 'sidebar-toggle' && highlightClasses.active
+          )}>
+            <button
+              onClick={toggleSidebar}
+              className={cn(
+                'flex items-center justify-center w-10 h-10 rounded-lg',
+                'text-gray-500 dark:text-gray-400',
+                'hover:bg-gray-100 dark:hover:bg-gray-800',
+                'hover:text-gray-700 dark:hover:text-gray-200',
+                'transition-all duration-200',
+                'focus:outline-none focus:ring-2 focus:ring-blue-500/20'
+              )}
+              aria-label={isExpanded ? 'Recolher menu' : 'Expandir menu'}
+            >
+              {isExpanded ? (
+                <PanelLeftClose className="w-5 h-5" />
+              ) : (
+                <PanelLeft className="w-5 h-5" />
+              )}
+            </button>
+          </div>
 
           {/* Barra de Busca */}
-          <div className="flex-1 max-w-xl hidden md:block">
           <div className={cn(
-            'relative transition-all duration-200',
-            searchFocused && 'scale-[1.02]'
+            'flex-1 max-w-xl hidden md:block',
+            highlightClasses.base,
+            highlightedElement === 'search-bar' && highlightClasses.active
           )}>
-            <Search className={cn(
-              'absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200',
-              searchFocused 
-                ? 'text-blue-500' 
-                : 'text-gray-400 dark:text-gray-500'
-            )} />
-            <Input
-              type="search"
-              placeholder="Buscar alunos, turmas, documentos..."
-              className={cn(
-                'pl-10 pr-4 h-10 w-full rounded-full',
-                'bg-gray-100 dark:bg-gray-800 border-transparent',
-                'focus:bg-white dark:focus:bg-gray-900 focus:border-blue-500',
-                'placeholder:text-gray-400 dark:placeholder:text-gray-500',
-                'transition-all duration-200'
-              )}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
-          </div>
+            <div className={cn(
+              'relative transition-all duration-200',
+              searchFocused && 'scale-[1.02]'
+            )}>
+              <Search className={cn(
+                'absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200',
+                searchFocused 
+                  ? 'text-blue-500' 
+                  : 'text-gray-400 dark:text-gray-500'
+              )} />
+              <Input
+                type="search"
+                placeholder="Buscar alunos, turmas, documentos..."
+                className={cn(
+                  'pl-10 pr-4 h-10 w-full rounded-lg',
+                  'bg-gray-100 dark:bg-gray-800 border-transparent',
+                  'focus:bg-white dark:focus:bg-gray-900 focus:border-blue-500',
+                  'placeholder:text-gray-400 dark:placeholder:text-gray-500',
+                  'transition-all duration-200'
+                )}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+              />
+            </div>
           </div>
         </div>
 
@@ -87,6 +97,25 @@ export function Navbar({ className }: NavbarProps) {
             size="md"
             belowNavbar
             items={[
+              {
+                title: 'Expandir/Recolher Menu',
+                description: 'Clique para expandir ou recolher o menu lateral. Quando recolhido, passe o mouse sobre os ícones para ver as opções. Sua preferência é salva automaticamente.',
+                icon: (
+                  <div className="relative w-4 h-4">
+                    <PanelLeftClose className="w-4 h-4 absolute" style={{ opacity: isExpanded ? 1 : 0 }} />
+                    <PanelLeft className="w-4 h-4 absolute" style={{ opacity: isExpanded ? 0 : 1 }} />
+                  </div>
+                ),
+                iconColor: 'indigo',
+                highlightTarget: 'sidebar-toggle',
+              },
+              {
+                title: 'Campo de Busca',
+                description: 'Pesquise rapidamente por alunos, turmas, documentos e outros registros. Digite o termo desejado e os resultados aparecerão instantaneamente.',
+                icon: <Search className="w-4 h-4" />,
+                iconColor: 'cyan',
+                highlightTarget: 'search-bar',
+              },
               {
                 title: 'Seletor de Escola',
                 description: 'Alterne entre as escolas que você tem acesso. Ao trocar de escola, o sistema recarregará automaticamente com os dados da escola selecionada. Você só poderá visualizar e gerenciar os dados da escola ativa no momento.',

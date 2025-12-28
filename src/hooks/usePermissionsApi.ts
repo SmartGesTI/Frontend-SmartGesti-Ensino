@@ -26,6 +26,16 @@ interface UsePermissionsApiReturn {
   refetch: () => Promise<void>;
 }
 
+// Cache global para permissões (persiste entre re-mounts do StrictMode)
+const permissionsCache = new Map<string, {
+  permissions: Record<string, string[]>;
+  roles: RoleData[];
+  isOwner: boolean;
+  timestamp: number;
+}>();
+
+const CACHE_TTL = 30000; // 30 segundos
+
 /**
  * Hook especializado para buscar permissões e roles do usuário
  * Implementa cache e evita re-fetches desnecessários
@@ -50,8 +60,6 @@ export function usePermissionsApi(
   
   // Refs para controle de fetch
   const isFetchingRef = useRef(false);
-  const hasFetchedRef = useRef(false);
-  const lastFetchParamsRef = useRef<string>('');
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -70,14 +78,26 @@ export function usePermissionsApi(
       return;
     }
 
-    // Evitar fetch duplicado
-    const currentParams = `${user.id}-${tenantId}-${schoolId || 'none'}`;
-    if (isFetchingRef.current || (hasFetchedRef.current && lastFetchParamsRef.current === currentParams)) {
+    // Chave do cache
+    const cacheKey = `${user.id}-${tenantId}-${schoolId || 'none'}`;
+    
+    // Verificar cache válido
+    const cached = permissionsCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+      if (mountedRef.current) {
+        setPermissions(cached.permissions);
+        setRoles(cached.roles);
+        setIsOwner(cached.isOwner);
+        setLoading(false);
+      }
       return;
     }
 
+    // Evitar fetch paralelo
+    if (isFetchingRef.current) {
+      return;
+    }
     isFetchingRef.current = true;
-    lastFetchParamsRef.current = currentParams;
     
     if (mountedRef.current) {
       setLoading(true);
@@ -118,18 +138,25 @@ export function usePermissionsApi(
           roles: rolesResponse.data,
         });
 
-        setPermissions(permissionsResponse.data.permissions || {});
-        setIsOwner(permissionsResponse.data.isOwner || false);
-        
-        setRoles(
-          rolesResponse.data.map((ur: any) => ({
-            id: ur.roles?.id || ur.id,
-            name: ur.roles?.name || ur.name,
-            slug: ur.roles?.slug || ur.slug,
-          }))
-        );
+        const newPermissions = permissionsResponse.data.permissions || {};
+        const newIsOwner = permissionsResponse.data.isOwner || false;
+        const newRoles = rolesResponse.data.map((ur: any) => ({
+          id: ur.roles?.id || ur.id,
+          name: ur.roles?.name || ur.name,
+          slug: ur.roles?.slug || ur.slug,
+        }));
 
-        hasFetchedRef.current = true;
+        setPermissions(newPermissions);
+        setIsOwner(newIsOwner);
+        setRoles(newRoles);
+
+        // Salvar no cache
+        permissionsCache.set(cacheKey, {
+          permissions: newPermissions,
+          roles: newRoles,
+          isOwner: newIsOwner,
+          timestamp: Date.now(),
+        });
       }
     } catch (err: any) {
       if (mountedRef.current) {
@@ -173,9 +200,13 @@ export function usePermissionsApi(
   }, [enabled, isAuthenticated, user?.id, tenantId, schoolId, fetchPermissions]);
 
   const refetch = useCallback(async () => {
-    hasFetchedRef.current = false;
+    // Limpar cache para forçar novo fetch
+    const cacheKey = user ? `${user.id}-${tenantId}-${schoolId || 'none'}` : '';
+    if (cacheKey) {
+      permissionsCache.delete(cacheKey);
+    }
     await fetchPermissions();
-  }, [fetchPermissions]);
+  }, [fetchPermissions, user?.id, tenantId, schoolId]);
 
   return {
     permissions,
