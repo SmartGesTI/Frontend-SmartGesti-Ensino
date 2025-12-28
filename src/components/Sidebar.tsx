@@ -28,6 +28,7 @@ import { useState, useEffect } from 'react'
 interface MenuItem {
   name: string
   icon: React.ElementType
+  iconColor?: string
   path?: string
   children?: MenuItem[]
   resource?: string
@@ -67,48 +68,91 @@ export function Sidebar({ className }: SidebarProps) {
     {
       name: 'Dashboard',
       icon: LayoutDashboard,
+      iconColor: 'text-blue-500',
       requirePermission: false,
       children: [
         {
           name: 'Visão Geral',
           icon: Eye,
+          iconColor: 'text-blue-400',
           path: `/escola/${slug}/painel`,
           requirePermission: false,
         },
         {
           name: 'Financeiro',
           icon: DollarSign,
+          iconColor: 'text-blue-500',
           path: `/escola/${slug}/painel/financeiro`,
           requirePermission: false,
         },
         {
           name: 'Acadêmico',
           icon: BarChart3,
+          iconColor: 'text-blue-600',
           path: `/escola/${slug}/painel/academico`,
           requirePermission: false,
         },
       ],
     },
     {
+      name: 'Administração',
+      icon: Building2,
+      iconColor: 'text-amber-500',
+      requirePermission: true,
+      resource: 'users',
+      action: 'read',
+      children: [
+        {
+          name: 'Gerenciar Escola',
+          icon: School,
+          iconColor: 'text-amber-400',
+          path: `/escola/${slug}/escola-atual`,
+          requirePermission: false,
+        },
+        {
+          name: 'Equipe',
+          icon: UserCog,
+          iconColor: 'text-amber-500',
+          path: `/escola/${slug}/usuarios`,
+          resource: 'users',
+          action: 'read',
+          requirePermission: true,
+        },
+        {
+          name: 'Permissões',
+          icon: Shield,
+          iconColor: 'text-amber-600',
+          path: `/escola/${slug}/permissoes`,
+          resource: 'users',
+          action: 'create',
+          requirePermission: true,
+        },
+      ],
+    },
+    {
       name: 'Acadêmico',
       icon: GraduationCap,
+      iconColor: 'text-purple-500',
       requirePermission: false,
       children: [
         {
           name: 'Turmas',
           icon: Users,
+          iconColor: 'text-purple-400',
           path: `/escola/${slug}/turmas`,
           requirePermission: false,
         },
         {
           name: 'Alunos',
           icon: BookOpen,
+          iconColor: 'text-purple-500',
           path: `/escola/${slug}/alunos`,
           requirePermission: false,
         },
         {
           name: 'Matrículas',
           icon: ClipboardList,
+          iconColor: 'text-purple-600',
           path: `/escola/${slug}/matriculas`,
           requirePermission: false,
         },
@@ -117,57 +161,45 @@ export function Sidebar({ className }: SidebarProps) {
     {
       name: 'Calendário',
       icon: Calendar,
-      path: `/escola/${slug}/calendario`,
+      iconColor: 'text-cyan-500',
       requirePermission: false,
-    },
-    {
-      name: 'Documentos',
-      icon: FileText,
-      path: `/escola/${slug}/documentos`,
-      requirePermission: false,
-    },
-    {
-      name: 'Administração',
-      icon: Building2,
-      requirePermission: true,
-      resource: 'users',
-      action: 'read',
       children: [
         {
-          name: 'Gerenciar Escola',
-          icon: School,
-          path: `/escola/${slug}/escola-atual`,
+          name: 'Ver Calendário',
+          icon: Eye,
+          iconColor: 'text-cyan-400',
+          path: `/escola/${slug}/calendario`,
           requirePermission: false,
         },
         {
-          name: 'Nova Escola',
+          name: 'Novo Evento',
           icon: Plus,
-          path: `/escola/${slug}/nova-escola`,
-          resource: 'schools',
-          action: 'create',
-          requirePermission: true,
-        },
-        {
-          name: 'Permissões',
-          icon: Shield,
-          path: `/escola/${slug}/permissoes`,
-          resource: 'users',
-          action: 'create',
-          requirePermission: true,
-        },
-        {
-          name: 'Usuários',
-          icon: UserCog,
-          path: `/escola/${slug}/usuarios`,
-          resource: 'users',
-          action: 'read',
-          requirePermission: true,
+          iconColor: 'text-cyan-600',
+          path: `/escola/${slug}/calendario/novo`,
+          requirePermission: false,
         },
       ],
     },
     {
+      name: 'Documentos',
+      icon: FileText,
+      iconColor: 'text-teal-500',
+      path: `/escola/${slug}/documentos`,
+      requirePermission: false,
+    },
+    {
+      name: 'Nova Escola',
+      icon: Plus,
+      iconColor: 'text-green-500',
+      path: `/escola/${slug}/nova-escola`,
+      resource: 'schools',
+      action: 'create',
+      requirePermission: true,
+    },
+    {
       name: 'Configurações',
       icon: Settings,
+      iconColor: 'text-red-500',
       path: `/escola/${slug}/configuracoes`,
       requirePermission: false,
     },
@@ -202,6 +234,7 @@ export function Sidebar({ className }: SidebarProps) {
     const hasChildren = item.children && item.children.length > 0
     // Para itens filhos (depth > 0), usar correspondência exata
     const itemActive = item.path ? isActive(item.path, depth > 0) : hasActiveChild(item)
+    const isConfigMenu = item.name === 'Configurações'
 
     const menuContent = (
       <>
@@ -219,7 +252,7 @@ export function Sidebar({ className }: SidebarProps) {
           >
             <Icon className={cn(
               'w-[18px] h-[18px] transition-colors flex-shrink-0',
-              itemActive && 'text-blue-600 dark:text-blue-400'
+              itemActive ? 'text-blue-600 dark:text-blue-400' : item.iconColor
             )} />
             <span className="font-medium flex-1 text-left text-[13px]">{item.name}</span>
             <ChevronDown className={cn(
@@ -234,8 +267,12 @@ export function Sidebar({ className }: SidebarProps) {
               'flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200',
               'group relative overflow-hidden',
               itemActive
-                ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
+                ? isConfigMenu
+                  ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
+                  : 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
+                : isConfigMenu
+                  ? 'text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
               depth > 0 && 'ml-4'
             )}
           >
@@ -246,7 +283,8 @@ export function Sidebar({ className }: SidebarProps) {
             )} />
             <Icon className={cn(
               'w-[18px] h-[18px] transition-colors flex-shrink-0 relative z-10',
-              depth > 0 && 'w-4 h-4'
+              depth > 0 && 'w-4 h-4',
+              !itemActive && item.iconColor
             )} />
             <span className={cn(
               'font-medium relative z-10 text-[13px]',
@@ -298,6 +336,7 @@ export function Sidebar({ className }: SidebarProps) {
     const hasChildren = item.children && item.children.length > 0
     const itemActive = item.path ? isActive(item.path) : hasActiveChild(item)
     const isHovered = hoveredMenu === item.name
+    const isConfigMenu = item.name === 'Configurações'
 
     const menuContent = (
       <div 
@@ -315,7 +354,7 @@ export function Sidebar({ className }: SidebarProps) {
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
             )}
           >
-            <Icon className="w-[18px] h-[18px]" />
+            <Icon className={cn('w-[18px] h-[18px]', !itemActive && item.iconColor)} />
           </button>
         ) : (
           <Link
@@ -324,11 +363,15 @@ export function Sidebar({ className }: SidebarProps) {
               'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200',
               'group relative',
               itemActive
-                ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+                ? isConfigMenu
+                  ? 'bg-red-500 text-white shadow-md shadow-red-500/20'
+                  : 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
+                : isConfigMenu
+                  ? 'text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
             )}
           >
-            <Icon className="w-[18px] h-[18px]" />
+            <Icon className={cn('w-[18px] h-[18px]', !itemActive && item.iconColor)} />
           </Link>
         )}
 
@@ -368,7 +411,7 @@ export function Sidebar({ className }: SidebarProps) {
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                           )}
                         >
-                          <ChildIcon className="w-4 h-4" />
+                          <ChildIcon className={cn('w-4 h-4', !childActive && child.iconColor)} />
                           <span className="text-sm font-medium">{child.name}</span>
                         </Link>
                       )
