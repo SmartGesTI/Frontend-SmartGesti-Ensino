@@ -1,6 +1,7 @@
 import { Link, useLocation, useParams } from 'react-router-dom'
-import { ChevronRight, Home } from 'lucide-react'
+import { ChevronRight, Home, Maximize2, Minimize2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useLayoutMode } from '@/contexts/LayoutContext'
 
 interface PageInfo {
   title: string
@@ -42,6 +43,7 @@ const categoryMap: Record<string, { name: string; path: string }> = {
 export function Breadcrumb() {
   const location = useLocation()
   const { slug } = useParams<{ slug: string }>()
+  const { layoutMode, toggleLayoutMode } = useLayoutMode()
   
   // Extrair o caminho após /escola/:slug/
   const pathAfterSlug = location.pathname.replace(`/escola/${slug}/`, '')
@@ -99,7 +101,7 @@ export function Breadcrumb() {
             ))}
           </nav>
 
-          {/* Título e Subtítulo - Lado Direito */}
+          {/* Título, Subtítulo e Toggle de Layout - Lado Direito */}
           <div className="flex items-center gap-2 text-right">
             <div className="hidden sm:block">
               {pageInfo.subtitle && (
@@ -112,6 +114,18 @@ export function Breadcrumb() {
             <h1 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               {pageInfo.title}
             </h1>
+            <div className="h-4 w-px bg-gray-300 dark:bg-gray-700" />
+            <button
+              onClick={toggleLayoutMode}
+              className="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              title={layoutMode === 'fluid' ? 'Modo contido' : 'Modo fluido'}
+            >
+              {layoutMode === 'fluid' ? (
+                <Minimize2 className="w-4 h-4" />
+              ) : (
+                <Maximize2 className="w-4 h-4" />
+              )}
+            </button>
           </div>
         </div>
       </div>

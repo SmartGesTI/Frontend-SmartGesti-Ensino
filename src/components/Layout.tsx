@@ -3,15 +3,17 @@ import { Navbar } from '@/components/Navbar'
 import { Breadcrumb } from '@/components/Breadcrumb'
 import { HelpHighlightProvider } from '@/contexts/HelpHighlightContext'
 import { SidebarProvider } from '@/contexts/SidebarContext'
+import { LayoutModeProvider, useLayoutMode } from '@/contexts/LayoutContext'
+import { cn } from '@/lib/utils'
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
-export function Layout({ children }: LayoutProps) {
+function LayoutContent({ children }: LayoutProps) {
+  const { layoutMode } = useLayoutMode()
+  
   return (
-    <SidebarProvider>
-    <HelpHighlightProvider>
     <div className="min-h-screen bg-background">
       {/* Container principal com sidebar fixa */}
       <div className="flex h-screen">
@@ -28,14 +30,27 @@ export function Layout({ children }: LayoutProps) {
 
           {/* Área de conteúdo com scroll */}
           <main className="flex-1 overflow-y-auto">
-            <div className="container mx-auto p-4 lg:p-6 max-w-7xl">
+            <div className={cn(
+              'p-4 lg:p-6',
+              layoutMode === 'contained' && 'container mx-auto max-w-7xl'
+            )}>
               {children}
             </div>
           </main>
         </div>
       </div>
     </div>
+  )
+}
+
+export function Layout({ children }: LayoutProps) {
+  return (
+    <SidebarProvider>
+    <LayoutModeProvider>
+    <HelpHighlightProvider>
+      <LayoutContent>{children}</LayoutContent>
     </HelpHighlightProvider>
+    </LayoutModeProvider>
     </SidebarProvider>
   )
 }

@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { 
   DollarSign, 
   TrendingUp, 
@@ -12,7 +13,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Users,
-  CalendarDays
+  CalendarDays,
+  ArrowRight
 } from 'lucide-react'
 
 // Dados mockados - futuramente virão da API
@@ -42,6 +44,16 @@ const mockUltimosPagamentos = [
   { id: 3, aluno: 'Ana Beatriz Costa', valor: 425.00, data: '27/12', status: 'parcial' },
   { id: 4, aluno: 'Lucas Mendes Alves', valor: 850.00, data: '27/12', status: 'pago' },
   { id: 5, aluno: 'Julia Fernandes', valor: 850.00, data: '26/12', status: 'pago' },
+  { id: 6, aluno: 'Gabriel Rocha Lima', valor: 850.00, data: '26/12', status: 'pago' },
+  { id: 7, aluno: 'Isabela Martins', valor: 850.00, data: '25/12', status: 'pago' },
+  { id: 8, aluno: 'Rafael Souza', valor: 425.00, data: '25/12', status: 'parcial' },
+  { id: 9, aluno: 'Camila Rodrigues', valor: 850.00, data: '24/12', status: 'pago' },
+  { id: 10, aluno: 'Thiago Pereira', valor: 850.00, data: '24/12', status: 'pago' },
+  { id: 11, aluno: 'Larissa Gomes', valor: 850.00, data: '23/12', status: 'pago' },
+  { id: 12, aluno: 'Bruno Carvalho', valor: 850.00, data: '23/12', status: 'pago' },
+  { id: 13, aluno: 'Amanda Ribeiro', valor: 850.00, data: '22/12', status: 'pago' },
+  { id: 14, aluno: 'Felipe Dias', valor: 425.00, data: '22/12', status: 'parcial' },
+  { id: 15, aluno: 'Beatriz Almeida', valor: 850.00, data: '21/12', status: 'pago' },
 ]
 
 const mockInadimplentes = [
@@ -98,17 +110,17 @@ function FinanceCard({ title, value, icon: Icon, trend, trendLabel, color, subti
 
   return (
     <Card className={`${bgClasses[color]} border-0 shadow-sm dark:shadow-gray-950/50`}>
-      <CardContent className="p-6">
+      <CardContent className="p-5">
         <div className="flex items-start justify-between">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-            <p className={`text-2xl font-bold ${valueClasses[color]}`}>{value}</p>
+            <p className={`text-xl font-bold ${valueClasses[color]}`}>{value}</p>
             {trend !== undefined && (
-              <div className="flex items-center gap-1 text-sm">
+              <div className="flex items-center gap-1 text-xs">
                 {trend >= 0 ? (
-                  <ArrowUpRight className={`w-4 h-4 ${trend >= 0 && color === 'red' ? 'text-red-500' : 'text-emerald-500'}`} />
+                  <ArrowUpRight className={`w-3 h-3 ${trend >= 0 && color === 'red' ? 'text-red-500' : 'text-emerald-500'}`} />
                 ) : (
-                  <ArrowDownRight className={`w-4 h-4 ${trend < 0 && color === 'green' ? 'text-red-500' : 'text-emerald-500'}`} />
+                  <ArrowDownRight className={`w-3 h-3 ${trend < 0 && color === 'green' ? 'text-red-500' : 'text-emerald-500'}`} />
                 )}
                 <span className={`font-medium ${
                   (trend >= 0 && color !== 'red') || (trend < 0 && color === 'red') 
@@ -121,11 +133,11 @@ function FinanceCard({ title, value, icon: Icon, trend, trendLabel, color, subti
               </div>
             )}
             {subtitle && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
             )}
           </div>
-          <div className={`p-3 rounded-xl ${iconClasses[color]}`}>
-            <Icon className="w-6 h-6" />
+          <div className={`p-2.5 rounded-xl ${iconClasses[color]}`}>
+            <Icon className="w-5 h-5" />
           </div>
         </div>
       </CardContent>
@@ -137,18 +149,18 @@ function SimpleBarChart() {
   const maxValue = Math.max(...mockGraficoMensal.flatMap(d => [d.receita, d.despesa]))
   
   return (
-    <div className="space-y-4">
-      <div className="flex gap-4 text-sm">
+    <div className="space-y-3">
+      <div className="flex gap-4 text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
           <span className="text-gray-600 dark:text-gray-400">Receita</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-400" />
+          <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
           <span className="text-gray-600 dark:text-gray-400">Despesa</span>
         </div>
       </div>
-      <div className="flex items-end justify-between gap-2 h-48">
+      <div className="flex items-end justify-between gap-2 h-40">
         {mockGraficoMensal.map((item) => (
           <div key={item.mes} className="flex-1 flex flex-col items-center gap-1">
             <div className="w-full flex gap-1 items-end h-40">
@@ -277,210 +289,218 @@ export default function DashboardFinanceiro() {
   const inadimplenciaTrend = mockFinanceiro.inadimplencia - mockFinanceiro.inadimplenciaAnterior
 
   return (
-    <div className="space-y-6">
-      {/* Cards principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <FinanceCard
-          title="Receita do Mês"
-          value={`R$ ${mockFinanceiro.receitaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={TrendingUp}
-          trend={receitaTrend}
-          trendLabel="vs mês anterior"
-          color="green"
-        />
-        <FinanceCard
-          title="Despesas do Mês"
-          value={`R$ ${mockFinanceiro.despesaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={TrendingDown}
-          trend={despesaTrend}
-          trendLabel="vs mês anterior"
-          color="red"
-        />
-        <FinanceCard
-          title="Saldo Atual"
-          value={`R$ ${mockFinanceiro.saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          icon={PiggyBank}
-          color="blue"
-          subtitle="Receita - Despesas"
-        />
-        <FinanceCard
-          title="Taxa de Inadimplência"
-          value={`${mockFinanceiro.inadimplencia}%`}
-          icon={AlertCircle}
-          trend={inadimplenciaTrend}
-          trendLabel="vs mês anterior"
-          color="orange"
-        />
-      </div>
+    <div className="grid grid-cols-12 gap-4">
+      {/* Coluna principal - 8 colunas */}
+      <div className="col-span-12 lg:col-span-8 space-y-4">
+        {/* Cards principais */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <FinanceCard
+            title="Receita do Mês"
+            value={`R$ ${mockFinanceiro.receitaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            icon={TrendingUp}
+            trend={receitaTrend}
+            trendLabel="vs mês anterior"
+            color="green"
+          />
+          <FinanceCard
+            title="Despesas do Mês"
+            value={`R$ ${mockFinanceiro.despesaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            icon={TrendingDown}
+            trend={despesaTrend}
+            trendLabel="vs mês anterior"
+            color="red"
+          />
+          <FinanceCard
+            title="Saldo Atual"
+            value={`R$ ${mockFinanceiro.saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            icon={PiggyBank}
+            color="blue"
+            subtitle="Receita - Despesas"
+          />
+          <FinanceCard
+            title="Taxa de Inadimplência"
+            value={`${mockFinanceiro.inadimplencia}%`}
+            icon={AlertCircle}
+            trend={inadimplenciaTrend}
+            trendLabel="vs mês anterior"
+            color="orange"
+          />
+        </div>
 
-      {/* Gráficos e detalhes */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Gráfico de evolução */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-          <CardHeader className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 border-b border-border">
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="w-5 h-5 text-blue-500" />
-              Evolução Mensal
-            </CardTitle>
-            <CardDescription>Receitas e despesas dos últimos 6 meses</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SimpleBarChart />
-          </CardContent>
-        </Card>
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Gráfico de evolução */}
+          <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
+            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 border-b border-border">
+              <CardTitle className="text-base flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-blue-500" />
+                Evolução Mensal
+              </CardTitle>
+              <CardDescription className="text-xs">Receitas e despesas dos últimos 6 meses</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SimpleBarChart />
+            </CardContent>
+          </Card>
 
-        {/* Status das mensalidades */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-          <CardHeader className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 border-b border-border">
-            <CardTitle className="flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-purple-500" />
-              Status das Mensalidades
-            </CardTitle>
-            <CardDescription>Distribuição de pagamentos do mês</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DonutChart />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabelas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Últimos pagamentos */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-          <CardHeader className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20 border-b border-border">
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-emerald-500" />
-              Últimos Pagamentos
-            </CardTitle>
-            <CardDescription>Pagamentos recebidos recentemente</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {mockUltimosPagamentos.map((pagamento) => (
-                <div 
-                  key={pagamento.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`
-                      w-10 h-10 rounded-full flex items-center justify-center
-                      ${pagamento.status === 'pago' 
-                        ? 'bg-emerald-100 dark:bg-emerald-900/30' 
-                        : 'bg-amber-100 dark:bg-amber-900/30'}
-                    `}>
-                      {pagamento.status === 'pago' ? (
-                        <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                      ) : (
-                        <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                        {pagamento.aluno}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {pagamento.data}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-emerald-600 dark:text-emerald-400">
-                      R$ {pagamento.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className={`text-xs capitalize ${
-                      pagamento.status === 'pago' 
-                        ? 'text-emerald-600 dark:text-emerald-400' 
-                        : 'text-amber-600 dark:text-amber-400'
-                    }`}>
-                      {pagamento.status}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          {/* Status das mensalidades */}
+          <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
+            <CardHeader className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 border-b border-border">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-purple-500" />
+                Status das Mensalidades
+              </CardTitle>
+              <CardDescription className="text-xs">Distribuição de pagamentos do mês</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DonutChart />
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Maiores inadimplentes */}
         <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
           <CardHeader className="bg-gradient-to-r from-red-50/50 to-orange-50/50 dark:from-red-950/20 dark:to-orange-950/20 border-b border-border">
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-red-500" />
               Maiores Inadimplentes
             </CardTitle>
-            <CardDescription>Alunos com mensalidades em atraso</CardDescription>
+            <CardDescription className="text-xs">Alunos com mensalidades em atraso</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {mockInadimplentes.map((inadimplente) => (
-                <div 
-                  key={inadimplente.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-red-600 dark:text-red-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                        {inadimplente.aluno}
-                      </p>
-                      <p className="text-xs text-red-600 dark:text-red-400">
-                        {inadimplente.meses} {inadimplente.meses === 1 ? 'mês' : 'meses'} em atraso
-                      </p>
-                    </div>
+          <CardContent className="space-y-2">
+            {mockInadimplentes.map((inadimplente) => (
+              <div 
+                key={inadimplente.id}
+                className="flex items-center justify-between p-2.5 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-red-600 dark:text-red-400" />
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-red-600 dark:text-red-400">
-                      R$ {inadimplente.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-gray-100 text-xs">
+                      {inadimplente.aluno}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      débito total
+                    <p className="text-[10px] text-red-600 dark:text-red-400">
+                      {inadimplente.meses} {inadimplente.meses === 1 ? 'mês' : 'meses'} em atraso
                     </p>
                   </div>
                 </div>
-              ))}
+                <div className="text-right">
+                  <p className="font-semibold text-sm text-red-600 dark:text-red-400">
+                    R$ {inadimplente.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                    débito total
+                  </p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Resumo de métricas */}
+        <Card className="border border-border shadow-sm dark:shadow-gray-950/50 bg-gradient-to-r from-green-50/50 to-blue-50/50 dark:from-green-950/20 dark:to-blue-950/20">
+          <CardContent className="p-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <DollarSign className="w-6 h-6 mx-auto text-emerald-500 mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  R$ {(mockFinanceiro.receitaMes - mockFinanceiro.despesaMes).toLocaleString('pt-BR')}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Lucro do Mês</p>
+              </div>
+              <div className="text-center">
+                <Users className="w-6 h-6 mx-auto text-blue-500 mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {mockFinanceiro.alunosAdimplentes}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Alunos Adimplentes</p>
+              </div>
+              <div className="text-center">
+                <AlertCircle className="w-6 h-6 mx-auto text-red-500 mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  {mockFinanceiro.alunosInadimplentes}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Alunos Inadimplentes</p>
+              </div>
+              <div className="text-center">
+                <Receipt className="w-6 h-6 mx-auto text-purple-500 mb-1" />
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  R$ {(mockFinanceiro.receitaMes / mockFinanceiro.totalAlunos).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Ticket Médio</p>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Resumo de métricas */}
-      <Card className="border-2 border-border bg-gradient-to-r from-green-50/50 to-blue-50/50 dark:from-green-950/20 dark:to-blue-950/20">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <DollarSign className="w-8 h-8 mx-auto text-emerald-500 mb-2" />
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                R$ {(mockFinanceiro.receitaMes - mockFinanceiro.despesaMes).toLocaleString('pt-BR')}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Lucro do Mês</p>
-            </div>
-            <div className="text-center">
-              <Users className="w-8 h-8 mx-auto text-blue-500 mb-2" />
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {mockFinanceiro.alunosAdimplentes}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Alunos Adimplentes</p>
-            </div>
-            <div className="text-center">
-              <AlertCircle className="w-8 h-8 mx-auto text-red-500 mb-2" />
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {mockFinanceiro.alunosInadimplentes}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Alunos Inadimplentes</p>
-            </div>
-            <div className="text-center">
-              <Receipt className="w-8 h-8 mx-auto text-purple-500 mb-2" />
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                R$ {(mockFinanceiro.receitaMes / mockFinanceiro.totalAlunos).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Ticket Médio</p>
-            </div>
+      {/* Coluna lateral - Últimos Pagamentos - 4 colunas */}
+      <div className="col-span-12 lg:col-span-4">
+        <Card className="border border-border shadow-sm dark:shadow-gray-950/50 flex flex-col lg:sticky lg:top-4 lg:max-h-[90vh]">
+          <CardHeader className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20 border-b border-border">
+            <CardTitle className="text-base flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-emerald-500" />
+              Últimos Pagamentos
+            </CardTitle>
+            <CardDescription className="text-xs">Pagamentos recebidos recentemente</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-y-auto space-y-2">
+            {mockUltimosPagamentos.map((pagamento) => (
+              <div 
+                key={pagamento.id}
+                className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50"
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center
+                    ${pagamento.status === 'pago' 
+                      ? 'bg-emerald-100 dark:bg-emerald-900/30' 
+                      : 'bg-amber-100 dark:bg-amber-900/30'}
+                  `}>
+                    {pagamento.status === 'pago' ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    ) : (
+                      <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-gray-100 text-xs truncate max-w-[120px]">
+                      {pagamento.aluno}
+                    </p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                      {pagamento.data}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-sm text-emerald-600 dark:text-emerald-400">
+                    R$ {pagamento.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className={`text-[10px] capitalize ${
+                    pagamento.status === 'pago' 
+                      ? 'text-emerald-600 dark:text-emerald-400' 
+                      : 'text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {pagamento.status}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+          <div className="px-5 py-3 border-t border-border">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              Ver todos os pagamentos
+              <ArrowRight className="w-3 h-3 ml-1" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

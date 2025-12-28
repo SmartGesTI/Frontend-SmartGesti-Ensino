@@ -150,4 +150,56 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+
+  /* Scrollbar customizada - Tema Claro */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(210 20% 96%);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(215 20% 75%);
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(215 20% 60%);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: hsl(210 20% 96%);
+  }
+
+  /* Scrollbar customizada - Tema Escuro */
+  .dark ::-webkit-scrollbar-track {
+    background: hsl(222 47% 11%);
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: hsl(217 33% 30%);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(217 33% 40%);
+  }
+
+  .dark ::-webkit-scrollbar-corner {
+    background: hsl(222 47% 11%);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(215 20% 75%) hsl(210 20% 96%);
+  }
+
+  .dark * {
+    scrollbar-color: hsl(217 33% 30%) hsl(222 47% 11%);
+  }
 }
