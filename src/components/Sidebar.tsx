@@ -14,7 +14,10 @@ import {
   GraduationCap,
   Building2,
   UserCog,
-  ClipboardList
+  ClipboardList,
+  Eye,
+  DollarSign,
+  BarChart3
 } from 'lucide-react'
 import { PermissionGate } from './PermissionGate'
 import { usePermissions } from '../hooks/usePermissions'
@@ -64,8 +67,27 @@ export function Sidebar({ className }: SidebarProps) {
     {
       name: 'Dashboard',
       icon: LayoutDashboard,
-      path: `/escola/${slug}/painel`,
       requirePermission: false,
+      children: [
+        {
+          name: 'Visão Geral',
+          icon: Eye,
+          path: `/escola/${slug}/painel`,
+          requirePermission: false,
+        },
+        {
+          name: 'Financeiro',
+          icon: DollarSign,
+          path: `/escola/${slug}/painel/financeiro`,
+          requirePermission: false,
+        },
+        {
+          name: 'Acadêmico',
+          icon: BarChart3,
+          path: `/escola/${slug}/painel/academico`,
+          requirePermission: false,
+        },
+      ],
     },
     {
       name: 'Acadêmico',
@@ -159,14 +181,18 @@ export function Sidebar({ className }: SidebarProps) {
     )
   }
 
-  const isActive = (path?: string) => {
+  const isActive = (path?: string, exactMatch: boolean = false) => {
     if (!path) return false
+    // Para submenus (filhos), usar correspondência exata
+    if (exactMatch) {
+      return location.pathname === path
+    }
     return location.pathname === path || location.pathname.startsWith(path + '/')
   }
 
   const hasActiveChild = (item: MenuItem): boolean => {
     if (!item.children) return false
-    return item.children.some(child => isActive(child.path))
+    return item.children.some(child => isActive(child.path, true))
   }
 
   // Renderizar menu no modo expandido
@@ -174,7 +200,8 @@ export function Sidebar({ className }: SidebarProps) {
     const Icon = item.icon
     const isMenuExpanded = expandedMenus.includes(item.name)
     const hasChildren = item.children && item.children.length > 0
-    const itemActive = item.path ? isActive(item.path) : hasActiveChild(item)
+    // Para itens filhos (depth > 0), usar correspondência exata
+    const itemActive = item.path ? isActive(item.path, depth > 0) : hasActiveChild(item)
 
     const menuContent = (
       <>
@@ -328,7 +355,7 @@ export function Sidebar({ className }: SidebarProps) {
                   <div className="py-1">
                     {item.children!.map((child) => {
                       const ChildIcon = child.icon
-                      const childActive = isActive(child.path)
+                      const childActive = isActive(child.path, true)
                       
                       const childLink = (
                         <Link

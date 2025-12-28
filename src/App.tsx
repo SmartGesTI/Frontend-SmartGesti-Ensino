@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
+import { DashboardVisaoGeral, DashboardFinanceiro, DashboardAcademico } from './pages/dashboards'
 import SelectSchool from './pages/SelectSchool'
 import PendingApproval from './pages/PendingApproval'
 import EmailVerification from './pages/EmailVerification'
@@ -96,7 +96,31 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Dashboard />
+                <DashboardVisaoGeral />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/painel/financeiro"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <DashboardFinanceiro />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/painel/academico"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <DashboardAcademico />
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
