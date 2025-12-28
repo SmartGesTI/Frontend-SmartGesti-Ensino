@@ -1,9 +1,9 @@
-import { useAuth0 } from '@auth0/auth0-react'
+import { useAuth } from '@/contexts/AuthContext'
 import { useState, useEffect } from 'react'
 import { logger } from '@/lib/logger'
 
 export function useAccessToken() {
-  const { getAccessTokenSilently, isAuthenticated, isLoading } = useAuth0()
+  const { session, user, loading } = useAuth()
   const [token, setToken] = useState<string | null>(null)
   const [isTokenLoading, setIsTokenLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
@@ -13,7 +13,7 @@ export function useAccessToken() {
 
     const fetchToken = async () => {
       // Se não está autenticado ou ainda está carregando, não buscar token
-      if (!isAuthenticated || isLoading) {
+      if (!user || !session || loading) {
         if (isMounted) {
           setIsTokenLoading(false)
           setToken(null)
@@ -25,11 +25,8 @@ export function useAccessToken() {
         setIsTokenLoading(true)
         setError(null)
         
-        const accessToken = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-          },
-        })
+        // Obter token da sessão do Supabase
+        const accessToken = session.access_token
         
         if (isMounted) {
           setToken(accessToken)
@@ -53,12 +50,12 @@ export function useAccessToken() {
     return () => {
       isMounted = false
     }
-  }, [isAuthenticated, isLoading, getAccessTokenSilently])
+  }, [user, session, loading])
 
   return {
     token,
-    isLoading: isTokenLoading || isLoading,
+    isLoading: isTokenLoading || loading,
     error,
-    isReady: !isTokenLoading && !isLoading && isAuthenticated && !!token,
+    isReady: !isTokenLoading && !loading && !!user && !!token,
   }
 }

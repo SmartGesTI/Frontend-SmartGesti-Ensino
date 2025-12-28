@@ -22,7 +22,7 @@ class Logger {
     // Verificamos se está disponível globalmente
     if (typeof window !== 'undefined' && (window as any).posthog) {
       this.posthogInitialized = true;
-      this.info('PostHog initialized via web snippet', { context: 'Logger' });
+      this.info('PostHog initialized via web snippet');
     } else {
       // Fallback: inicializar via SDK se web snippet não estiver disponível
       const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
@@ -31,9 +31,9 @@ class Logger {
       if (posthogKey) {
         posthog.init(posthogKey, {
           api_host: posthogHost,
-          loaded: (posthog) => {
+          loaded: () => {
             this.posthogInitialized = true;
-            this.info('PostHog initialized via SDK', { context: 'Logger' });
+            this.info('PostHog initialized via SDK');
           },
         });
       }

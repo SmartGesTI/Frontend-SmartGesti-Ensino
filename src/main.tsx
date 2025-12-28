@@ -1,22 +1,16 @@
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Auth0Provider, AppState } from '@auth0/auth0-react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter, useNavigate } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import App from './App.tsx'
 import './index.css'
 import { getTenantFromSubdomain } from './lib/tenant'
 import { logger } from './lib/logger'
-
-const queryClient = new QueryClient()
-
-const auth0Domain = import.meta.env.VITE_AUTH0_DOMAIN
-const auth0ClientId = import.meta.env.VITE_AUTH0_CLIENT_ID
-const auth0Audience = import.meta.env.VITE_AUTH0_AUDIENCE
-
-if (!auth0Domain || !auth0ClientId || !auth0Audience) {
-  throw new Error('Missing Auth0 environment variables')
-}
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { queryClient } from './lib/queryClient'
+import { AuthProvider } from './contexts/AuthContext'
+import { AuthSync } from './components/AuthSync'
 
 // Chave para identificar a sessão por tenant
 const TENANT_SESSION_KEY = 'auth_tenant_session'
@@ -32,10 +26,10 @@ function checkAndClearTenantSession(): boolean {
       currentTenant,
     })
     
-    // Limpar TODA a sessão Auth0 e dados relacionados
+    // Limpar sessão Supabase e dados relacionados
     const keysToRemove = Object.keys(localStorage).filter(key => 
-      key.includes('@@auth0spajs@@') || 
-      key.includes('auth0') ||
+      key.includes('sb-') || 
+      key.includes('supabase') ||
       key === 'current_tenant' ||
       key.startsWith('school') ||
       key.startsWith('user')
@@ -61,9 +55,8 @@ function checkAndClearTenantSession(): boolean {
   return false // Sessão não foi limpa
 }
 
-// Componente wrapper para usar useNavigate dentro do Auth0Provider
-function AppWithAuth0() {
-  const navigate = useNavigate()
+// Componente wrapper para inicialização
+function AppWithAuth() {
   const [isReady, setIsReady] = useState(false)
 
   // Verificar tenant ao montar
@@ -77,42 +70,6 @@ function AppWithAuth0() {
     }
   }, [])
 
-  const onRedirectCallback = (appState?: AppState) => {
-    const currentTenant = getTenantFromSubdomain()
-    
-    logger.info('Auth0 callback received', 'Auth0Callback', { 
-      appState, 
-      returnTo: appState?.returnTo,
-      tenant: (appState as any)?.tenant,
-      currentTenant,
-      currentUrl: window.location.href
-    })
-    
-    // Salvar tenant da sessão atual
-    if (currentTenant) {
-      localStorage.setItem(TENANT_SESSION_KEY, currentTenant)
-      localStorage.setItem('current_tenant', currentTenant)
-    }
-    
-    // Sempre redirecionar para selecionar-escola após login
-    navigate('/selecionar-escola', { replace: true })
-  }
-
-  // Usar a URL atual como redirect_uri
-  const getRedirectUri = () => {
-    const origin = window.location.origin
-    const tenant = getTenantFromSubdomain()
-    
-    if (tenant) {
-      localStorage.setItem('current_tenant', tenant)
-      localStorage.setItem(TENANT_SESSION_KEY, tenant)
-    }
-    
-    return origin
-  }
-
-  const redirectUri = getRedirectUri()
-
   // Aguardar verificação de tenant
   if (!isReady) {
     return (
@@ -123,28 +80,28 @@ function AppWithAuth0() {
   }
 
   return (
-    <Auth0Provider
-      domain={auth0Domain}
-      clientId={auth0ClientId}
-      authorizationParams={{
-        redirect_uri: redirectUri,
-        audience: auth0Audience,
-      }}
-      cacheLocation="localstorage"
-      useRefreshTokens={true}
-      onRedirectCallback={onRedirectCallback}
-    >
+    <AuthProvider>
+      <AuthSync />
+      <Toaster 
+        position="top-right"
+        expand={true}
+        richColors
+        closeButton
+        duration={4000}
+      />
       <App />
-    </Auth0Provider>
+    </AuthProvider>
   )
 }
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppWithAuth0 />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AppWithAuth />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )

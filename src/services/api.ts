@@ -1,10 +1,16 @@
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { supabase } from '@/lib/supabase'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export async function getAccessToken(): Promise<string | null> {
-  // This will be used with Auth0 hook
-  return null
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session?.access_token || null
+  } catch (error) {
+    console.error('Error getting access token:', error)
+    return null
+  }
 }
 
 export async function apiRequest<T>(
@@ -13,9 +19,9 @@ export async function apiRequest<T>(
   token?: string | null,
   schoolId?: string | null
 ): Promise<T> {
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   }
 
   if (token) {
