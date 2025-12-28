@@ -70,25 +70,25 @@ export default function EmailVerification() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center space-y-4">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
+      <Card className="w-full max-w-md shadow-xl border-0">
+        <CardHeader className="text-center space-y-4 pb-6">
           <div className="flex justify-center">
-            <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-4">
-              <Mail className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+            <div className="rounded-full bg-primary/10 p-4">
+              <Mail className="h-12 w-12 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Verifique seu Email</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-3xl font-bold text-gray-900">Verifique seu Email</CardTitle>
+          <CardDescription className="text-base">
             Precisamos confirmar seu endereço de email
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Alert>
+          <Alert className="animate-in fade-in">
             <Mail className="h-4 w-4" />
-            <AlertTitle>Email de Verificação Enviado</AlertTitle>
-            <AlertDescription>
-              Enviamos um link de verificação para <strong>{user?.email}</strong>.
+            <AlertTitle className="font-semibold">Email de Verificação Enviado</AlertTitle>
+            <AlertDescription className="mt-2">
+              Enviamos um link de verificação para <strong className="text-foreground">{user?.email}</strong>.
               <br />
               <br />
               Verifique sua caixa de entrada e também a pasta de spam.
@@ -98,8 +98,9 @@ export default function EmailVerification() {
           <div className="space-y-3">
             <Button 
               onClick={handleCheckAgain}
-              className="w-full"
+              className="w-full h-11"
               variant="default"
+              size="lg"
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Já Verifiquei - Continuar
@@ -108,8 +109,9 @@ export default function EmailVerification() {
             <Button 
               onClick={handleResendEmail}
               disabled={isResending}
-              className="w-full"
+              className="w-full h-11"
               variant="outline"
+              size="lg"
             >
               {isResending ? (
                 <>
@@ -126,23 +128,24 @@ export default function EmailVerification() {
 
             <Button 
               onClick={handleLogout}
-              className="w-full"
+              className="w-full h-11"
               variant="ghost"
+              size="lg"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
           </div>
 
-          <div className="text-xs text-center text-muted-foreground space-y-2">
-            <p>
-              <strong>Não recebeu o email?</strong>
+          <div className="text-sm text-center text-muted-foreground space-y-2 pt-2">
+            <p className="font-semibold text-foreground">
+              Não recebeu o email?
             </p>
-            <p>
-              1. Verifique a pasta de spam<br />
-              2. Aguarde alguns minutos<br />
-              3. Clique em "Reenviar Email"
-            </p>
+            <div className="space-y-1 text-left max-w-sm mx-auto">
+              <p>1. Verifique a pasta de spam</p>
+              <p>2. Aguarde alguns minutos</p>
+              <p>3. Clique em "Reenviar Email"</p>
+            </div>
           </div>
         </CardContent>
       </Card>

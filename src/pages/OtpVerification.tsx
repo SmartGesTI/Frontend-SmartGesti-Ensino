@@ -307,31 +307,31 @@ export default function OtpVerification() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="text-center space-y-4">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
+      <Card className="w-full max-w-md shadow-xl border-0">
+        <CardHeader className="text-center space-y-4 pb-6">
           <div className="flex justify-center">
-            <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-4">
-              <Mail className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+            <div className="rounded-full bg-primary/10 p-4">
+              <Mail className="h-12 w-12 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Verifique seu Email</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-3xl font-bold text-gray-900">Verifique seu Email</CardTitle>
+          <CardDescription className="text-base">
             Digite o código enviado para
             <br />
-            <strong className="text-foreground">{email}</strong>
+            <strong className="text-foreground font-semibold">{email}</strong>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="animate-in fade-in">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {attempts >= 3 && (
-            <Alert>
+            <Alert className="animate-in fade-in">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 Muitas tentativas incorretas. Aguarde 5 minutos ou solicite um novo código.
@@ -339,8 +339,8 @@ export default function OtpVerification() {
             </Alert>
           )}
 
-          <div className="space-y-4">
-            <div className="flex justify-center gap-2 flex-wrap">
+          <div className="space-y-6">
+            <div className="flex justify-center gap-3 flex-wrap">
               {otp.map((digit, index) => (
                 <Input
                   key={index}
@@ -353,20 +353,20 @@ export default function OtpVerification() {
                   onPaste={index === 0 ? handlePaste : undefined}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   disabled={isVerifying || attempts >= 3}
-                  className="w-12 h-14 text-center text-2xl font-bold"
+                  className="w-14 h-16 text-center text-2xl font-bold focus-visible:ring-2 focus-visible:ring-primary"
                   autoFocus={index === 0}
                   style={{ display: index < otpLength ? 'block' : 'none' }}
                 />
               ))}
             </div>
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="text-sm text-center text-muted-foreground">
               Digite o código de {otpLength} dígitos recebido por email
             </p>
 
             <Button
               onClick={() => handleVerify()}
               disabled={isVerifying || otp.slice(0, otpLength).some(d => d === '') || attempts >= 3}
-              className="w-full"
+              className="w-full h-11"
               size="lg"
             >
               {isVerifying ? (
@@ -382,12 +382,12 @@ export default function OtpVerification() {
               )}
             </Button>
 
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-3">
               <Button
                 onClick={handleResend}
                 disabled={isResending || !canResend || attempts >= 3}
                 variant="outline"
-                className="w-full"
+                className="w-full h-11"
               >
                 {isResending ? (
                   <>
@@ -407,20 +407,20 @@ export default function OtpVerification() {
                 )}
               </Button>
 
-              <div className="text-xs text-center text-muted-foreground space-y-2">
-                <p>
-                  <strong>Não recebeu o código?</strong>
+              <div className="text-sm text-center text-muted-foreground space-y-2 pt-2">
+                <p className="font-semibold text-foreground">
+                  Não recebeu o código?
                 </p>
-                <p>
-                  1. Verifique a pasta de spam/lixo eletrônico<br />
-                  2. Aguarde alguns minutos (emails podem ter delay)<br />
-                  3. Verifique se "Confirm email" está habilitado no Supabase Dashboard<br />
-                  4. Clique em "Reenviar Código" após 60 segundos
-                </p>
+                <div className="space-y-1 text-left max-w-sm mx-auto">
+                  <p>1. Verifique a pasta de spam/lixo eletrônico</p>
+                  <p>2. Aguarde alguns minutos (emails podem ter delay)</p>
+                  <p>3. Verifique se "Confirm email" está habilitado no Supabase Dashboard</p>
+                  <p>4. Clique em "Reenviar Código" após 60 segundos</p>
+                </div>
                 <p className="text-xs text-muted-foreground/70 mt-4">
                   Se o problema persistir, verifique as configurações de email no Supabase Dashboard.
                   <br />
-                  Consulte: <code className="text-xs">docs/SUPABASE_EMAIL_DIAGNOSTIC.md</code>
+                  Consulte: <code className="text-xs bg-muted px-1 py-0.5 rounded">docs/SUPABASE_EMAIL_DIAGNOSTIC.md</code>
                 </p>
               </div>
             </div>
