@@ -17,7 +17,18 @@ import {
   ClipboardList,
   Eye,
   DollarSign,
-  BarChart3
+  BarChart3,
+  Globe,
+  Layout,
+  Sparkles,
+  Bot,
+  Wand2,
+  MessageCircle,
+  Crown,
+  Zap,
+  CalendarDays,
+  ClipboardCheck,
+  RefreshCw
 } from 'lucide-react'
 import { PermissionGate } from './PermissionGate'
 import { usePermissions } from '../hooks/usePermissions'
@@ -44,7 +55,7 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const location = useLocation()
   const { slug } = useParams<{ slug: string }>()
-  const { loading } = usePermissions()
+  const { loading, isOwner } = usePermissions()
   const { school, isLoading: schoolLoading } = useSchool()
   const { isExpanded } = useSidebar()
   const [expandedMenus, setExpandedMenus] = useState<string[]>([])
@@ -66,6 +77,35 @@ export function Sidebar({ className }: SidebarProps) {
   }, [location.pathname])
 
   const menuItems: MenuItem[] = slug ? [
+    {
+      name: 'EducaIA',
+      icon: Sparkles,
+      iconColor: 'text-purple-500',
+      requirePermission: false,
+      children: [
+        {
+          name: 'Assistente',
+          icon: MessageCircle,
+          iconColor: 'text-purple-400',
+          path: `/escola/${slug}/ia/assistente`,
+          requirePermission: false,
+        },
+        {
+          name: 'Relatório Inteligente',
+          icon: Wand2,
+          iconColor: 'text-purple-500',
+          path: `/escola/${slug}/ia/relatorio`,
+          requirePermission: false,
+        },
+        {
+          name: 'Criar Agente IA',
+          icon: Bot,
+          iconColor: 'text-purple-600',
+          path: `/escola/${slug}/ia/criar`,
+          requirePermission: false,
+        },
+      ],
+    },
     {
       name: 'Dashboard',
       icon: LayoutDashboard,
@@ -108,6 +148,20 @@ export function Sidebar({ className }: SidebarProps) {
           icon: School,
           iconColor: 'text-amber-400',
           path: routes.school.details(slug),
+          requirePermission: false,
+        },
+        {
+          name: 'Matrícula',
+          icon: ClipboardCheck,
+          iconColor: 'text-amber-500',
+          path: `/escola/${slug}/matricula`,
+          requirePermission: false,
+        },
+        {
+          name: 'Rematrícula',
+          icon: RefreshCw,
+          iconColor: 'text-amber-500',
+          path: `/escola/${slug}/rematricula`,
           requirePermission: false,
         },
         {
@@ -182,20 +236,33 @@ export function Sidebar({ className }: SidebarProps) {
       ],
     },
     {
+      name: 'Criador de Sites',
+      icon: Globe,
+      iconColor: 'text-pink-500',
+      requirePermission: false,
+      children: [
+        {
+          name: 'Meus Sites',
+          icon: Layout,
+          iconColor: 'text-pink-400',
+          path: `/escola/${slug}/sites`,
+          requirePermission: false,
+        },
+        {
+          name: 'Criar Novo',
+          icon: Plus,
+          iconColor: 'text-pink-600',
+          path: `/escola/${slug}/sites/novo`,
+          requirePermission: false,
+        },
+      ],
+    },
+    {
       name: 'Documentos',
       icon: FileText,
       iconColor: 'text-teal-500',
       path: routes.school.documents(slug),
       requirePermission: false,
-    },
-    {
-      name: 'Nova Escola',
-      icon: Plus,
-      iconColor: 'text-green-500',
-      path: routes.school.create(slug),
-      resource: 'schools',
-      action: 'create',
-      requirePermission: true,
     },
     {
       name: 'Configurações',
@@ -236,6 +303,7 @@ export function Sidebar({ className }: SidebarProps) {
     // Para itens filhos (depth > 0), usar correspondência exata
     const itemActive = item.path ? isActive(item.path, depth > 0) : hasActiveChild(item)
     const isConfigMenu = item.name === 'Configurações'
+    const isAIMenu = item.name === 'EducaIA'
 
     const menuContent = (
       <>
@@ -245,19 +313,27 @@ export function Sidebar({ className }: SidebarProps) {
             className={cn(
               'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200',
               'group relative overflow-hidden',
-              itemActive
-                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
+              isAIMenu
+                ? 'bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.02]'
+                : itemActive
+                  ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
               depth > 0 && 'ml-4'
             )}
           >
+            {isAIMenu && (
+              <span className="absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            )}
             <Icon className={cn(
-              'w-[18px] h-[18px] transition-colors flex-shrink-0',
-              itemActive ? 'text-blue-600 dark:text-blue-400' : item.iconColor
+              'w-[18px] h-[18px] transition-colors flex-shrink-0 relative z-10',
+              isAIMenu ? 'text-white animate-pulse' : itemActive ? 'text-blue-600 dark:text-blue-400' : item.iconColor
             )} />
-            <span className="font-medium flex-1 text-left text-[13px]">{item.name}</span>
+            <span className="font-medium flex-1 text-left text-[13px] relative z-10">{item.name}</span>
+            {isAIMenu && (
+              <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-semibold relative z-10">Beta</span>
+            )}
             <ChevronDown className={cn(
-              'w-4 h-4 transition-transform duration-300 flex-shrink-0',
+              'w-4 h-4 transition-transform duration-300 flex-shrink-0 relative z-10',
               isMenuExpanded && 'rotate-180'
             )} />
           </button>
@@ -323,12 +399,12 @@ export function Sidebar({ className }: SidebarProps) {
     if (depth === 0 && item.requirePermission && item.resource && item.action) {
       return (
         <PermissionGate key={item.name} resource={item.resource} action={item.action}>
-          <div>{menuContent}</div>
+          <div className={cn(isAIMenu && 'mb-3')}>{menuContent}</div>
         </PermissionGate>
       )
     }
 
-    return <div key={item.name}>{menuContent}</div>
+    return <div key={item.name} className={cn(isAIMenu && 'mb-3')}>{menuContent}</div>
   }
 
   // Renderizar menu no modo colapsado (com tooltip/popover no hover)
@@ -338,6 +414,7 @@ export function Sidebar({ className }: SidebarProps) {
     const itemActive = item.path ? isActive(item.path) : hasActiveChild(item)
     const isHovered = hoveredMenu === item.name
     const isConfigMenu = item.name === 'Configurações'
+    const isAIMenu = item.name === 'EducaIA'
 
     const menuContent = (
       <div 
@@ -349,13 +426,15 @@ export function Sidebar({ className }: SidebarProps) {
           <button
             className={cn(
               'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200',
-              'group relative',
-              itemActive
-                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+              'group relative overflow-hidden',
+              isAIMenu
+                ? 'bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-110'
+                : itemActive
+                  ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
             )}
           >
-            <Icon className={cn('w-[18px] h-[18px]', !itemActive && item.iconColor)} />
+            <Icon className={cn('w-[18px] h-[18px]', isAIMenu ? 'text-white animate-pulse' : !itemActive && item.iconColor)} />
           </button>
         ) : (
           <Link
@@ -444,12 +523,12 @@ export function Sidebar({ className }: SidebarProps) {
     if (item.requirePermission && item.resource && item.action) {
       return (
         <PermissionGate key={item.name} resource={item.resource} action={item.action}>
-          {menuContent}
+          <div className={cn(isAIMenu && 'mb-1')}>{menuContent}</div>
         </PermissionGate>
       )
     }
 
-    return <div key={item.name}>{menuContent}</div>
+    return <div key={item.name} className={cn(isAIMenu && 'mb-1')}>{menuContent}</div>
   }
 
   if (loading || schoolLoading) {
@@ -537,6 +616,56 @@ export function Sidebar({ className }: SidebarProps) {
           : menuItems.map((item) => renderCollapsedMenuItem(item))
         }
       </nav>
+
+      {/* Card do Plano - apenas para Owner */}
+      {isExpanded && isOwner && (
+        <div className="px-3 pb-2 flex-shrink-0">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+            {/* Header do Plano */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                  <Crown className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <Link 
+                    to={`/escola/${slug}/planos`}
+                    className="text-xs font-bold text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                  >
+                    Plano Pro
+                  </Link>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400">
+                    <CalendarDays className="w-3 h-3" />
+                    <span>Renova 15/01/2025</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Créditos de IA */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-purple-500" />
+                  Créditos de IA
+                </span>
+                <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300">7.500 / 10.000</span>
+              </div>
+              <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full transition-all duration-500"
+                  style={{ width: '75%' }}
+                />
+              </div>
+            </div>
+            
+            {/* Botão Upgrade */}
+            <button className="w-full py-1.5 px-3 text-[11px] font-semibold text-white bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg hover:from-violet-600 hover:to-purple-700 transition-all duration-200 shadow-sm hover:shadow-md hover:shadow-purple-500/20">
+              Fazer Upgrade
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Footer do Sidebar */}
       {isExpanded && (
