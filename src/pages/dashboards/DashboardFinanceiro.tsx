@@ -159,7 +159,6 @@ export default function DashboardFinanceiro() {
             trend={receitaTrend}
             trendLabel="vs mês anterior"
             color="green"
-            variant="soft"
             isLoading={loadingFinanceiro}
           />
           <StatCard
@@ -169,7 +168,6 @@ export default function DashboardFinanceiro() {
             trend={despesaTrend}
             trendLabel="vs mês anterior"
             color="red"
-            variant="soft"
             isLoading={loadingFinanceiro}
           />
           <StatCard
@@ -177,7 +175,6 @@ export default function DashboardFinanceiro() {
             value={financeiro ? `R$ ${financeiro.saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ 0,00'}
             icon={PiggyBank}
             color="blue"
-            variant="soft"
             subtitle="Receita - Despesas"
             isLoading={loadingFinanceiro}
           />
@@ -188,7 +185,6 @@ export default function DashboardFinanceiro() {
             trend={inadimplenciaTrend}
             trendLabel="vs mês anterior"
             color="orange"
-            variant="soft"
             isLoading={loadingFinanceiro}
           />
         </div>

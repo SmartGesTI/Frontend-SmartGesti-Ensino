@@ -1,6 +1,5 @@
 // Tipos para StatCard
 export type StatCardColor = 'blue' | 'green' | 'purple' | 'orange' | 'pink' | 'red' | 'yellow'
-export type StatCardVariant = 'gradient' | 'soft'
 
 export interface StatCardData {
   title: string
