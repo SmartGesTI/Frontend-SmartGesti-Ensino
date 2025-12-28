@@ -132,10 +132,10 @@ export default function SelectSchool() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Carregando escolas...</p>
+          <p className="mt-4 text-gray-600">Carregando escolas...</p>
         </div>
       </div>
     )
@@ -144,19 +144,19 @@ export default function SelectSchool() {
   // Se não tem escolas disponíveis
   if (!schools || schools.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <Card className="w-full max-w-md shadow-2xl">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Nenhuma escola disponível</CardTitle>
-            <CardDescription>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
+        <Card className="w-full max-w-md shadow-2xl border-2 border-gray-200 bg-white">
+          <CardHeader className="text-center bg-gray-100/50 pb-6 pt-8 px-8 border-b-2 border-gray-200">
+            <CardTitle className="text-3xl font-bold text-blue-600 mb-2">Nenhuma escola disponível</CardTitle>
+            <CardDescription className="text-base text-gray-600">
               Você ainda não está vinculado a nenhuma escola nesta instituição.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-sm text-muted-foreground mb-4">
+          <CardContent className="p-8 text-center">
+            <p className="text-sm text-gray-600 mb-6">
               Entre em contato com o administrador da instituição para solicitar acesso.
             </p>
-            <Button variant="outline" onClick={() => navigate('/login')}>
+            <Button variant="outline" onClick={() => navigate('/login')} className="border-gray-300 hover:bg-gray-100 text-gray-700">
               Voltar ao Login
             </Button>
           </CardContent>
@@ -166,33 +166,33 @@ export default function SelectSchool() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
-      <Card className="w-full max-w-2xl shadow-2xl">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
+      <Card className="w-full max-w-4xl shadow-2xl border-2 border-gray-200 bg-white">
+        <CardHeader className="text-center bg-gray-100/50 pb-6 pt-8 px-8 border-b-2 border-gray-200">
+          <CardTitle className="text-4xl font-bold text-blue-600 mb-2">
             Selecione uma Escola
           </CardTitle>
-          <CardDescription className="text-lg">
+          <CardDescription className="text-lg text-gray-600">
             {tenantSubdomain ? `Instituição: ${tenantSubdomain}` : 'Escolha a escola que deseja acessar'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
+        <CardContent className="p-8">
+          <div className="grid gap-6 md:grid-cols-2">
             {schools.map((school) => (
               <Card
                 key={school.id}
-                className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] hover:border-primary"
+                className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] hover:border-blue-400 border-2 border-gray-200 bg-white"
                 onClick={() => handleSelectSchool(school)}
               >
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-semibold mb-2">{school.name}</h3>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">{school.name}</h3>
                   {school.code && (
-                    <p className="text-sm text-muted-foreground">Código: {school.code}</p>
+                    <p className="text-sm text-gray-600 mb-2">Código: <span className="font-medium">{school.code}</span></p>
                   )}
                   {school.address && (
-                    <p className="text-sm text-muted-foreground mt-1">{school.address}</p>
+                    <p className="text-sm text-gray-600 mb-4">{school.address}</p>
                   )}
-                  <Button className="w-full mt-4" variant="outline">
+                  <Button className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold" size="sm">
                     Acessar
                   </Button>
                 </CardContent>

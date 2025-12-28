@@ -119,20 +119,20 @@ export default function PendingApproval() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
-      <Card className="w-full max-w-2xl shadow-2xl">
-        <CardHeader className="text-center pb-6">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
+      <Card className="w-full max-w-2xl shadow-2xl border-2 border-gray-200 bg-white">
+        <CardHeader className="text-center bg-gray-100/50 pb-6 pt-8 px-8 border-b-2 border-gray-200">
           <div className="flex justify-center mb-4">
-            <Avatar className="h-24 w-24">
+            <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
               <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} alt={user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User'} />
-              <AvatarFallback className="text-2xl">{getUserInitials()}</AvatarFallback>
+              <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">{getUserInitials()}</AvatarFallback>
             </Avatar>
           </div>
-          <CardTitle className="text-3xl font-bold">Aguardando Aprovação</CardTitle>
-          <CardDescription className="text-lg">Seu acesso está pendente</CardDescription>
+          <CardTitle className="text-4xl font-bold text-blue-600 mb-2">Aguardando Aprovação</CardTitle>
+          <CardDescription className="text-lg text-gray-600">Seu acesso está pendente</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <Alert>
+        <CardContent className="p-8 space-y-6">
+          <Alert className="animate-in fade-in">
             <InfoIcon className="h-4 w-4" />
             <AlertTitle>Acesso Pendente</AlertTitle>
             <AlertDescription>
@@ -141,44 +141,44 @@ export default function PendingApproval() {
             </AlertDescription>
           </Alert>
 
-          <div className="space-y-3 bg-muted/50 p-4 rounded-lg">
+          <div className="space-y-3 bg-gray-50 p-5 rounded-lg border border-gray-200">
             <div className="flex items-start gap-2">
-              <span className="font-semibold min-w-[120px]">Nome:</span>
-              <span className="text-muted-foreground">{user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'Não informado'}</span>
+              <span className="font-semibold min-w-[120px] text-gray-800">Nome:</span>
+              <span className="text-gray-600">{user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'Não informado'}</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="font-semibold min-w-[120px]">Email:</span>
-              <span className="text-muted-foreground">{user?.email}</span>
+              <span className="font-semibold min-w-[120px] text-gray-800">Email:</span>
+              <span className="text-gray-600">{user?.email}</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="font-semibold min-w-[120px]">Instituição:</span>
-              <span className="text-muted-foreground">
+              <span className="font-semibold min-w-[120px] text-gray-800">Instituição:</span>
+              <span className="text-gray-600">
                 {tenant?.name || tenantSubdomain || 'Não identificada'}
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="font-semibold min-w-[120px]">Status:</span>
-              <span className="text-yellow-600 dark:text-yellow-500 font-medium">
+              <span className="font-semibold min-w-[120px] text-gray-800">Status:</span>
+              <span className="text-yellow-600 font-medium">
                 Aguardando aprovação
               </span>
             </div>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+            <h3 className="font-semibold text-blue-900 mb-3 text-lg">
               O que fazer agora?
             </h3>
-            <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+            <ul className="space-y-2 text-sm text-blue-800">
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 dark:text-blue-400">•</span>
+                <span className="text-blue-600 font-bold">•</span>
                 <span>Entre em contato com o administrador da instituição</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 dark:text-blue-400">•</span>
+                <span className="text-blue-600 font-bold">•</span>
                 <span>Aguarde a aprovação do seu acesso</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 dark:text-blue-400">•</span>
+                <span className="text-blue-600 font-bold">•</span>
                 <span>Você receberá um email quando seu acesso for liberado</span>
               </li>
             </ul>
@@ -189,7 +189,8 @@ export default function PendingApproval() {
               variant="outline"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex-1"
+              className="flex-1 border-gray-300 hover:bg-gray-100 text-gray-700"
+              size="sm"
             >
               {isLoggingOut ? (
                 <>
@@ -203,7 +204,7 @@ export default function PendingApproval() {
                 </>
               )}
             </Button>
-            <Button onClick={handleContactAdmin} className="flex-1">
+            <Button onClick={handleContactAdmin} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold" size="sm">
               <Mail className="mr-2 h-4 w-4" />
               Contatar Administrador
             </Button>
