@@ -2,9 +2,10 @@ import { HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ReactNode } from 'react'
 import { useHelpPanel } from '@/contexts/HelpPanelContext'
+import type { HighlightTarget } from '@/contexts/HelpHighlightContext'
 
 export type HelpSize = 'xs' | 'sm' | 'md' | 'lg'
-export type HighlightTarget = 'school-selector' | 'theme-toggle' | 'notifications' | 'user-menu' | 'sidebar-toggle' | 'search-bar' | null
+export type { HighlightTarget }
 export type IconColor = 'blue' | 'emerald' | 'amber' | 'purple' | 'rose' | 'cyan' | 'indigo' | 'orange'
 
 export interface HelpItem {
@@ -65,6 +66,7 @@ export function HelpButton({
 
   return (
     <button
+      type="button"
       onClick={handleClick}
       className={cn(
         'inline-flex items-center justify-center rounded-full',

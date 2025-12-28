@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { routes } from '@/lib/routes'
 import { useUrlTabs } from '@/hooks/useUrlTabs'
+import { HelpButton } from '@/components/HelpButton'
+import { Building2, Hash, FileText, Image, AlignLeft } from 'lucide-react'
 
 const SCHOOL_TABS = ['dados-gerais', 'contatos', 'endereco', 'redes-sociais'] as const
 
@@ -60,7 +62,51 @@ export default function SchoolDetails() {
 
       <Card className="border-2 border-border">
         <CardHeader className="bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30 dark:to-transparent border-b border-border">
-          <CardTitle className="text-blue-600 dark:text-blue-400">Informações da Escola</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-blue-600 dark:text-blue-400">Informações da Escola</CardTitle>
+            <HelpButton
+              title="Dados Gerais da Escola"
+              description="Entenda cada campo do formulário"
+              size="sm"
+              items={[
+                {
+                  title: 'Nome da Escola',
+                  description: 'Nome oficial da instituição de ensino. Este nome aparecerá em todos os documentos e relatórios gerados pelo sistema.',
+                  icon: <Building2 className="w-4 h-4" />,
+                  iconColor: 'blue',
+                  highlightTarget: 'field-name',
+                },
+                {
+                  title: 'Código',
+                  description: 'Código interno para identificação rápida da escola. Pode ser usado em relatórios e integrações com outros sistemas.',
+                  icon: <Hash className="w-4 h-4" />,
+                  iconColor: 'purple',
+                  highlightTarget: 'field-code',
+                },
+                {
+                  title: 'CNPJ',
+                  description: 'Cadastro Nacional de Pessoa Jurídica da escola. Formato: 00.000.000/0000-00. Essencial para emissão de notas fiscais e documentos legais.',
+                  icon: <FileText className="w-4 h-4" />,
+                  iconColor: 'emerald',
+                  highlightTarget: 'field-cnpj',
+                },
+                {
+                  title: 'URL da Logo',
+                  description: 'Endereço web da imagem do logotipo da escola. A logo aparecerá no menu lateral, relatórios e documentos. Use uma imagem quadrada para melhor visualização.',
+                  icon: <Image className="w-4 h-4" />,
+                  iconColor: 'amber',
+                  highlightTarget: 'field-logo',
+                },
+                {
+                  title: 'Descrição',
+                  description: 'Texto descritivo sobre a escola. Inclua missão, valores, metodologia de ensino e diferenciais. Este texto pode ser usado em materiais de divulgação.',
+                  icon: <AlignLeft className="w-4 h-4" />,
+                  iconColor: 'cyan',
+                  highlightTarget: 'field-descricao',
+                },
+              ]}
+            />
+          </div>
           <CardDescription className="text-gray-600 dark:text-gray-400">
             Atualize os dados da escola em cada aba abaixo
           </CardDescription>

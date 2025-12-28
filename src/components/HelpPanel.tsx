@@ -1,8 +1,8 @@
 import { X, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useHelpPanel } from '@/contexts/HelpPanelContext'
-import { useHelpHighlight } from '@/contexts/HelpHighlightContext'
-import type { HighlightTarget, IconColor } from '@/components/HelpButton'
+import { useHelpHighlight, type HighlightTarget } from '@/contexts/HelpHighlightContext'
+import type { IconColor } from '@/components/HelpButton'
 
 /** Classes de cores para os ícones dos cards */
 const iconColorClasses: Record<IconColor, { bg: string; text: string; shadow: string }> = {

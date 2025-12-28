@@ -8,6 +8,8 @@ import { School } from '@/types'
 import { apiRequest } from '@/services/api'
 import { useAccessToken } from '@/hooks/useAccessToken'
 import { logger } from '@/lib/logger'
+import { useHelpHighlight, highlightClasses } from '@/contexts/HelpHighlightContext'
+import { cn } from '@/lib/utils'
 
 interface DadosGeraisTabProps {
   school: School
@@ -16,6 +18,7 @@ interface DadosGeraisTabProps {
 export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
   const { token } = useAccessToken()
   const queryClient = useQueryClient()
+  const { highlightedElement } = useHelpHighlight()
   const [formData, setFormData] = useState({
     name: school.name || '',
     code: school.code || '',
@@ -57,8 +60,12 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium mb-1.5 block" required>Nome da Escola</Label>
+        <div className={cn(
+          'space-y-2',
+          highlightClasses.base,
+          highlightedElement === 'field-name' && [highlightClasses.inputActive, highlightClasses.labelActive]
+        )}>
+          <Label htmlFor="name" className="text-sm font-medium mb-1.5 block transition-colors" required>Nome da Escola</Label>
           <Input
             id="name"
             value={formData.name}
@@ -67,8 +74,12 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="code" className="text-sm font-medium mb-1.5 block">Código</Label>
+        <div className={cn(
+          'space-y-2',
+          highlightClasses.base,
+          highlightedElement === 'field-code' && [highlightClasses.inputActive, highlightClasses.labelActive]
+        )}>
+          <Label htmlFor="code" className="text-sm font-medium mb-1.5 block transition-colors">Código</Label>
           <Input
             id="code"
             value={formData.code}
@@ -76,8 +87,12 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="cnpj" className="text-sm font-medium mb-1.5 block">CNPJ</Label>
+        <div className={cn(
+          'space-y-2',
+          highlightClasses.base,
+          highlightedElement === 'field-cnpj' && [highlightClasses.inputActive, highlightClasses.labelActive]
+        )}>
+          <Label htmlFor="cnpj" className="text-sm font-medium mb-1.5 block transition-colors">CNPJ</Label>
           <Input
             id="cnpj"
             value={formData.cnpj}
@@ -87,8 +102,12 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="logo_url" className="text-sm font-medium mb-1.5 block">URL da Logo</Label>
+        <div className={cn(
+          'space-y-2',
+          highlightClasses.base,
+          highlightedElement === 'field-logo' && [highlightClasses.inputActive, highlightClasses.labelActive]
+        )}>
+          <Label htmlFor="logo_url" className="text-sm font-medium mb-1.5 block transition-colors">URL da Logo</Label>
           <Input
             id="logo_url"
             type="url"
@@ -99,8 +118,12 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="descricao" className="text-sm font-medium mb-1.5 block">Descrição</Label>
+      <div className={cn(
+        'space-y-2',
+        highlightClasses.base,
+        highlightedElement === 'field-descricao' && [highlightClasses.inputActive, highlightClasses.labelActive]
+      )}>
+        <Label htmlFor="descricao" className="text-sm font-medium mb-1.5 block transition-colors">Descrição</Label>
         <Textarea
           id="descricao"
           value={formData.descricao}
