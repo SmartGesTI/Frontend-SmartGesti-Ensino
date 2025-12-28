@@ -95,7 +95,6 @@ export function Navbar({ className }: NavbarProps) {
             title="Central de Ajuda"
             description="Saiba como utilizar os recursos do sistema"
             size="md"
-            belowNavbar
             items={[
               {
                 title: 'Expandir/Recolher Menu',
