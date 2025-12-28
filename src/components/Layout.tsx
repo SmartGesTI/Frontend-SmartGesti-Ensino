@@ -1,5 +1,7 @@
 import { Sidebar } from '@/components/Sidebar'
 import { Navbar } from '@/components/Navbar'
+import { HelpHighlightProvider } from '@/contexts/HelpHighlightContext'
+import { SidebarProvider } from '@/contexts/SidebarContext'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -7,11 +9,13 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
+    <SidebarProvider>
+    <HelpHighlightProvider>
     <div className="min-h-screen bg-background">
       {/* Container principal com sidebar fixa */}
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex h-screen">
         {/* Sidebar - fixa no lado esquerdo */}
-        <Sidebar className="hidden lg:flex lg:flex-col h-screen sticky top-0" />
+        <Sidebar className="hidden lg:flex lg:flex-col h-screen sticky top-0 overflow-visible" />
 
         {/* Conteúdo principal */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -27,5 +31,7 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </div>
     </div>
+    </HelpHighlightProvider>
+    </SidebarProvider>
   )
 }

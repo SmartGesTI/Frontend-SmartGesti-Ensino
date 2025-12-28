@@ -690,7 +690,111 @@ rounded-full    // 9999px (pills/avatares)
 
 ---
 
-## 🖼️ Cards Headers/Footers
+## 🎯 Ícones com Sombra Colorida
+
+Para ícones que têm cor de fundo preenchida, aplique uma sombra com a mesma cor para criar profundidade visual.
+
+### Padrão Básico
+
+```tsx
+// Estrutura: bg-{cor}-500 + shadow-lg shadow-{cor}-500/30
+<div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+  <Icon className="w-5 h-5 text-white" />
+</div>
+```
+
+### Cores Disponíveis
+
+```tsx
+// Azul
+bg-blue-500 shadow-lg shadow-blue-500/30
+
+// Verde/Emerald
+bg-emerald-500 shadow-lg shadow-emerald-500/30
+
+// Âmbar/Amarelo
+bg-amber-500 shadow-lg shadow-amber-500/30
+
+// Roxo
+bg-purple-500 shadow-lg shadow-purple-500/30
+
+// Rosa
+bg-rose-500 shadow-lg shadow-rose-500/30
+
+// Ciano
+bg-cyan-500 shadow-lg shadow-cyan-500/30
+
+// Indigo
+bg-indigo-500 shadow-lg shadow-indigo-500/30
+
+// Laranja
+bg-orange-500 shadow-lg shadow-orange-500/30
+```
+
+### Exemplos de Uso
+
+```tsx
+// Ícone em card header (tamanho maior)
+<div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+  <HelpCircle className="w-5 h-5 text-white" />
+</div>
+
+// Ícone em card de item (tamanho médio)
+<div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+  <Check className="w-4 h-4 text-white" />
+</div>
+
+// Ícone pequeno inline
+<div className="w-7 h-7 rounded-md bg-amber-500 flex items-center justify-center shadow-md shadow-amber-500/25">
+  <Bell className="w-3.5 h-3.5 text-white" />
+</div>
+```
+
+### Tamanhos Recomendados
+
+| Contexto | Container | Ícone | Border Radius | Sombra |
+|----------|-----------|-------|---------------|--------|
+| Header/Hero | `w-10 h-10` ou `w-12 h-12` | `w-5 h-5` ou `w-6 h-6` | `rounded-xl` | `shadow-lg shadow-{cor}-500/30` |
+| Card item | `w-9 h-9` | `w-4 h-4` | `rounded-lg` | `shadow-lg shadow-{cor}-500/30` |
+| Inline/Badge | `w-7 h-7` | `w-3.5 h-3.5` | `rounded-md` | `shadow-md shadow-{cor}-500/25` |
+| Mini | `w-5 h-5` | `w-3 h-3` | `rounded` | `shadow-sm shadow-{cor}-500/20` |
+
+### Uso no HelpButton
+
+O componente `HelpButton` suporta a prop `iconColor` para variar cores dos ícones:
+
+```tsx
+import { HelpButton, IconColor } from '@/components/HelpButton'
+
+<HelpButton
+  items={[
+    {
+      title: 'Escola',
+      icon: <Building2 className="w-4 h-4" />,
+      iconColor: 'blue',    // Azul
+    },
+    {
+      title: 'Notificações',
+      icon: <Bell className="w-4 h-4" />,
+      iconColor: 'rose',    // Rosa
+    },
+    {
+      title: 'Tema',
+      icon: <Sun className="w-4 h-4" />,
+      iconColor: 'amber',   // Âmbar
+    },
+    {
+      title: 'Perfil',
+      icon: <User className="w-4 h-4" />,
+      iconColor: 'purple',  // Roxo
+    },
+  ]}
+/>
+```
+
+---
+
+## 🗼 Cards Headers/Footers
 
 ```tsx
 // Card Header Azul Gradiente
@@ -918,10 +1022,211 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 ---
 
-## 📁 Arquivos de Referência
+## ❓ HelpButton - Sistema de Ajuda Contextual
+
+O componente `HelpButton` exibe um botão de ajuda que abre um offcanvas com informações contextuais. Ele suporta highlight de elementos na tela ao passar o mouse sobre os itens de ajuda.
+
+### Import
+
+```tsx
+import { HelpButton, HelpItem, HighlightTarget } from '@/components/HelpButton'
+import { useHelpHighlight, highlightClasses } from '@/contexts/HelpHighlightContext'
+```
+
+### Uso Básico
+
+```tsx
+<HelpButton
+  title="Central de Ajuda"
+  description="Saiba como utilizar os recursos"
+  size="md"
+  belowNavbar
+  items={[
+    {
+      title: 'Nome do Recurso',
+      description: 'Descrição detalhada do recurso...',
+      icon: <IconComponent className="w-4 h-4" />,
+      highlightTarget: 'element-id',
+    },
+  ]}
+/>
+```
+
+### Props
+
+| Prop | Tipo | Padrão | Descrição |
+|------|------|--------|----------|
+| `title` | `string` | - | Título do painel de ajuda |
+| `description` | `string` | - | Subtítulo/descrição geral |
+| `items` | `HelpItem[]` | - | Lista de itens de ajuda |
+| `size` | `'xs' \| 'sm' \| 'md' \| 'lg'` | `'sm'` | Tamanho do botão |
+| `side` | `'left' \| 'right'` | `'right'` | Lado do offcanvas |
+| `belowNavbar` | `boolean` | `false` | Se true, offcanvas começa abaixo do navbar |
+
+### Interface HelpItem
+
+```tsx
+interface HelpItem {
+  title: string              // Título do item
+  description: string        // Descrição detalhada
+  icon?: ReactNode           // Ícone do item
+  highlightTarget?: string   // ID do elemento para destacar no hover
+}
+```
+
+### Tamanhos Disponíveis
+
+```tsx
+// Extra pequeno - para uso em campos de formulário
+<HelpButton size="xs" ... />
+
+// Pequeno - padrão
+<HelpButton size="sm" ... />
+
+// Médio - para navbar e headers
+<HelpButton size="md" ... />
+
+// Grande - para áreas de destaque
+<HelpButton size="lg" ... />
+```
+
+---
+
+## 💡 Sistema de Highlight
+
+O sistema de highlight permite destacar elementos na tela quando o usuário passa o mouse sobre itens de ajuda.
+
+### Configuração
+
+1. **Envolver com Provider** (já está no Layout):
+
+```tsx
+import { HelpHighlightProvider } from '@/contexts/HelpHighlightContext'
+
+<HelpHighlightProvider>
+  {children}
+</HelpHighlightProvider>
+```
+
+2. **Usar o hook nos elementos que podem ser destacados**:
+
+```tsx
+import { useHelpHighlight, highlightClasses } from '@/contexts/HelpHighlightContext'
+import { cn } from '@/lib/utils'
+
+function MeuComponente() {
+  const { highlightedElement } = useHelpHighlight()
+
+  return (
+    <div className={cn(
+      highlightClasses.base,
+      highlightedElement === 'meu-elemento-id' && highlightClasses.active
+    )}>
+      Conteúdo
+    </div>
+  )
+}
+```
+
+3. **Definir o highlightTarget no HelpButton**:
+
+```tsx
+<HelpButton
+  items={[
+    {
+      title: 'Meu Recurso',
+      description: 'Descrição...',
+      highlightTarget: 'meu-elemento-id', // Mesmo ID usado no componente
+    },
+  ]}
+/>
+```
+
+### Classes de Highlight
+
+```tsx
+// Importar as classes
+import { highlightClasses } from '@/contexts/HelpHighlightContext'
+
+// Classes disponíveis:
+highlightClasses.base   // 'transition-all duration-300'
+highlightClasses.active // 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 rounded-lg scale-105 z-50'
+```
+
+### Adicionando Novos Targets
+
+Para adicionar novos elementos que podem ser destacados:
+
+1. Adicione o tipo em `HelpHighlightContext.tsx`:
+
+```tsx
+type HighlightTarget = 
+  | 'school-selector' 
+  | 'theme-toggle' 
+  | 'notifications' 
+  | 'user-menu'
+  | 'novo-elemento'  // Adicione aqui
+  | null
+```
+
+2. Use no componente alvo:
+
+```tsx
+<div className={cn(
+  highlightClasses.base,
+  highlightedElement === 'novo-elemento' && highlightClasses.active
+)}>
+  ...
+</div>
+```
+
+3. Referencie no HelpButton:
+
+```tsx
+{
+  title: 'Novo Elemento',
+  highlightTarget: 'novo-elemento',
+}
+```
+
+### Exemplo Completo - Navbar
+
+```tsx
+// No Navbar.tsx
+const { highlightedElement } = useHelpHighlight()
+
+<HelpButton
+  title="Central de Ajuda"
+  belowNavbar
+  items={[
+    {
+      title: 'Seletor de Escola',
+      description: 'Alterne entre as escolas...',
+      icon: <Building2 className="w-4 h-4" />,
+      highlightTarget: 'school-selector',
+    },
+  ]}
+/>
+
+{/* Elemento que será destacado */}
+<div className={cn(
+  'hidden lg:block',
+  highlightClasses.base,
+  highlightedElement === 'school-selector' && highlightClasses.active
+)}>
+  <SchoolSelector />
+</div>
+```
+
+---
+
+## 💱 Arquivos de Referência
 
 - `src/index.css` - Variáveis CSS e configuração de temas
 - `src/contexts/ThemeContext.tsx` - Contexto e hook useTheme
+- `src/contexts/HelpHighlightContext.tsx` - Contexto para sistema de highlight
+- `src/components/HelpButton.tsx` - Componente de ajuda contextual
+- `src/components/ui/sheet.tsx` - Componente offcanvas/sheet
 - `src/components/ui/theme-toggle.tsx` - Componente de toggle
 - `src/components/ui/input.tsx` - Input com estados de erro
 - `src/components/ui/button.tsx` - Variantes de botões

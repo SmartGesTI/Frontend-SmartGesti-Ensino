@@ -18,6 +18,8 @@ import {
 } from 'lucide-react'
 import { PermissionGate } from './PermissionGate'
 import { usePermissions } from '../hooks/usePermissions'
+import { useSchool } from '@/contexts/SchoolContext'
+import { useSidebar } from '@/contexts/SidebarContext'
 import { useState, useEffect } from 'react'
 
 interface MenuItem {
@@ -38,7 +40,10 @@ export function Sidebar({ className }: SidebarProps) {
   const location = useLocation()
   const { slug } = useParams<{ slug: string }>()
   const { loading } = usePermissions()
+  const { school, isLoading: schoolLoading } = useSchool()
+  const { isExpanded } = useSidebar()
   const [expandedMenus, setExpandedMenus] = useState<string[]>([])
+  const [hoveredMenu, setHoveredMenu] = useState<string | null>(null)
 
   // Expandir menu pai automaticamente se um filho estiver ativo
   useEffect(() => {
@@ -164,20 +169,20 @@ export function Sidebar({ className }: SidebarProps) {
     return item.children.some(child => isActive(child.path))
   }
 
-  const renderMenuItem = (item: MenuItem, depth: number = 0) => {
+  // Renderizar menu no modo expandido
+  const renderExpandedMenuItem = (item: MenuItem, depth: number = 0) => {
     const Icon = item.icon
-    const isExpanded = expandedMenus.includes(item.name)
+    const isMenuExpanded = expandedMenus.includes(item.name)
     const hasChildren = item.children && item.children.length > 0
     const itemActive = item.path ? isActive(item.path) : hasActiveChild(item)
 
     const menuContent = (
       <>
         {hasChildren ? (
-          // Menu com filhos - botão expansível
           <button
             onClick={() => toggleMenu(item.name)}
             className={cn(
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+              'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200',
               'group relative overflow-hidden',
               itemActive
                 ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
@@ -186,64 +191,60 @@ export function Sidebar({ className }: SidebarProps) {
             )}
           >
             <Icon className={cn(
-              'w-5 h-5 transition-colors flex-shrink-0',
+              'w-[18px] h-[18px] transition-colors flex-shrink-0',
               itemActive && 'text-blue-600 dark:text-blue-400'
             )} />
-            <span className="font-medium flex-1 text-left text-sm">{item.name}</span>
+            <span className="font-medium flex-1 text-left text-[13px]">{item.name}</span>
             <ChevronDown className={cn(
               'w-4 h-4 transition-transform duration-300 flex-shrink-0',
-              isExpanded && 'rotate-180'
+              isMenuExpanded && 'rotate-180'
             )} />
           </button>
         ) : (
-          // Menu sem filhos - link direto
           <Link
             to={item.path || '#'}
             className={cn(
-              'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+              'flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-200',
               'group relative overflow-hidden',
               itemActive
                 ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
-              depth > 0 && 'ml-4 text-sm'
+              depth > 0 && 'ml-4'
             )}
           >
-            {/* Hover effect background */}
             <span className={cn(
               'absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 opacity-0 transition-opacity duration-200',
               'group-hover:opacity-100',
               itemActive && 'opacity-0'
             )} />
             <Icon className={cn(
-              'w-5 h-5 transition-colors flex-shrink-0 relative z-10',
+              'w-[18px] h-[18px] transition-colors flex-shrink-0 relative z-10',
               depth > 0 && 'w-4 h-4'
             )} />
             <span className={cn(
-              'font-medium relative z-10',
-              depth > 0 && 'text-sm'
+              'font-medium relative z-10 text-[13px]',
+              depth > 0 && 'text-[13px]'
             )}>{item.name}</span>
-            {/* Active indicator */}
             {itemActive && depth === 0 && (
-              <span className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-l-full" />
+              <span className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-l-full" />
             )}
           </Link>
         )}
 
-        {/* Submenu com animação */}
         {hasChildren && (
           <div className={cn(
             'overflow-hidden transition-all duration-300 ease-in-out',
-            isExpanded ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'
+            isMenuExpanded ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'
           )}>
             <div className="pl-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-700 ml-5">
               {item.children!.map((child) => (
                 <div key={child.name}>
                   {child.requirePermission && child.resource && child.action ? (
                     <PermissionGate resource={child.resource} action={child.action}>
-                      {renderMenuItem(child, depth + 1)}
+                      {renderExpandedMenuItem(child, depth + 1)}
                     </PermissionGate>
                   ) : (
-                    renderMenuItem(child, depth + 1)
+                    renderExpandedMenuItem(child, depth + 1)
                   )}
                 </div>
               ))}
@@ -253,7 +254,6 @@ export function Sidebar({ className }: SidebarProps) {
       </>
     )
 
-    // Se o item pai requer permissão, envolver em PermissionGate
     if (depth === 0 && item.requirePermission && item.resource && item.action) {
       return (
         <PermissionGate key={item.name} resource={item.resource} action={item.action}>
@@ -265,16 +265,152 @@ export function Sidebar({ className }: SidebarProps) {
     return <div key={item.name}>{menuContent}</div>
   }
 
-  if (loading) {
+  // Renderizar menu no modo colapsado (com tooltip/popover no hover)
+  const renderCollapsedMenuItem = (item: MenuItem) => {
+    const Icon = item.icon
+    const hasChildren = item.children && item.children.length > 0
+    const itemActive = item.path ? isActive(item.path) : hasActiveChild(item)
+    const isHovered = hoveredMenu === item.name
+
+    const menuContent = (
+      <div 
+        className="relative"
+        onMouseEnter={() => setHoveredMenu(item.name)}
+        onMouseLeave={() => setHoveredMenu(null)}
+      >
+        {hasChildren ? (
+          <button
+            className={cn(
+              'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200',
+              'group relative',
+              itemActive
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+            )}
+          >
+            <Icon className="w-[18px] h-[18px]" />
+          </button>
+        ) : (
+          <Link
+            to={item.path || '#'}
+            className={cn(
+              'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-200',
+              'group relative',
+              itemActive
+                ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
+            )}
+          >
+            <Icon className="w-[18px] h-[18px]" />
+          </Link>
+        )}
+
+        {/* Popover no hover - com área de transição */}
+        {isHovered && (
+          <>
+            {/* Área invisível para manter hover ao mover para o popover */}
+            <div className="absolute left-full top-0 w-3 h-full" />
+            <div 
+              className={cn(
+                'absolute left-full top-0 ml-3 z-[100]',
+                'bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700',
+                'min-w-[200px] py-2',
+                'animate-in fade-in-0 slide-in-from-left-2 duration-200'
+              )}
+            >
+              {hasChildren ? (
+                <>
+                  <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {item.name}
+                    </span>
+                  </div>
+                  <div className="py-1">
+                    {item.children!.map((child) => {
+                      const ChildIcon = child.icon
+                      const childActive = isActive(child.path)
+                      
+                      const childLink = (
+                        <Link
+                          key={child.name}
+                          to={child.path || '#'}
+                          className={cn(
+                            'flex items-center gap-2.5 px-3 py-2 mx-1 rounded-md transition-all duration-150',
+                            childActive
+                              ? 'bg-blue-500 text-white'
+                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                          )}
+                        >
+                          <ChildIcon className="w-4 h-4" />
+                          <span className="text-sm font-medium">{child.name}</span>
+                        </Link>
+                      )
+
+                      if (child.requirePermission && child.resource && child.action) {
+                        return (
+                          <PermissionGate key={child.name} resource={child.resource} action={child.action}>
+                            {childLink}
+                          </PermissionGate>
+                        )
+                      }
+                      return childLink
+                    })}
+                  </div>
+                </>
+              ) : (
+                <div className="px-3 py-2">
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {item.name}
+                  </span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    )
+
+    if (item.requirePermission && item.resource && item.action) {
+      return (
+        <PermissionGate key={item.name} resource={item.resource} action={item.action}>
+          {menuContent}
+        </PermissionGate>
+      )
+    }
+
+    return <div key={item.name}>{menuContent}</div>
+  }
+
+  if (loading || schoolLoading) {
     return (
       <aside className={cn(
-        'w-64 bg-card border-r border-gray-200 dark:border-gray-700 p-4',
-        'flex-shrink-0',
+        'bg-card border-r border-gray-200 dark:border-gray-700',
+        'flex-shrink-0 transition-all duration-300 relative z-30',
+        isExpanded ? 'w-64' : 'w-[72px]',
         className
       )}>
-        <div className="animate-pulse space-y-3">
+        {/* Header skeleton */}
+        <div className={cn(
+          'h-16 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3 flex-shrink-0',
+          isExpanded ? 'px-4' : 'px-4 justify-center'
+        )}>
+          <div className="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          {isExpanded && (
+            <div className="flex-1">
+              <div className="w-24 h-4 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <div className="w-16 h-3 rounded bg-gray-200 dark:bg-gray-700 animate-pulse mt-1" />
+            </div>
+          )}
+        </div>
+        <div className={cn('p-3 space-y-3', !isExpanded && 'flex flex-col items-center')}>
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="h-11 bg-gray-200 dark:bg-gray-700 rounded-xl" />
+            <div 
+              key={i} 
+              className={cn(
+                'bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse',
+                isExpanded ? 'h-10 w-full' : 'h-10 w-10'
+              )} 
+            />
           ))}
         </div>
       </aside>
@@ -283,28 +419,62 @@ export function Sidebar({ className }: SidebarProps) {
 
   return (
     <aside className={cn(
-      'w-64 bg-card border-r border-gray-200 dark:border-gray-700',
-      'flex-shrink-0 overflow-y-auto',
+      'bg-card border-r border-gray-200 dark:border-gray-700',
+      'flex-shrink-0 flex flex-col transition-all duration-300 relative z-30',
+      isExpanded ? 'w-64' : 'w-[72px]',
       className
     )}>
-      {/* Header do Sidebar */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-          Menu Principal
-        </h2>
+      {/* Header do Sidebar - Logo e Escola */}
+      <div className={cn(
+        'h-16 border-b border-gray-200 dark:border-gray-700 flex items-center gap-3 flex-shrink-0',
+        isExpanded ? 'px-4' : 'px-4 justify-center'
+      )}>
+        {school?.logo_url ? (
+          <img 
+            src={school.logo_url} 
+            alt={school.name} 
+            className="w-10 h-10 rounded-lg object-contain bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1 flex-shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+            <GraduationCap className="w-6 h-6 text-white" />
+          </div>
+        )}
+        {isExpanded && (
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+              {school?.name || 'SmartGesti'}
+            </span>
+            {school?.code && (
+              <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {school.code}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Navigation */}
-      <nav className="p-3 space-y-1">
-        {menuItems.map((item) => renderMenuItem(item))}
+      {/* Navigation - com scroll quando expandido, overflow visible quando colapsado */}
+      <nav className={cn(
+        'flex-1 p-3',
+        isExpanded 
+          ? 'overflow-y-auto space-y-1' 
+          : 'overflow-visible flex flex-col items-center space-y-2'
+      )}>
+        {isExpanded 
+          ? menuItems.map((item) => renderExpandedMenuItem(item))
+          : menuItems.map((item) => renderCollapsedMenuItem(item))
+        }
       </nav>
 
       {/* Footer do Sidebar */}
-      <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="text-xs text-gray-400 dark:text-gray-500 text-center">
-          SmartGesti Ensino v1.0
+      {isExpanded && (
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="text-xs text-gray-400 dark:text-gray-500 text-center">
+            SmartGesti Ensino v1.0
+          </div>
         </div>
-      </div>
+      )}
     </aside>
   )
 }
