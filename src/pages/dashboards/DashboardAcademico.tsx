@@ -1,9 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
 import { 
   GraduationCap, 
-  TrendingUp, 
-  TrendingDown,
   Award,
   AlertTriangle,
   BookOpen,
@@ -13,9 +10,27 @@ import {
   Clock,
   BarChart3,
   Medal,
-  ThumbsDown,
-  ArrowRight
+  ThumbsDown
 } from 'lucide-react'
+import {
+  StatCard,
+  DonutChart,
+  HorizontalBarChart,
+  StudentRankingList,
+  RecoveryStudentList,
+  ClassPerformanceTable,
+  MetricsSummary,
+  SidebarCard,
+  DashboardCard,
+} from '@/components/dashboard'
+import type { 
+  StudentRankingData, 
+  StudentRecoveryData, 
+  ClassPerformanceData, 
+  HorizontalBarItem,
+  DonutSegment,
+  MetricItem 
+} from '@/types/dashboard'
 
 // Dados mockados - futuramente virão da API
 const mockAcademico = {
@@ -29,7 +44,7 @@ const mockAcademico = {
   alunosDestaque: 78,
 }
 
-const mockDesempenhoTurmas = [
+const mockDesempenhoTurmas: ClassPerformanceData[] = [
   { turma: '1º Ano A', media: 8.2, frequencia: 96.5, alunos: 32 },
   { turma: '1º Ano B', media: 7.8, frequencia: 94.2, alunos: 30 },
   { turma: '2º Ano A', media: 7.5, frequencia: 93.8, alunos: 35 },
@@ -38,7 +53,7 @@ const mockDesempenhoTurmas = [
   { turma: '3º Ano B', media: 6.8, frequencia: 91.5, alunos: 31 },
 ]
 
-const mockAlunosDestaque = [
+const mockAlunosDestaque: StudentRankingData[] = [
   { id: 1, nome: 'Ana Carolina Silva', turma: '1º Ano A', media: 9.8, posicao: 1 },
   { id: 2, nome: 'Pedro Henrique Souza', turma: '3º Ano A', media: 9.6, posicao: 2 },
   { id: 3, nome: 'Maria Eduarda Lima', turma: '1º Ano A', media: 9.5, posicao: 3 },
@@ -66,200 +81,70 @@ const mockAlunosDestaque = [
   { id: 25, nome: 'Manuela Freitas', turma: '3º Ano A', media: 8.0, posicao: 25 },
 ]
 
-const mockAlunosRecuperacao = [
+const mockAlunosRecuperacao: StudentRecoveryData[] = [
   { id: 1, nome: 'Carlos Eduardo Oliveira', turma: '3º Ano B', media: 4.8, disciplinas: 3 },
   { id: 2, nome: 'Fernanda Beatriz Alves', turma: '2º Ano B', media: 5.2, disciplinas: 2 },
   { id: 3, nome: 'Ricardo José Mendes', turma: '3º Ano B', media: 5.5, disciplinas: 2 },
   { id: 4, nome: 'Patrícia Maria Gomes', turma: '2º Ano B', media: 5.7, disciplinas: 1 },
 ]
 
-const mockDesempenhoDisciplinas = [
-  { disciplina: 'Matemática', media: 6.8, aprovacao: 82 },
-  { disciplina: 'Português', media: 7.5, aprovacao: 91 },
-  { disciplina: 'História', media: 7.8, aprovacao: 93 },
-  { disciplina: 'Geografia', media: 7.6, aprovacao: 90 },
-  { disciplina: 'Ciências', media: 7.2, aprovacao: 88 },
-  { disciplina: 'Inglês', media: 7.9, aprovacao: 94 },
+const mockDesempenhoDisciplinas: HorizontalBarItem[] = [
+  { label: 'Matemática', value: 6.8, maxValue: 10, subtitle: '82% de aprovação' },
+  { label: 'Português', value: 7.5, maxValue: 10, subtitle: '91% de aprovação' },
+  { label: 'História', value: 7.8, maxValue: 10, subtitle: '93% de aprovação' },
+  { label: 'Geografia', value: 7.6, maxValue: 10, subtitle: '90% de aprovação' },
+  { label: 'Ciências', value: 7.2, maxValue: 10, subtitle: '88% de aprovação' },
+  { label: 'Inglês', value: 7.9, maxValue: 10, subtitle: '94% de aprovação' },
 ]
 
-interface AcademicCardProps {
-  title: string
-  value: string | number
-  icon: React.ElementType
-  trend?: number
-  trendLabel?: string
-  color: 'blue' | 'green' | 'purple' | 'orange' | 'red' | 'yellow'
-  subtitle?: string
-}
+// Simula carregamento de dados
+function useLoadData<T>(data: T, delay: number = 1000) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadedData, setLoadedData] = useState<T | null>(null)
 
-function AcademicCard({ title, value, icon: Icon, trend, trendLabel, color, subtitle }: AcademicCardProps) {
-  const colorClasses = {
-    blue: 'from-blue-500 to-blue-600 shadow-blue-500/25',
-    green: 'from-emerald-500 to-emerald-600 shadow-emerald-500/25',
-    purple: 'from-purple-500 to-purple-600 shadow-purple-500/25',
-    orange: 'from-orange-500 to-orange-600 shadow-orange-500/25',
-    red: 'from-red-500 to-red-600 shadow-red-500/25',
-    yellow: 'from-amber-500 to-amber-600 shadow-amber-500/25',
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadedData(data)
+      setIsLoading(false)
+    }, delay)
+    return () => clearTimeout(timer)
+  }, [data, delay])
 
-  const iconBgClasses = {
-    blue: 'bg-blue-400/30',
-    green: 'bg-emerald-400/30',
-    purple: 'bg-purple-400/30',
-    orange: 'bg-orange-400/30',
-    red: 'bg-red-400/30',
-    yellow: 'bg-amber-400/30',
-  }
-
-  return (
-    <Card className={`relative overflow-hidden bg-gradient-to-br ${colorClasses[color]} text-white border-0 shadow-lg`}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-white/80">{title}</p>
-            <p className="text-2xl font-bold">{value}</p>
-            {trend !== undefined && (
-              <div className="flex items-center gap-1 text-xs">
-                {trend >= 0 ? (
-                  <TrendingUp className="w-3 h-3" />
-                ) : (
-                  <TrendingDown className="w-3 h-3" />
-                )}
-                <span className="font-medium">
-                  {trend >= 0 ? '+' : ''}{trend.toFixed(1)}
-                </span>
-                {trendLabel && <span className="text-white/70">{trendLabel}</span>}
-              </div>
-            )}
-            {subtitle && (
-              <p className="text-xs text-white/70">{subtitle}</p>
-            )}
-          </div>
-          <div className={`p-2.5 rounded-xl ${iconBgClasses[color]}`}>
-            <Icon className="w-6 h-6" />
-          </div>
-        </div>
-      </CardContent>
-      {/* Decorativo */}
-      <div className="absolute -right-3 -bottom-3 w-20 h-20 bg-white/10 rounded-full" />
-      <div className="absolute -right-1 -bottom-6 w-12 h-12 bg-white/10 rounded-full" />
-    </Card>
-  )
-}
-
-function ProgressBar({ value, max = 100, color }: { value: number; max?: number; color: string }) {
-  const percentage = (value / max) * 100
-  return (
-    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-      <div 
-        className={`h-2.5 rounded-full transition-all ${color}`}
-        style={{ width: `${Math.min(percentage, 100)}%` }}
-      />
-    </div>
-  )
-}
-
-function HorizontalBarChart() {
-  return (
-    <div className="space-y-3">
-      {mockDesempenhoDisciplinas.map((item) => (
-        <div key={item.disciplina} className="space-y-1">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{item.disciplina}</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-gray-100">{item.media.toFixed(1)}</span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
-              className={`h-2 rounded-full transition-all ${
-                item.media >= 7 ? 'bg-emerald-500' : item.media >= 5 ? 'bg-amber-500' : 'bg-red-500'
-              }`}
-              style={{ width: `${(item.media / 10) * 100}%` }}
-            />
-          </div>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400">
-            {item.aprovacao}% de aprovação
-          </p>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function FrequenciaGauge() {
-  const frequencia = mockAcademico.frequenciaMedia
-  const ausencia = 100 - frequencia
-  
-  // SVG donut chart
-  const radius = 80
-  const strokeWidth = 22
-  const circumference = 2 * Math.PI * radius
-  const frequenciaOffset = circumference - (frequencia / 100) * circumference
-  
-  return (
-    <div className="flex items-center justify-center gap-12">
-      <div className="relative">
-        <svg width="220" height="220" viewBox="0 0 220 220">
-          {/* Background */}
-          <circle
-            cx="110"
-            cy="110"
-            r={radius}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={strokeWidth}
-            className="text-gray-200 dark:text-gray-700"
-          />
-          {/* Frequência (verde/amarelo/vermelho) */}
-          <circle
-            cx="110"
-            cy="110"
-            r={radius}
-            fill="none"
-            stroke={frequencia >= 90 ? '#10b981' : frequencia >= 75 ? '#f59e0b' : '#ef4444'}
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={frequenciaOffset}
-            strokeLinecap="round"
-            transform="rotate(-90 110 110)"
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">{frequencia}%</span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">presença</span>
-        </div>
-      </div>
-      <div className="space-y-5">
-        <div className="flex items-center gap-4">
-          <div className={`w-6 h-6 rounded-full ${frequencia >= 90 ? 'bg-emerald-500' : frequencia >= 75 ? 'bg-amber-500' : 'bg-red-500'}`} />
-          <div>
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{frequencia}%</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Presença</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600" />
-          <div>
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{ausencia.toFixed(1)}%</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Ausência</p>
-          </div>
-        </div>
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-          <p className={`text-base font-semibold ${
-            frequencia >= 90 ? 'text-emerald-600 dark:text-emerald-400' : 
-            frequencia >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
-          }`}>
-            {frequencia >= 90 ? '✓ Excelente' : frequencia >= 75 ? '⚠ Atenção' : '✗ Crítico'}
-          </p>
-        </div>
-      </div>
-    </div>
-  )
+  return { data: loadedData, isLoading }
 }
 
 export default function DashboardAcademico() {
-  const mediaTrend = mockAcademico.mediaGeral - mockAcademico.mediaAnterior
-  const aprovacaoTrend = mockAcademico.taxaAprovacao - mockAcademico.taxaAprovacaoAnterior
-  // const frequenciaTrend = mockAcademico.frequenciaMedia - mockAcademico.frequenciaAnterior
+  // Simula diferentes tempos de carregamento para cada seção
+  const { data: academico, isLoading: loadingAcademico } = useLoadData(mockAcademico, 500)
+  const { data: turmas, isLoading: loadingTurmas } = useLoadData(mockDesempenhoTurmas, 800)
+  const { data: alunosDestaque, isLoading: loadingDestaque } = useLoadData(mockAlunosDestaque, 700)
+  const { data: alunosRecuperacao, isLoading: loadingRecuperacao } = useLoadData(mockAlunosRecuperacao, 600)
+  const { data: disciplinas, isLoading: loadingDisciplinas } = useLoadData(mockDesempenhoDisciplinas, 900)
+
+  const mediaTrend = academico ? academico.mediaGeral - academico.mediaAnterior : 0
+  const aprovacaoTrend = academico ? academico.taxaAprovacao - academico.taxaAprovacaoAnterior : 0
+
+  // Prepara dados do donut chart de frequência
+  const frequencia = academico?.frequenciaMedia || 0
+  const ausencia = 100 - frequencia
+  const frequenciaSegments: DonutSegment[] = [
+    { label: 'Presença', value: frequencia, color: frequencia >= 90 ? '#10b981' : frequencia >= 75 ? '#f59e0b' : '#ef4444' },
+    { label: 'Ausência', value: ausencia, color: '#d1d5db' },
+  ]
+  const frequenciaStatus = frequencia >= 90 ? '✓ Excelente' : frequencia >= 75 ? '⚠ Atenção' : '✗ Crítico'
+  const frequenciaStatusColor = frequencia >= 90 
+    ? 'text-emerald-600 dark:text-emerald-400' 
+    : frequencia >= 75 
+    ? 'text-amber-600 dark:text-amber-400' 
+    : 'text-red-600 dark:text-red-400'
+
+  // Prepara métricas do resumo
+  const metricsData: MetricItem[] = [
+    { icon: GraduationCap, value: '847', label: 'Total de Alunos', color: 'text-blue-500' },
+    { icon: BookOpen, value: '28', label: 'Turmas', color: 'text-purple-500' },
+    { icon: Award, value: '756', label: 'Aprovados (previsão)', color: 'text-emerald-500' },
+    { icon: Users, value: '42', label: 'Professores', color: 'text-amber-500' },
+  ]
 
   return (
     <div className="grid grid-cols-12 gap-4">
@@ -267,291 +152,132 @@ export default function DashboardAcademico() {
       <div className="col-span-12 lg:col-span-8 space-y-4">
         {/* Cards principais */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <AcademicCard
+          <StatCard
             title="Média Geral"
-            value={mockAcademico.mediaGeral.toFixed(1)}
+            value={academico?.mediaGeral.toFixed(1) || '0.0'}
             icon={Target}
             trend={mediaTrend}
             trendLabel="vs bimestre anterior"
             color="blue"
+            isLoading={loadingAcademico}
           />
-          <AcademicCard
+          <StatCard
             title="Taxa de Aprovação"
-            value={`${mockAcademico.taxaAprovacao}%`}
+            value={academico ? `${academico.taxaAprovacao}%` : '0%'}
             icon={Award}
             trend={aprovacaoTrend}
             trendLabel="vs ano anterior"
             color="green"
+            isLoading={loadingAcademico}
           />
-          <AcademicCard
+          <StatCard
             title="Alunos em Destaque"
-            value={mockAcademico.alunosDestaque}
+            value={academico?.alunosDestaque || 0}
             icon={Star}
             color="purple"
             subtitle="média acima de 8.5"
+            isLoading={loadingAcademico}
           />
-          <AcademicCard
+          <StatCard
             title="Em Recuperação"
-            value={mockAcademico.alunosRecuperacao}
+            value={academico?.alunosRecuperacao || 0}
             icon={AlertTriangle}
             color="orange"
             subtitle="média abaixo de 6.0"
+            isLoading={loadingAcademico}
           />
         </div>
 
         {/* Resumo */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <GraduationCap className="w-5 h-5 mx-auto text-blue-500 mb-1" />
-                <p className="text-base font-bold text-gray-900 dark:text-gray-100">847</p>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">Total de Alunos</p>
-              </div>
-              <div className="text-center">
-                <BookOpen className="w-5 h-5 mx-auto text-purple-500 mb-1" />
-                <p className="text-base font-bold text-gray-900 dark:text-gray-100">28</p>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">Turmas</p>
-              </div>
-              <div className="text-center">
-                <Award className="w-5 h-5 mx-auto text-emerald-500 mb-1" />
-                <p className="text-base font-bold text-gray-900 dark:text-gray-100">756</p>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">Aprovados (previsão)</p>
-              </div>
-              <div className="text-center">
-                <Users className="w-5 h-5 mx-auto text-amber-500 mb-1" />
-                <p className="text-base font-bold text-gray-900 dark:text-gray-100">42</p>
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">Professores</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MetricsSummary
+          metrics={metricsData}
+          gradient="from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20"
+          isLoading={loadingAcademico}
+        />
 
         {/* Gráficos lado a lado */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Desempenho por disciplina */}
-          <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 border-b border-border">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-blue-500" />
-                Desempenho por Disciplina
-              </CardTitle>
-              <CardDescription className="text-xs">Média geral de cada disciplina</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <HorizontalBarChart />
-            </CardContent>
-          </Card>
+          <DashboardCard
+            title="Desempenho por Disciplina"
+            description="Média geral de cada disciplina"
+            icon={BarChart3}
+            iconColor="text-blue-500"
+            gradient="from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
+            isLoading={loadingDisciplinas}
+          >
+            <HorizontalBarChart
+              data={disciplinas || []}
+              maxValue={10}
+              isLoading={loadingDisciplinas}
+            />
+          </DashboardCard>
 
           {/* Frequência */}
-          <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-            <CardHeader className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 border-b border-border">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Clock className="w-4 h-4 text-purple-500" />
-                Frequência Geral
-              </CardTitle>
-              <CardDescription className="text-xs">Taxa de presença dos alunos</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center justify-center">
-              <FrequenciaGauge />
-            </CardContent>
-          </Card>
+          <DashboardCard
+            title="Frequência Geral"
+            description="Taxa de presença dos alunos"
+            icon={Clock}
+            iconColor="text-purple-500"
+            gradient="from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20"
+            contentClassName="flex items-center justify-center"
+            isLoading={loadingAcademico}
+          >
+            <DonutChart
+              segments={frequenciaSegments}
+              centerValue={`${frequencia}%`}
+              centerLabel="presença"
+              size="lg"
+              statusText={frequenciaStatus}
+              statusColor={frequenciaStatusColor}
+              isLoading={loadingAcademico}
+            />
+          </DashboardCard>
         </div>
 
         {/* Desempenho por turma */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-          <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-violet-50/50 dark:from-indigo-950/20 dark:to-violet-950/20 border-b border-border">
-            <CardTitle className="text-base flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-indigo-500" />
-              Desempenho por Turma
-            </CardTitle>
-            <CardDescription className="text-xs">Comparativo entre turmas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Turma</th>
-                    <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Alunos</th>
-                    <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Média</th>
-                    <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Freq.</th>
-                    <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400 w-1/4">Progresso</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockDesempenhoTurmas.map((turma) => (
-                    <tr key={turma.turma} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="py-2 px-3">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${
-                            turma.media >= 7.5 ? 'bg-emerald-500' : turma.media >= 6 ? 'bg-amber-500' : 'bg-red-500'
-                          }`} />
-                          <span className="font-medium text-xs text-gray-900 dark:text-gray-100">{turma.turma}</span>
-                        </div>
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">{turma.alunos}</span>
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <span className={`text-xs font-semibold ${
-                          turma.media >= 7 ? 'text-emerald-600 dark:text-emerald-400' : 
-                          turma.media >= 5 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {turma.media.toFixed(1)}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <span className={`text-xs font-semibold ${
-                          turma.frequencia >= 90 ? 'text-emerald-600 dark:text-emerald-400' : 
-                          turma.frequencia >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {turma.frequencia}%
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <ProgressBar 
-                          value={turma.media} 
-                          max={10}
-                          color={turma.media >= 7 ? 'bg-emerald-500' : turma.media >= 5 ? 'bg-amber-500' : 'bg-red-500'}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardCard
+          title="Desempenho por Turma"
+          description="Comparativo entre turmas"
+          icon={BookOpen}
+          iconColor="text-indigo-500"
+          gradient="from-indigo-50/50 to-violet-50/50 dark:from-indigo-950/20 dark:to-violet-950/20"
+          isLoading={loadingTurmas}
+        >
+          <ClassPerformanceTable classes={turmas || []} isLoading={loadingTurmas} />
+        </DashboardCard>
 
         {/* Alunos em recuperação */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-          <CardHeader className="bg-gradient-to-r from-red-50/50 to-orange-50/50 dark:from-red-950/20 dark:to-orange-950/20 border-b border-border">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ThumbsDown className="w-4 h-4 text-red-500" />
-              Alunos em Recuperação
-            </CardTitle>
-            <CardDescription className="text-xs">Precisam de atenção especial</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {mockAlunosRecuperacao.map((aluno) => (
-              <div 
-                key={aluno.id}
-                className="flex items-center gap-3 p-2 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/30"
-              >
-                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-xs text-gray-900 dark:text-gray-100 truncate">
-                    {aluno.nome}
-                  </p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                    {aluno.turma} • {aluno.disciplinas} disciplina{aluno.disciplinas > 1 ? 's' : ''}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-red-600 dark:text-red-400">
-                    {aluno.media.toFixed(1)}
-                  </p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">média</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <DashboardCard
+          title="Alunos em Recuperação"
+          description="Precisam de atenção especial"
+          icon={ThumbsDown}
+          iconColor="text-red-500"
+          gradient="from-red-50/50 to-orange-50/50 dark:from-red-950/20 dark:to-orange-950/20"
+          contentClassName="space-y-2"
+          isLoading={loadingRecuperacao}
+        >
+          <RecoveryStudentList students={alunosRecuperacao || []} isLoading={loadingRecuperacao} />
+        </DashboardCard>
       </div>
 
       {/* Coluna lateral - Top 25 Alunos - 4 colunas */}
       <div className="col-span-12 lg:col-span-4">
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50 flex flex-col lg:sticky lg:top-4 lg:max-h-[90vh]">
-          <CardHeader className="bg-gradient-to-r from-amber-50/50 to-yellow-50/50 dark:from-amber-950/20 dark:to-yellow-950/20 border-b border-border">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Medal className="w-4 h-4 text-amber-500" />
-              Top 25 Alunos
-            </CardTitle>
-            <CardDescription className="text-xs">Melhores médias da escola</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-2">
-            {mockAlunosDestaque.map((aluno, index) => {
-              // Cores baseadas na posição
-              const cardColors = aluno.posicao === 1 
-                ? 'bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/30 dark:to-amber-900/30 border-yellow-400 dark:border-yellow-600/50'
-                : aluno.posicao === 2 
-                ? 'bg-gradient-to-r from-gray-100 to-slate-200 dark:from-gray-800/50 dark:to-slate-700/40 border-gray-400 dark:border-gray-500/50'
-                : aluno.posicao === 3 
-                ? 'bg-gradient-to-r from-orange-100 to-rose-100 dark:from-orange-900/30 dark:to-rose-900/20 border-orange-400 dark:border-orange-600/50'
-                : aluno.posicao <= 5
-                ? 'bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border-emerald-200 dark:border-emerald-700/50'
-                : 'bg-gradient-to-r from-slate-50 to-blue-50/50 dark:from-slate-800/20 dark:to-blue-950/20 border-slate-200 dark:border-slate-700/50'
-
-              const mediaColor = aluno.posicao === 1 
-                ? 'text-yellow-600 dark:text-yellow-400'
-                : aluno.posicao === 2 
-                ? 'text-gray-600 dark:text-gray-300'
-                : aluno.posicao === 3 
-                ? 'text-orange-600 dark:text-orange-400'
-                : aluno.posicao <= 5
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-blue-600 dark:text-blue-400'
-
-              const medalha = aluno.posicao === 1 ? '🥇' : aluno.posicao === 2 ? '🥈' : aluno.posicao === 3 ? '🥉' : null
-
-              // Separadores entre seções
-              const showDivider = aluno.posicao === 4 || aluno.posicao === 6 || aluno.posicao === 11
-              const dividerLabel = aluno.posicao === 4 ? 'Top 5' : aluno.posicao === 6 ? 'Top 10' : aluno.posicao === 11 ? 'Top 25' : null
-
-              return (
-                <div key={aluno.id}>
-                  {showDivider && (
-                    <div className="flex items-center gap-2 py-2 mb-2">
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600" />
-                      <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{dividerLabel}</span>
-                      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600" />
-                    </div>
-                  )}
-                  <div className={`flex items-center gap-3 p-2 rounded-lg border ${cardColors}`}>
-                    <div className={`
-                      w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white
-                      ${aluno.posicao === 1 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' : 
-                        aluno.posicao === 2 ? 'bg-gradient-to-br from-gray-400 to-gray-500' :
-                        aluno.posicao === 3 ? 'bg-gradient-to-br from-orange-400 to-rose-500' :
-                        aluno.posicao <= 5 ? 'bg-gradient-to-br from-emerald-400 to-teal-500' :
-                        'bg-gradient-to-br from-blue-400 to-blue-500'}
-                    `}>
-                      {aluno.posicao}º
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-xs text-gray-900 dark:text-gray-100 truncate">
-                        {aluno.nome}
-                      </p>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                        {aluno.turma}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-bold ${mediaColor} flex items-center justify-end gap-1`}>
-                        {aluno.media.toFixed(1)}
-                        {medalha && <span className="text-base">{medalha}</span>}
-                      </p>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400">média</p>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </CardContent>
-          <div className="px-5 py-3 border-t border-border">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              Ver todos os alunos
-              <ArrowRight className="w-3 h-3 ml-1" />
-            </Button>
-          </div>
-        </Card>
+        <SidebarCard
+          title="Top 25 Alunos"
+          description="Melhores médias da escola"
+          icon={Medal}
+          iconColor="text-amber-500"
+          gradient="from-amber-50/50 to-yellow-50/50 dark:from-amber-950/20 dark:to-yellow-950/20"
+          footerText="Ver todos os alunos"
+          isLoading={loadingDestaque}
+        >
+          <StudentRankingList 
+            students={alunosDestaque || []} 
+            showDividers={true}
+            isLoading={loadingDestaque} 
+          />
+        </SidebarCard>
       </div>
     </div>
   )

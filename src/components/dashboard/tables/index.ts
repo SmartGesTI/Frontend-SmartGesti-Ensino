@@ -1,0 +1,1 @@
+export { ClassPerformanceTable } from './ClassPerformanceTable'

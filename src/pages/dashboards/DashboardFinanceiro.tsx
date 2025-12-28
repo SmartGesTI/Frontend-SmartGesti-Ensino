@@ -1,21 +1,26 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
 import { 
-  DollarSign, 
   TrendingUp, 
   TrendingDown,
   AlertCircle,
-  CheckCircle,
-  Clock,
   CreditCard,
   Receipt,
   PiggyBank,
-  ArrowUpRight,
-  ArrowDownRight,
   Users,
   CalendarDays,
-  ArrowRight
+  DollarSign
 } from 'lucide-react'
+import {
+  StatCard,
+  SimpleBarChart,
+  DonutChart,
+  PaymentList,
+  DebtorList,
+  MetricsSummary,
+  SidebarCard,
+  DashboardCard,
+} from '@/components/dashboard'
+import type { PaymentData, DebtorData, BarChartItem, DonutSegment, MetricItem } from '@/types/dashboard'
 
 // Dados mockados - futuramente virão da API
 const mockFinanceiro = {
@@ -38,7 +43,7 @@ const mockMensalidades = {
   total: 847,
 }
 
-const mockUltimosPagamentos = [
+const mockUltimosPagamentos: PaymentData[] = [
   { id: 1, aluno: 'Maria Silva Santos', valor: 850.00, data: '28/12', status: 'pago' },
   { id: 2, aluno: 'João Pedro Oliveira', valor: 850.00, data: '28/12', status: 'pago' },
   { id: 3, aluno: 'Ana Beatriz Costa', valor: 425.00, data: '27/12', status: 'parcial' },
@@ -56,237 +61,90 @@ const mockUltimosPagamentos = [
   { id: 15, aluno: 'Beatriz Almeida', valor: 850.00, data: '21/12', status: 'pago' },
 ]
 
-const mockInadimplentes = [
+const mockInadimplentes: DebtorData[] = [
   { id: 1, aluno: 'Carlos Eduardo Lima', meses: 3, valor: 2550.00 },
   { id: 2, aluno: 'Fernanda Souza', meses: 2, valor: 1700.00 },
   { id: 3, aluno: 'Ricardo Santos', meses: 2, valor: 1700.00 },
   { id: 4, aluno: 'Patrícia Gomes', meses: 1, valor: 850.00 },
 ]
 
-// Dados para o gráfico de barras simplificado (últimos 6 meses)
-const mockGraficoMensal = [
-  { mes: 'Jul', receita: 115000, despesa: 88000 },
-  { mes: 'Ago', receita: 118000, despesa: 90000 },
-  { mes: 'Set', receita: 122000, despesa: 91500 },
-  { mes: 'Out', receita: 120000, despesa: 89000 },
-  { mes: 'Nov', receita: 118520, despesa: 92100 },
-  { mes: 'Dez', receita: 125840, despesa: 89200 },
+const mockGraficoMensal: BarChartItem[] = [
+  { label: 'Jul', value: 115000, secondaryValue: 88000 },
+  { label: 'Ago', value: 118000, secondaryValue: 90000 },
+  { label: 'Set', value: 122000, secondaryValue: 91500 },
+  { label: 'Out', value: 120000, secondaryValue: 89000 },
+  { label: 'Nov', value: 118520, secondaryValue: 92100 },
+  { label: 'Dez', value: 125840, secondaryValue: 89200 },
 ]
 
-interface FinanceCardProps {
-  title: string
-  value: string
-  icon: React.ElementType
-  trend?: number
-  trendLabel?: string
-  color: 'green' | 'red' | 'blue' | 'orange' | 'purple'
-  subtitle?: string
-}
+// Simula carregamento de dados
+function useLoadData<T>(data: T, delay: number = 1000) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadedData, setLoadedData] = useState<T | null>(null)
 
-function FinanceCard({ title, value, icon: Icon, trend, trendLabel, color, subtitle }: FinanceCardProps) {
-  const bgClasses = {
-    green: 'bg-emerald-50 dark:bg-emerald-950/30',
-    red: 'bg-red-50 dark:bg-red-950/30',
-    blue: 'bg-blue-50 dark:bg-blue-950/30',
-    orange: 'bg-orange-50 dark:bg-orange-950/30',
-    purple: 'bg-purple-50 dark:bg-purple-950/30',
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadedData(data)
+      setIsLoading(false)
+    }, delay)
+    return () => clearTimeout(timer)
+  }, [data, delay])
 
-  const iconClasses = {
-    green: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/50',
-    red: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/50',
-    blue: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50',
-    orange: 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/50',
-    purple: 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50',
-  }
-
-  const valueClasses = {
-    green: 'text-emerald-700 dark:text-emerald-300',
-    red: 'text-red-700 dark:text-red-300',
-    blue: 'text-blue-700 dark:text-blue-300',
-    orange: 'text-orange-700 dark:text-orange-300',
-    purple: 'text-purple-700 dark:text-purple-300',
-  }
-
-  return (
-    <Card className={`${bgClasses[color]} border-0 shadow-sm dark:shadow-gray-950/50`}>
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-            <p className={`text-xl font-bold ${valueClasses[color]}`}>{value}</p>
-            {trend !== undefined && (
-              <div className="flex items-center gap-1 text-xs">
-                {trend >= 0 ? (
-                  <ArrowUpRight className={`w-3 h-3 ${trend >= 0 && color === 'red' ? 'text-red-500' : 'text-emerald-500'}`} />
-                ) : (
-                  <ArrowDownRight className={`w-3 h-3 ${trend < 0 && color === 'green' ? 'text-red-500' : 'text-emerald-500'}`} />
-                )}
-                <span className={`font-medium ${
-                  (trend >= 0 && color !== 'red') || (trend < 0 && color === 'red') 
-                    ? 'text-emerald-600 dark:text-emerald-400' 
-                    : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {Math.abs(trend).toFixed(1)}%
-                </span>
-                {trendLabel && <span className="text-gray-500 dark:text-gray-400">{trendLabel}</span>}
-              </div>
-            )}
-            {subtitle && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
-            )}
-          </div>
-          <div className={`p-2.5 rounded-xl ${iconClasses[color]}`}>
-            <Icon className="w-5 h-5" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function SimpleBarChart() {
-  const maxValue = Math.max(...mockGraficoMensal.flatMap(d => [d.receita, d.despesa]))
-  
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-4 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-          <span className="text-gray-600 dark:text-gray-400">Receita</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-          <span className="text-gray-600 dark:text-gray-400">Despesa</span>
-        </div>
-      </div>
-      <div className="flex items-end justify-between gap-2 h-40">
-        {mockGraficoMensal.map((item) => (
-          <div key={item.mes} className="flex-1 flex flex-col items-center gap-1">
-            <div className="w-full flex gap-1 items-end h-40">
-              <div 
-                className="flex-1 bg-emerald-500 rounded-t-sm transition-all hover:bg-emerald-600"
-                style={{ height: `${(item.receita / maxValue) * 100}%` }}
-                title={`Receita: R$ ${item.receita.toLocaleString('pt-BR')}`}
-              />
-              <div 
-                className="flex-1 bg-red-400 rounded-t-sm transition-all hover:bg-red-500"
-                style={{ height: `${(item.despesa / maxValue) * 100}%` }}
-                title={`Despesa: R$ ${item.despesa.toLocaleString('pt-BR')}`}
-              />
-            </div>
-            <span className="text-xs text-gray-500 dark:text-gray-400">{item.mes}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function DonutChart() {
-  const { pagas, pendentes, atrasadas, total } = mockMensalidades
-  const pagasPercent = (pagas / total) * 100
-  const pendentesPercent = (pendentes / total) * 100
-  const atrasadasPercent = (atrasadas / total) * 100
-  
-  // SVG donut chart
-  const radius = 70
-  const strokeWidth = 20
-  const circumference = 2 * Math.PI * radius
-  
-  return (
-    <div className="flex items-center justify-center gap-8">
-      <div className="relative">
-        <svg width="180" height="180" viewBox="0 0 180 180">
-          {/* Background */}
-          <circle
-            cx="90"
-            cy="90"
-            r={radius}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={strokeWidth}
-            className="text-gray-200 dark:text-gray-700"
-          />
-          {/* Atrasadas (vermelho) */}
-          <circle
-            cx="90"
-            cy="90"
-            r={radius}
-            fill="none"
-            stroke="#ef4444"
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference - (atrasadasPercent / 100) * circumference}
-            style={{ 
-              transform: `rotate(${-90 + (pagasPercent + pendentesPercent) * 3.6}deg)`,
-              transformOrigin: '90px 90px'
-            }}
-          />
-          {/* Pendentes (amarelo) */}
-          <circle
-            cx="90"
-            cy="90"
-            r={radius}
-            fill="none"
-            stroke="#f59e0b"
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference - (pendentesPercent / 100) * circumference}
-            style={{ 
-              transform: `rotate(${-90 + pagasPercent * 3.6}deg)`,
-              transformOrigin: '90px 90px'
-            }}
-          />
-          {/* Pagas (verde) */}
-          <circle
-            cx="90"
-            cy="90"
-            r={radius}
-            fill="none"
-            stroke="#10b981"
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference - (pagasPercent / 100) * circumference}
-            transform="rotate(-90 90 90)"
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">{total}</span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">total</span>
-        </div>
-      </div>
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="w-4 h-4 rounded-full bg-emerald-500" />
-          <div>
-            <p className="font-semibold text-gray-900 dark:text-gray-100">{pagas}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Pagas</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="w-4 h-4 rounded-full bg-amber-500" />
-          <div>
-            <p className="font-semibold text-gray-900 dark:text-gray-100">{pendentes}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Pendentes</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="w-4 h-4 rounded-full bg-red-500" />
-          <div>
-            <p className="font-semibold text-gray-900 dark:text-gray-100">{atrasadas}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Atrasadas</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  return { data: loadedData, isLoading }
 }
 
 export default function DashboardFinanceiro() {
-  const receitaTrend = ((mockFinanceiro.receitaMes - mockFinanceiro.receitaMesAnterior) / mockFinanceiro.receitaMesAnterior) * 100
-  const despesaTrend = ((mockFinanceiro.despesaMes - mockFinanceiro.despesaMesAnterior) / mockFinanceiro.despesaMesAnterior) * 100
-  const inadimplenciaTrend = mockFinanceiro.inadimplencia - mockFinanceiro.inadimplenciaAnterior
+  // Simula diferentes tempos de carregamento para cada seção
+  const { data: financeiro, isLoading: loadingFinanceiro } = useLoadData(mockFinanceiro, 500)
+  const { data: mensalidades, isLoading: loadingMensalidades } = useLoadData(mockMensalidades, 800)
+  const { data: pagamentos, isLoading: loadingPagamentos } = useLoadData(mockUltimosPagamentos, 700)
+  const { data: inadimplentes, isLoading: loadingInadimplentes } = useLoadData(mockInadimplentes, 600)
+  const { data: graficoMensal, isLoading: loadingGrafico } = useLoadData(mockGraficoMensal, 900)
+
+  const receitaTrend = financeiro 
+    ? ((financeiro.receitaMes - financeiro.receitaMesAnterior) / financeiro.receitaMesAnterior) * 100 
+    : 0
+  const despesaTrend = financeiro 
+    ? ((financeiro.despesaMes - financeiro.despesaMesAnterior) / financeiro.despesaMesAnterior) * 100 
+    : 0
+  const inadimplenciaTrend = financeiro 
+    ? financeiro.inadimplencia - financeiro.inadimplenciaAnterior 
+    : 0
+
+  // Prepara dados do donut chart
+  const donutSegments: DonutSegment[] = mensalidades ? [
+    { label: 'Pagas', value: mensalidades.pagas, color: '#10b981' },
+    { label: 'Pendentes', value: mensalidades.pendentes, color: '#f59e0b' },
+    { label: 'Atrasadas', value: mensalidades.atrasadas, color: '#ef4444' },
+  ] : []
+
+  // Prepara métricas do resumo
+  const metricsData: MetricItem[] = financeiro ? [
+    { 
+      icon: DollarSign, 
+      value: `R$ ${(financeiro.receitaMes - financeiro.despesaMes).toLocaleString('pt-BR')}`, 
+      label: 'Lucro do Mês',
+      color: 'text-emerald-500'
+    },
+    { 
+      icon: Users, 
+      value: financeiro.alunosAdimplentes, 
+      label: 'Alunos Adimplentes',
+      color: 'text-blue-500'
+    },
+    { 
+      icon: AlertCircle, 
+      value: financeiro.alunosInadimplentes, 
+      label: 'Alunos Inadimplentes',
+      color: 'text-red-500'
+    },
+    { 
+      icon: Receipt, 
+      value: `R$ ${Math.round(financeiro.receitaMes / financeiro.totalAlunos).toLocaleString('pt-BR')}`, 
+      label: 'Ticket Médio',
+      color: 'text-purple-500'
+    },
+  ] : []
 
   return (
     <div className="grid grid-cols-12 gap-4">
@@ -294,212 +152,120 @@ export default function DashboardFinanceiro() {
       <div className="col-span-12 lg:col-span-8 space-y-4">
         {/* Cards principais */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <FinanceCard
+          <StatCard
             title="Receita do Mês"
-            value={`R$ ${mockFinanceiro.receitaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            value={financeiro ? `R$ ${financeiro.receitaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ 0,00'}
             icon={TrendingUp}
             trend={receitaTrend}
             trendLabel="vs mês anterior"
             color="green"
+            variant="soft"
+            isLoading={loadingFinanceiro}
           />
-          <FinanceCard
+          <StatCard
             title="Despesas do Mês"
-            value={`R$ ${mockFinanceiro.despesaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            value={financeiro ? `R$ ${financeiro.despesaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ 0,00'}
             icon={TrendingDown}
             trend={despesaTrend}
             trendLabel="vs mês anterior"
             color="red"
+            variant="soft"
+            isLoading={loadingFinanceiro}
           />
-          <FinanceCard
+          <StatCard
             title="Saldo Atual"
-            value={`R$ ${mockFinanceiro.saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+            value={financeiro ? `R$ ${financeiro.saldoAtual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'R$ 0,00'}
             icon={PiggyBank}
             color="blue"
+            variant="soft"
             subtitle="Receita - Despesas"
+            isLoading={loadingFinanceiro}
           />
-          <FinanceCard
+          <StatCard
             title="Taxa de Inadimplência"
-            value={`${mockFinanceiro.inadimplencia}%`}
+            value={financeiro ? `${financeiro.inadimplencia}%` : '0%'}
             icon={AlertCircle}
             trend={inadimplenciaTrend}
             trendLabel="vs mês anterior"
             color="orange"
+            variant="soft"
+            isLoading={loadingFinanceiro}
           />
         </div>
 
         {/* Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Gráfico de evolução */}
-          <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 border-b border-border">
-              <CardTitle className="text-base flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-blue-500" />
-                Evolução Mensal
-              </CardTitle>
-              <CardDescription className="text-xs">Receitas e despesas dos últimos 6 meses</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SimpleBarChart />
-            </CardContent>
-          </Card>
+          <DashboardCard
+            title="Evolução Mensal"
+            description="Receitas e despesas dos últimos 6 meses"
+            icon={CalendarDays}
+            iconColor="text-blue-500"
+            gradient="from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20"
+            isLoading={loadingGrafico}
+          >
+            <SimpleBarChart
+              data={graficoMensal || []}
+              primaryLabel="Receita"
+              secondaryLabel="Despesa"
+              primaryColor="bg-emerald-500 hover:bg-emerald-600"
+              secondaryColor="bg-red-400 hover:bg-red-500"
+              isLoading={loadingGrafico}
+            />
+          </DashboardCard>
 
           {/* Status das mensalidades */}
-          <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-            <CardHeader className="bg-gradient-to-r from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20 border-b border-border">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-purple-500" />
-                Status das Mensalidades
-              </CardTitle>
-              <CardDescription className="text-xs">Distribuição de pagamentos do mês</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DonutChart />
-            </CardContent>
-          </Card>
+          <DashboardCard
+            title="Status das Mensalidades"
+            description="Distribuição de pagamentos do mês"
+            icon={Receipt}
+            iconColor="text-purple-500"
+            gradient="from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20"
+            isLoading={loadingMensalidades}
+          >
+            <DonutChart
+              segments={donutSegments}
+              centerValue={mensalidades?.total}
+              centerLabel="total"
+              isLoading={loadingMensalidades}
+            />
+          </DashboardCard>
         </div>
 
         {/* Maiores inadimplentes */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50">
-          <CardHeader className="bg-gradient-to-r from-red-50/50 to-orange-50/50 dark:from-red-950/20 dark:to-orange-950/20 border-b border-border">
-            <CardTitle className="text-base flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-500" />
-              Maiores Inadimplentes
-            </CardTitle>
-            <CardDescription className="text-xs">Alunos com mensalidades em atraso</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {mockInadimplentes.map((inadimplente) => (
-              <div 
-                key={inadimplente.id}
-                className="flex items-center justify-between p-2.5 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                    <Users className="w-4 h-4 text-red-600 dark:text-red-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100 text-xs">
-                      {inadimplente.aluno}
-                    </p>
-                    <p className="text-[10px] text-red-600 dark:text-red-400">
-                      {inadimplente.meses} {inadimplente.meses === 1 ? 'mês' : 'meses'} em atraso
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-sm text-red-600 dark:text-red-400">
-                    R$ {inadimplente.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                    débito total
-                  </p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        <DashboardCard
+          title="Maiores Inadimplentes"
+          description="Alunos com mensalidades em atraso"
+          icon={AlertCircle}
+          iconColor="text-red-500"
+          gradient="from-red-50/50 to-orange-50/50 dark:from-red-950/20 dark:to-orange-950/20"
+          contentClassName="space-y-2"
+          isLoading={loadingInadimplentes}
+        >
+          <DebtorList debtors={inadimplentes || []} isLoading={loadingInadimplentes} />
+        </DashboardCard>
 
         {/* Resumo de métricas */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50 bg-gradient-to-r from-green-50/50 to-blue-50/50 dark:from-green-950/20 dark:to-blue-950/20">
-          <CardContent className="p-5">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <DollarSign className="w-6 h-6 mx-auto text-emerald-500 mb-1" />
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  R$ {(mockFinanceiro.receitaMes - mockFinanceiro.despesaMes).toLocaleString('pt-BR')}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Lucro do Mês</p>
-              </div>
-              <div className="text-center">
-                <Users className="w-6 h-6 mx-auto text-blue-500 mb-1" />
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {mockFinanceiro.alunosAdimplentes}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Alunos Adimplentes</p>
-              </div>
-              <div className="text-center">
-                <AlertCircle className="w-6 h-6 mx-auto text-red-500 mb-1" />
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {mockFinanceiro.alunosInadimplentes}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Alunos Inadimplentes</p>
-              </div>
-              <div className="text-center">
-                <Receipt className="w-6 h-6 mx-auto text-purple-500 mb-1" />
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  R$ {(mockFinanceiro.receitaMes / mockFinanceiro.totalAlunos).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Ticket Médio</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MetricsSummary
+          metrics={metricsData}
+          gradient="from-green-50/50 to-blue-50/50 dark:from-green-950/20 dark:to-blue-950/20"
+          isLoading={loadingFinanceiro}
+        />
       </div>
 
       {/* Coluna lateral - Últimos Pagamentos - 4 colunas */}
       <div className="col-span-12 lg:col-span-4">
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50 flex flex-col lg:sticky lg:top-4 lg:max-h-[90vh]">
-          <CardHeader className="bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20 border-b border-border">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-emerald-500" />
-              Últimos Pagamentos
-            </CardTitle>
-            <CardDescription className="text-xs">Pagamentos recebidos recentemente</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-2">
-            {mockUltimosPagamentos.map((pagamento) => (
-              <div 
-                key={pagamento.id}
-                className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50"
-              >
-                <div className="flex items-center gap-2">
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center
-                    ${pagamento.status === 'pago' 
-                      ? 'bg-emerald-100 dark:bg-emerald-900/30' 
-                      : 'bg-amber-100 dark:bg-amber-900/30'}
-                  `}>
-                    {pagamento.status === 'pago' ? (
-                      <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    ) : (
-                      <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100 text-xs truncate max-w-[120px]">
-                      {pagamento.aluno}
-                    </p>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                      {pagamento.data}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-sm text-emerald-600 dark:text-emerald-400">
-                    R$ {pagamento.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className={`text-[10px] capitalize ${
-                    pagamento.status === 'pago' 
-                      ? 'text-emerald-600 dark:text-emerald-400' 
-                      : 'text-amber-600 dark:text-amber-400'
-                  }`}>
-                    {pagamento.status}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-          <div className="px-5 py-3 border-t border-border">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              Ver todos os pagamentos
-              <ArrowRight className="w-3 h-3 ml-1" />
-            </Button>
-          </div>
-        </Card>
+        <SidebarCard
+          title="Últimos Pagamentos"
+          description="Pagamentos recebidos recentemente"
+          icon={CreditCard}
+          iconColor="text-emerald-500"
+          gradient="from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20"
+          footerText="Ver todos os pagamentos"
+          isLoading={loadingPagamentos}
+        >
+          <PaymentList payments={pagamentos || []} isLoading={loadingPagamentos} />
+        </SidebarCard>
       </div>
     </div>
   )
