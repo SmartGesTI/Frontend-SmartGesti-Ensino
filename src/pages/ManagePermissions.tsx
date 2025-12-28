@@ -17,7 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { PermissionGate } from '../components/PermissionGate';
 import { UserPlus, Mail, Shield } from 'lucide-react';
 import { ErrorLogger } from '../lib/errorLogger';
+import { useUrlTabs } from '@/hooks/useUrlTabs';
 
+
+const PERMISSION_TABS = ['invite', 'invitations', 'roles'] as const;
 
 interface ManagePermissionsProps {
   tenantId: string;
@@ -30,6 +33,10 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
   const queryClient = useQueryClient();
   const [inviteEmail, setInviteEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
+  const { tabsProps } = useUrlTabs({
+    defaultValue: 'invite',
+    validValues: [...PERMISSION_TABS]
+  });
 
   // Buscar cargos disponíveis
   const { data: roles } = useQuery({
@@ -148,7 +155,7 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Gerenciar Permissões</h1>
 
-        <Tabs defaultValue="invite" className="w-full">
+        <Tabs {...tabsProps} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-gray-100/50 dark:bg-gray-800/50 p-1">
             <TabsTrigger value="invite" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
               <UserPlus className="w-4 h-4 mr-2" />

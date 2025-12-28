@@ -8,10 +8,17 @@ import { RedesSociaisTab } from '@/components/school-tabs/RedesSociaisTab'
 import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { routes } from '@/lib/routes'
+import { useUrlTabs } from '@/hooks/useUrlTabs'
+
+const SCHOOL_TABS = ['dados-gerais', 'contatos', 'endereco', 'redes-sociais'] as const
 
 export default function SchoolDetails() {
   const { school, isLoading, error } = useSchool()
   const navigate = useNavigate()
+  const { tabsProps } = useUrlTabs({ 
+    defaultValue: 'dados-gerais',
+    validValues: [...SCHOOL_TABS]
+  })
 
   // Redirecionar se não houver escola
   useEffect(() => {
@@ -59,7 +66,7 @@ export default function SchoolDetails() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="dados-gerais" className="w-full">
+          <Tabs {...tabsProps} className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-gray-100/50 dark:bg-gray-800/50 p-1">
               <TabsTrigger value="dados-gerais" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">Dados Gerais</TabsTrigger>
               <TabsTrigger value="contatos" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">Contatos</TabsTrigger>
