@@ -187,51 +187,69 @@ function HorizontalBarChart() {
 
 function FrequenciaGauge() {
   const frequencia = mockAcademico.frequenciaMedia
+  const ausencia = 100 - frequencia
+  
+  // SVG donut chart
   const radius = 80
-  const strokeWidth = 12
-  const circumference = Math.PI * radius // semicírculo
-  const progress = (frequencia / 100) * circumference
-
+  const strokeWidth = 22
+  const circumference = 2 * Math.PI * radius
+  const frequenciaOffset = circumference - (frequencia / 100) * circumference
+  
   return (
-    <div className="flex flex-col items-center">
-      <svg width="200" height="120" viewBox="0 0 200 120">
-        {/* Background */}
-        <path
-          d="M 20 100 A 80 80 0 0 1 180 100"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-gray-200 dark:text-gray-700"
-        />
-        {/* Progress */}
-        <path
-          d="M 20 100 A 80 80 0 0 1 180 100"
-          fill="none"
-          stroke={frequencia >= 90 ? '#10b981' : frequencia >= 75 ? '#f59e0b' : '#ef4444'}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference - progress}
-          strokeLinecap="round"
-        />
-        <text x="100" y="85" textAnchor="middle" className="fill-gray-900 dark:fill-gray-100 text-3xl font-bold">
-          {frequencia}%
-        </text>
-        <text x="100" y="105" textAnchor="middle" className="fill-gray-500 dark:fill-gray-400 text-sm">
-          Frequência Média
-        </text>
-      </svg>
-      <div className="flex gap-4 mt-2 text-xs">
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-emerald-500" />
-          <span className="text-gray-600 dark:text-gray-400">≥90% Excelente</span>
+    <div className="flex items-center justify-center gap-12">
+      <div className="relative">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          {/* Background */}
+          <circle
+            cx="110"
+            cy="110"
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            className="text-gray-200 dark:text-gray-700"
+          />
+          {/* Frequência (verde/amarelo/vermelho) */}
+          <circle
+            cx="110"
+            cy="110"
+            r={radius}
+            fill="none"
+            stroke={frequencia >= 90 ? '#10b981' : frequencia >= 75 ? '#f59e0b' : '#ef4444'}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={frequenciaOffset}
+            strokeLinecap="round"
+            transform="rotate(-90 110 110)"
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">{frequencia}%</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">presença</span>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-amber-500" />
-          <span className="text-gray-600 dark:text-gray-400">75-89% Atenção</span>
+      </div>
+      <div className="space-y-5">
+        <div className="flex items-center gap-4">
+          <div className={`w-6 h-6 rounded-full ${frequencia >= 90 ? 'bg-emerald-500' : frequencia >= 75 ? 'bg-amber-500' : 'bg-red-500'}`} />
+          <div>
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{frequencia}%</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Presença</p>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded-full bg-red-500" />
-          <span className="text-gray-600 dark:text-gray-400">&lt;75% Crítico</span>
+        <div className="flex items-center gap-4">
+          <div className="w-6 h-6 rounded-full bg-gray-300 dark:bg-gray-600" />
+          <div>
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{ausencia.toFixed(1)}%</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Ausência</p>
+          </div>
+        </div>
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p className={`text-base font-semibold ${
+            frequencia >= 90 ? 'text-emerald-600 dark:text-emerald-400' : 
+            frequencia >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
+          }`}>
+            {frequencia >= 90 ? '✓ Excelente' : frequencia >= 75 ? '⚠ Atenção' : '✗ Crítico'}
+          </p>
         </div>
       </div>
     </div>
@@ -281,6 +299,34 @@ export default function DashboardAcademico() {
           />
         </div>
 
+        {/* Resumo */}
+        <Card className="border border-border shadow-sm dark:shadow-gray-950/50 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <GraduationCap className="w-5 h-5 mx-auto text-blue-500 mb-1" />
+                <p className="text-base font-bold text-gray-900 dark:text-gray-100">847</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Total de Alunos</p>
+              </div>
+              <div className="text-center">
+                <BookOpen className="w-5 h-5 mx-auto text-purple-500 mb-1" />
+                <p className="text-base font-bold text-gray-900 dark:text-gray-100">28</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Turmas</p>
+              </div>
+              <div className="text-center">
+                <Award className="w-5 h-5 mx-auto text-emerald-500 mb-1" />
+                <p className="text-base font-bold text-gray-900 dark:text-gray-100">756</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Aprovados (previsão)</p>
+              </div>
+              <div className="text-center">
+                <Users className="w-5 h-5 mx-auto text-amber-500 mb-1" />
+                <p className="text-base font-bold text-gray-900 dark:text-gray-100">42</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Professores</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Gráficos lado a lado */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Desempenho por disciplina */}
@@ -306,7 +352,7 @@ export default function DashboardAcademico() {
               </CardTitle>
               <CardDescription className="text-xs">Taxa de presença dos alunos</CardDescription>
             </CardHeader>
-            <CardContent className="flex justify-center pt-2">
+            <CardContent className="flex items-center justify-center">
               <FrequenciaGauge />
             </CardContent>
           </Card>
@@ -412,34 +458,6 @@ export default function DashboardAcademico() {
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
-
-        {/* Resumo */}
-        <Card className="border border-border shadow-sm dark:shadow-gray-950/50 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20">
-          <CardContent className="p-5">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <GraduationCap className="w-6 h-6 mx-auto text-blue-500 mb-1" />
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">847</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Total de Alunos</p>
-              </div>
-              <div className="text-center">
-                <BookOpen className="w-6 h-6 mx-auto text-purple-500 mb-1" />
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">28</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Turmas</p>
-              </div>
-              <div className="text-center">
-                <Award className="w-6 h-6 mx-auto text-emerald-500 mb-1" />
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">756</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Aprovados (previsão)</p>
-              </div>
-              <div className="text-center">
-                <Users className="w-6 h-6 mx-auto text-amber-500 mb-1" />
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">42</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Professores</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
