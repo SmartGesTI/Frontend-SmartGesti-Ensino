@@ -174,7 +174,6 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role" className="text-sm font-medium mb-1.5 block">Cargo</Label>
-                  <Select
                   <Select value={selectedRole} onValueChange={setSelectedRole}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um cargo" />

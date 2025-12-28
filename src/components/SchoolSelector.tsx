@@ -5,8 +5,14 @@ import { apiRequest } from '@/services/api'
 import { School } from '@/types'
 import { logger } from '@/lib/logger'
 import { useAccessToken } from '@/hooks/useAccessToken'
+import { Building2, Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-export function SchoolSelector() {
+interface SchoolSelectorProps {
+  className?: string
+}
+
+export function SchoolSelector({ className }: SchoolSelectorProps) {
   const { token, isReady } = useAccessToken()
   const { slug: currentSlug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
@@ -36,7 +42,7 @@ export function SchoolSelector() {
   // Mostrar loading enquanto carrega
   if (isLoadingSchools) {
     return (
-      <div className="w-[200px] h-10 bg-muted animate-pulse rounded-md" />
+      <div className={cn('w-[200px] h-10 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg', className)} />
     )
   }
 
@@ -45,11 +51,18 @@ export function SchoolSelector() {
     return null
   }
 
+  const currentSchool = schools.find(s => s.slug === currentSlug)
+
   // Se só tem uma escola, mostrar apenas o nome (sem select)
   if (schools.length === 1) {
     return (
-      <div className="flex items-center px-3 py-2 text-sm font-medium bg-muted rounded-md">
-        {schools[0].name}
+      <div className={cn(
+        'flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg',
+        'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300',
+        className
+      )}>
+        <Building2 className="h-4 w-4 text-gray-500" />
+        <span className="truncate max-w-[150px]">{schools[0].name}</span>
       </div>
     )
   }
@@ -59,16 +72,48 @@ export function SchoolSelector() {
       value={currentSlug || ''} 
       onValueChange={handleSchoolChange}
     >
-      <SelectTrigger className="w-[200px]">
-        <SelectValue placeholder="Selecione a escola" />
+      <SelectTrigger 
+        className={cn(
+          'w-[200px] h-10 rounded-lg border-2 transition-all duration-200',
+          'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700',
+          'hover:border-blue-400 dark:hover:border-blue-500 hover:bg-white dark:hover:bg-gray-800',
+          'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20',
+          'data-[state=open]:border-blue-500 data-[state=open]:ring-2 data-[state=open]:ring-blue-500/20',
+          className
+        )}
+      >
+        <div className="flex items-center gap-2">
+          <Building2 className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+          <SelectValue placeholder="Selecione a escola">
+            <span className="truncate">{currentSchool?.name || 'Selecione'}</span>
+          </SelectValue>
+        </div>
       </SelectTrigger>
-      <SelectContent>
-        {schools.map((school) => (
-          <SelectItem key={school.id} value={school.slug}>
-            {school.name}
-            {school.slug === currentSlug && ' ✓'}
-          </SelectItem>
-        ))}
+      <SelectContent 
+        className="rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl overflow-hidden"
+      >
+        <div className="p-1">
+          {schools.map((school) => (
+            <SelectItem 
+              key={school.id} 
+              value={school.slug}
+              className={cn(
+                'rounded-lg px-3 py-2.5 cursor-pointer transition-all duration-150',
+                'focus:bg-blue-50 dark:focus:bg-blue-950/50 focus:text-blue-600 dark:focus:text-blue-400',
+                'data-[highlighted]:bg-blue-50 dark:data-[highlighted]:bg-blue-950/50',
+                school.slug === currentSlug && 'bg-blue-500 text-white focus:bg-blue-600 focus:text-white data-[highlighted]:bg-blue-600 data-[highlighted]:text-white'
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 flex-shrink-0" />
+                <span className="truncate">{school.name}</span>
+                {school.slug === currentSlug && (
+                  <Check className="h-4 w-4 ml-auto flex-shrink-0" />
+                )}
+              </div>
+            </SelectItem>
+          ))}
+        </div>
       </SelectContent>
     </Select>
   )
