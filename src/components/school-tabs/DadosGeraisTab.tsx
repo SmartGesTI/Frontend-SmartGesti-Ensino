@@ -58,7 +58,7 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nome da Escola *</Label>
+          <Label htmlFor="name" className="text-sm font-medium mb-1.5 block" required>Nome da Escola</Label>
           <Input
             id="name"
             value={formData.name}
@@ -68,7 +68,7 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="code">Código</Label>
+          <Label htmlFor="code" className="text-sm font-medium mb-1.5 block">Código</Label>
           <Input
             id="code"
             value={formData.code}
@@ -77,7 +77,7 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="cnpj">CNPJ</Label>
+          <Label htmlFor="cnpj" className="text-sm font-medium mb-1.5 block">CNPJ</Label>
           <Input
             id="cnpj"
             value={formData.cnpj}
@@ -88,7 +88,7 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="logo_url">URL da Logo</Label>
+          <Label htmlFor="logo_url" className="text-sm font-medium mb-1.5 block">URL da Logo</Label>
           <Input
             id="logo_url"
             type="url"
@@ -100,7 +100,7 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="descricao">Descrição</Label>
+        <Label htmlFor="descricao" className="text-sm font-medium mb-1.5 block">Descrição</Label>
         <Textarea
           id="descricao"
           value={formData.descricao}
@@ -110,7 +110,7 @@ export function DadosGeraisTab({ school }: DadosGeraisTabProps) {
         />
       </div>
 
-      <Button type="submit" disabled={updateMutation.isPending}>
+      <Button type="submit" disabled={updateMutation.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-white">
         {updateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
       </Button>
     </form>

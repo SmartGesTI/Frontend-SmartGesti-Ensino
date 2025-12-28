@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { useAccessToken } from '@/hooks/useAccessToken'
 import { getTenantFromSubdomain } from '@/lib/tenant'
 import { supabase } from '@/lib/supabase'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 interface CompleteProfileFormData {
   given_name: string
@@ -293,9 +294,13 @@ export default function CompleteProfile() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
-      <Card className="w-full max-w-md shadow-2xl border-2 border-gray-200 bg-white">
-        <CardHeader className="text-center bg-gray-100/50 pb-6 pt-8 px-8 border-b-2 border-gray-200 space-y-4">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+      {/* Botão de Tema */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      <Card className="w-full max-w-md shadow-2xl border-2 border-border bg-card">
+        <CardHeader className="text-center bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30 dark:to-transparent pb-6 pt-8 px-8 border-b border-border space-y-4">
           <div className="flex justify-center">
             <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
               <AvatarImage src={avatarPreview || formData.avatar_url || (user?.user_metadata?.avatar_url || user?.user_metadata?.picture)} />
@@ -304,8 +309,8 @@ export default function CompleteProfile() {
               </AvatarFallback>
             </Avatar>
           </div>
-          <CardTitle className="text-3xl font-bold text-blue-600">Complete seu Cadastro</CardTitle>
-          <CardDescription className="text-base text-gray-600">
+          <CardTitle className="text-3xl font-bold text-blue-600 dark:text-blue-400">Complete seu Cadastro</CardTitle>
+          <CardDescription className="text-base text-gray-600 dark:text-gray-300">
             Precisamos de mais algumas informações sobre você
           </CardDescription>
         </CardHeader>
@@ -357,7 +362,7 @@ export default function CompleteProfile() {
 
             <div className="space-y-2">
               <Label className="text-sm font-medium mb-1.5 block">
-                Foto de Perfil <span className="text-gray-500 text-xs font-normal">(opcional)</span>
+                Foto de Perfil <span className="text-muted-foreground text-xs font-normal">(opcional)</span>
               </Label>
               
               <input
@@ -377,8 +382,8 @@ export default function CompleteProfile() {
                 className={`
                   relative border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all duration-200
                   ${isDragging 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-border hover:border-primary/50 hover:bg-muted/50'
                   }
                   ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
@@ -391,32 +396,32 @@ export default function CompleteProfile() {
                         alt="Preview" 
                         className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md"
                       />
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleRemoveAvatar()
-                        }}
-                        disabled={isSubmitting}
-                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <p className="text-sm text-gray-600">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleRemoveAvatar()
+                          }}
+                          disabled={isSubmitting}
+                          className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    <p className="text-sm text-muted-foreground">
                       Clique para trocar a imagem
                     </p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3 text-center">
-                    <div className="p-4 rounded-full bg-blue-100 text-blue-600">
+                    <div className="p-4 rounded-full bg-primary/10 text-primary">
                       <Upload className="h-8 w-8" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">
+                      <p className="text-sm font-medium text-foreground mb-1">
                         Arraste uma imagem aqui ou clique para selecionar
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         PNG, JPG ou GIF até 5MB
                       </p>
                     </div>
@@ -425,7 +430,7 @@ export default function CompleteProfile() {
               </div>
               
               {avatarFile && (
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   <ImageIcon className="h-3 w-3" />
                   {avatarFile.name} ({(avatarFile.size / 1024).toFixed(1)} KB)
                 </p>
@@ -452,8 +457,8 @@ export default function CompleteProfile() {
             </Button>
           </form>
 
-          <div className="mt-6 text-xs text-center text-gray-500">
-            <p>Campos marcados com <span className="text-red-600 font-bold">*</span> são obrigatórios</p>
+          <div className="mt-6 text-xs text-center text-muted-foreground">
+            <p>Campos marcados com <span className="text-red-500 font-bold">*</span> são obrigatórios</p>
           </div>
         </CardContent>
       </Card>

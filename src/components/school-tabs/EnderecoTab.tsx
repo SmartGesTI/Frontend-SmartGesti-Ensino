@@ -58,7 +58,7 @@ export function EnderecoTab({ school }: EnderecoTabProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="endereco_rua">Rua/Logradouro</Label>
+          <Label htmlFor="endereco_rua" className="text-sm font-medium mb-1.5 block">Rua/Logradouro</Label>
           <Input
             id="endereco_rua"
             value={formData.endereco_rua}
@@ -68,7 +68,7 @@ export function EnderecoTab({ school }: EnderecoTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="endereco_numero">Número</Label>
+          <Label htmlFor="endereco_numero" className="text-sm font-medium mb-1.5 block">Número</Label>
           <Input
             id="endereco_numero"
             value={formData.endereco_numero}
@@ -78,7 +78,7 @@ export function EnderecoTab({ school }: EnderecoTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="endereco_complemento">Complemento</Label>
+          <Label htmlFor="endereco_complemento" className="text-sm font-medium mb-1.5 block">Complemento</Label>
           <Input
             id="endereco_complemento"
             value={formData.endereco_complemento}
@@ -88,7 +88,7 @@ export function EnderecoTab({ school }: EnderecoTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="endereco_bairro">Bairro</Label>
+          <Label htmlFor="endereco_bairro" className="text-sm font-medium mb-1.5 block">Bairro</Label>
           <Input
             id="endereco_bairro"
             value={formData.endereco_bairro}
@@ -98,7 +98,7 @@ export function EnderecoTab({ school }: EnderecoTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="endereco_cep">CEP</Label>
+          <Label htmlFor="endereco_cep" className="text-sm font-medium mb-1.5 block">CEP</Label>
           <Input
             id="endereco_cep"
             value={formData.endereco_cep}
@@ -109,7 +109,7 @@ export function EnderecoTab({ school }: EnderecoTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="endereco_cidade">Cidade</Label>
+          <Label htmlFor="endereco_cidade" className="text-sm font-medium mb-1.5 block">Cidade</Label>
           <Input
             id="endereco_cidade"
             value={formData.endereco_cidade}
@@ -119,7 +119,7 @@ export function EnderecoTab({ school }: EnderecoTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="endereco_estado">Estado (UF)</Label>
+          <Label htmlFor="endereco_estado" className="text-sm font-medium mb-1.5 block">Estado (UF)</Label>
           <Input
             id="endereco_estado"
             value={formData.endereco_estado}
@@ -130,7 +130,7 @@ export function EnderecoTab({ school }: EnderecoTabProps) {
         </div>
       </div>
 
-      <Button type="submit" disabled={updateMutation.isPending}>
+      <Button type="submit" disabled={updateMutation.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-white">
         {updateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
       </Button>
     </form>

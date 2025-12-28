@@ -81,23 +81,23 @@ export default function CreateSchool() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Nova Escola</h2>
-        <p className="text-muted-foreground">Crie uma nova escola na instituição</p>
+        <h2 className="text-3xl font-bold tracking-tight text-gray-800 dark:text-gray-100">Nova Escola</h2>
+        <p className="text-gray-600 dark:text-gray-400">Crie uma nova escola na instituição</p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Dados da Escola</CardTitle>
-            <CardDescription>Preencha as informações da nova escola</CardDescription>
+        <Card className="border-2 border-border">
+          <CardHeader className="bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30 dark:to-transparent border-b border-border">
+            <CardTitle className="text-blue-600 dark:text-blue-400">Dados da Escola</CardTitle>
+            <CardDescription className="text-gray-600 dark:text-gray-400">Preencha as informações da nova escola</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Dados Gerais */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Dados Gerais</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Dados Gerais</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome da Escola *</Label>
+                  <Label htmlFor="name" className="text-sm font-medium mb-1.5 block" required>Nome da Escola</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -107,7 +107,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="code">Código</Label>
+                  <Label htmlFor="code" className="text-sm font-medium mb-1.5 block">Código</Label>
                   <Input
                     id="code"
                     value={formData.code}
@@ -116,7 +116,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cnpj">CNPJ</Label>
+                  <Label htmlFor="cnpj" className="text-sm font-medium mb-1.5 block">CNPJ</Label>
                   <Input
                     id="cnpj"
                     value={formData.cnpj}
@@ -127,7 +127,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="logo_url">URL da Logo</Label>
+                  <Label htmlFor="logo_url" className="text-sm font-medium mb-1.5 block">URL da Logo</Label>
                   <Input
                     id="logo_url"
                     type="url"
@@ -139,7 +139,7 @@ export default function CreateSchool() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição</Label>
+                <Label htmlFor="descricao" className="text-sm font-medium mb-1.5 block">Descrição</Label>
                 <Textarea
                   id="descricao"
                   value={formData.descricao}
@@ -152,10 +152,10 @@ export default function CreateSchool() {
 
             {/* Contatos */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Contatos</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Contatos</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-sm font-medium mb-1.5 block">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -166,7 +166,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
+                  <Label htmlFor="phone" className="text-sm font-medium mb-1.5 block">Telefone</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -177,7 +177,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Label htmlFor="whatsapp" className="text-sm font-medium mb-1.5 block">WhatsApp</Label>
                   <Input
                     id="whatsapp"
                     type="tel"
@@ -188,7 +188,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
+                  <Label htmlFor="website" className="text-sm font-medium mb-1.5 block">Website</Label>
                   <Input
                     id="website"
                     type="url"
@@ -202,10 +202,10 @@ export default function CreateSchool() {
 
             {/* Endereço */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Endereço</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Endereço</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="endereco_rua">Rua/Logradouro</Label>
+                  <Label htmlFor="endereco_rua" className="text-sm font-medium mb-1.5 block">Rua/Logradouro</Label>
                   <Input
                     id="endereco_rua"
                     value={formData.endereco_rua}
@@ -215,7 +215,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endereco_numero">Número</Label>
+                  <Label htmlFor="endereco_numero" className="text-sm font-medium mb-1.5 block">Número</Label>
                   <Input
                     id="endereco_numero"
                     value={formData.endereco_numero}
@@ -225,7 +225,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endereco_complemento">Complemento</Label>
+                  <Label htmlFor="endereco_complemento" className="text-sm font-medium mb-1.5 block">Complemento</Label>
                   <Input
                     id="endereco_complemento"
                     value={formData.endereco_complemento}
@@ -235,7 +235,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endereco_bairro">Bairro</Label>
+                  <Label htmlFor="endereco_bairro" className="text-sm font-medium mb-1.5 block">Bairro</Label>
                   <Input
                     id="endereco_bairro"
                     value={formData.endereco_bairro}
@@ -245,7 +245,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endereco_cep">CEP</Label>
+                  <Label htmlFor="endereco_cep" className="text-sm font-medium mb-1.5 block">CEP</Label>
                   <Input
                     id="endereco_cep"
                     value={formData.endereco_cep}
@@ -256,7 +256,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endereco_cidade">Cidade</Label>
+                  <Label htmlFor="endereco_cidade" className="text-sm font-medium mb-1.5 block">Cidade</Label>
                   <Input
                     id="endereco_cidade"
                     value={formData.endereco_cidade}
@@ -266,7 +266,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endereco_estado">Estado (UF)</Label>
+                  <Label htmlFor="endereco_estado" className="text-sm font-medium mb-1.5 block">Estado (UF)</Label>
                   <Input
                     id="endereco_estado"
                     value={formData.endereco_estado}
@@ -282,10 +282,10 @@ export default function CreateSchool() {
 
             {/* Redes Sociais */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Redes Sociais</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Redes Sociais</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="facebook">Facebook</Label>
+                  <Label htmlFor="facebook" className="text-sm font-medium mb-1.5 block">Facebook</Label>
                   <Input
                     id="facebook"
                     type="url"
@@ -296,7 +296,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram</Label>
+                  <Label htmlFor="instagram" className="text-sm font-medium mb-1.5 block">Instagram</Label>
                   <Input
                     id="instagram"
                     type="url"
@@ -307,7 +307,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="twitter">Twitter/X</Label>
+                  <Label htmlFor="twitter" className="text-sm font-medium mb-1.5 block">Twitter/X</Label>
                   <Input
                     id="twitter"
                     type="url"
@@ -318,7 +318,7 @@ export default function CreateSchool() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="youtube">YouTube</Label>
+                  <Label htmlFor="youtube" className="text-sm font-medium mb-1.5 block">YouTube</Label>
                   <Input
                     id="youtube"
                     type="url"
@@ -332,10 +332,15 @@ export default function CreateSchool() {
 
             {/* Botões */}
             <div className="flex gap-4 pt-4">
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button type="submit" disabled={createMutation.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-white">
                 {createMutation.isPending ? 'Criando...' : 'Criar Escola'}
               </Button>
-              <Button type="button" variant="outline" onClick={handleCancel}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleCancel}
+                className="border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-700"
+              >
                 Cancelar
               </Button>
             </div>

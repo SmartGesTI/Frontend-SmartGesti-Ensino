@@ -31,11 +31,11 @@ export default function SchoolDetails() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Erro</CardTitle>
-          <CardDescription>Não foi possível carregar os dados da escola</CardDescription>
+          <CardTitle className="text-red-600 dark:text-red-400">Erro</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">Não foi possível carregar os dados da escola</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-red-600">{error?.message || 'Escola não encontrada'}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{error?.message || 'Escola não encontrada'}</p>
         </CardContent>
       </Card>
     )
@@ -44,26 +44,26 @@ export default function SchoolDetails() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">{school.name}</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-3xl font-bold tracking-tight text-gray-800 dark:text-gray-100">{school.name}</h2>
+        <p className="text-gray-600 dark:text-gray-400">
           Gerencie as informações da escola atual
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações da Escola</CardTitle>
-          <CardDescription>
+      <Card className="border-2 border-border">
+        <CardHeader className="bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30 dark:to-transparent border-b border-border">
+          <CardTitle className="text-blue-600 dark:text-blue-400">Informações da Escola</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">
             Atualize os dados da escola em cada aba abaixo
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="dados-gerais" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="dados-gerais">Dados Gerais</TabsTrigger>
-              <TabsTrigger value="contatos">Contatos</TabsTrigger>
-              <TabsTrigger value="endereco">Endereço</TabsTrigger>
-              <TabsTrigger value="redes-sociais">Redes Sociais</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 bg-gray-100/50 dark:bg-gray-800/50 p-1">
+              <TabsTrigger value="dados-gerais" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">Dados Gerais</TabsTrigger>
+              <TabsTrigger value="contatos" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">Contatos</TabsTrigger>
+              <TabsTrigger value="endereco" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">Endereço</TabsTrigger>
+              <TabsTrigger value="redes-sociais" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">Redes Sociais</TabsTrigger>
             </TabsList>
 
             <TabsContent value="dados-gerais" className="mt-6">

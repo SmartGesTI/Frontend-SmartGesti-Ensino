@@ -55,7 +55,7 @@ export function RedesSociaisTab({ school }: RedesSociaisTabProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="facebook">Facebook</Label>
+          <Label htmlFor="facebook" className="text-sm font-medium mb-1.5 block">Facebook</Label>
           <Input
             id="facebook"
             type="url"
@@ -66,7 +66,7 @@ export function RedesSociaisTab({ school }: RedesSociaisTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="instagram">Instagram</Label>
+          <Label htmlFor="instagram" className="text-sm font-medium mb-1.5 block">Instagram</Label>
           <Input
             id="instagram"
             type="url"
@@ -77,7 +77,7 @@ export function RedesSociaisTab({ school }: RedesSociaisTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="twitter">Twitter/X</Label>
+          <Label htmlFor="twitter" className="text-sm font-medium mb-1.5 block">Twitter/X</Label>
           <Input
             id="twitter"
             type="url"
@@ -88,7 +88,7 @@ export function RedesSociaisTab({ school }: RedesSociaisTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="youtube">YouTube</Label>
+          <Label htmlFor="youtube" className="text-sm font-medium mb-1.5 block">YouTube</Label>
           <Input
             id="youtube"
             type="url"
@@ -99,7 +99,7 @@ export function RedesSociaisTab({ school }: RedesSociaisTabProps) {
         </div>
       </div>
 
-      <Button type="submit" disabled={updateMutation.isPending}>
+      <Button type="submit" disabled={updateMutation.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-white">
         {updateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
       </Button>
     </form>

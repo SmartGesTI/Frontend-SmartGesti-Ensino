@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 import { getTenantFromSubdomain } from '@/lib/tenant'
 import { SystemInfoSidebar } from '@/components/SystemInfoSidebar'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { apiRequest } from '@/services/api'
 import { Tenant } from '@/types'
 
@@ -361,45 +362,49 @@ export default function OtpVerification() {
 
   if (loadingTenant) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-sm text-gray-600">Carregando...</p>
+          <p className="text-sm text-muted-foreground">Carregando...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen flex bg-background">
+      {/* Botão de Tema */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       {/* Lado Esquerdo - Informações do Sistema */}
       <SystemInfoSidebar variant="security" />
 
       {/* Lado Direito - Formulário */}
       <div className="flex-1 flex items-center justify-center p-4 lg:p-12">
-        <Card className="w-full max-w-2xl shadow-2xl border-2 border-gray-200 bg-white">
-          <CardHeader className="text-center bg-gray-100/50 pb-6 pt-8 px-8 border-b-2 border-gray-200">
+        <Card className="w-full max-w-2xl shadow-2xl border-2 border-border bg-card">
+          <CardHeader className="text-center bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30 dark:to-transparent pb-6 pt-8 px-8 border-b border-border">
             {tenant?.logo_url && (
               <div className="mb-4 flex justify-center">
                 <img src={tenant.logo_url} alt={tenant.name} className="h-14 w-auto" />
               </div>
             )}
-            <CardTitle className="text-4xl font-bold text-blue-600 mb-2 flex items-center justify-center gap-2">
-              <Mail className="h-8 w-8 text-blue-600" />
+            <CardTitle className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2 flex items-center justify-center gap-2">
+              <Mail className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               Verifique seu Email
             </CardTitle>
-            <CardDescription className="text-base text-gray-600">
+            <CardDescription className="text-base text-gray-600 dark:text-gray-300">
               Digite o código enviado para
               <br />
-              <strong className="text-gray-800 font-semibold">{email}</strong>
+              <strong className="text-foreground font-semibold">{email}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="p-8 space-y-6">
           {error && (
             <Alert variant="destructive" className="animate-in fade-in border-red-500">
               <div className="flex items-center justify-center gap-2">
-                <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-                <AlertDescription className="text-red-600 text-center">{error}</AlertDescription>
+                <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                <AlertDescription className="text-red-600 dark:text-red-400 text-center">{error}</AlertDescription>
               </div>
             </Alert>
           )}
@@ -432,7 +437,7 @@ export default function OtpVerification() {
                 />
               ))}
             </div>
-            <p className="text-sm text-center text-gray-600">
+            <p className="text-sm text-center text-muted-foreground">
               Digite o código de {otpLength} dígitos recebido por email
             </p>
 
@@ -460,7 +465,7 @@ export default function OtpVerification() {
                 onClick={handleResend}
                 disabled={isResending || !canResend || attempts >= 3}
                 variant="outline"
-                className="w-full border-gray-300 hover:bg-gray-100 text-gray-700"
+                className="w-full"
                 size="sm"
               >
                 {isResending ? (
@@ -481,8 +486,8 @@ export default function OtpVerification() {
                 )}
               </Button>
 
-              <div className="text-sm text-center text-gray-600 space-y-2 pt-2">
-                <p className="font-semibold text-gray-800">
+              <div className="text-sm text-center text-gray-600 dark:text-gray-400 space-y-2 pt-2">
+                <p className="font-semibold text-gray-800 dark:text-gray-200">
                   Não recebeu o código?
                 </p>
                 <div className="space-y-1 text-left max-w-sm mx-auto">
@@ -490,11 +495,11 @@ export default function OtpVerification() {
                   <p>2. Aguarde alguns minutos (emails podem ter delay)</p>
                   <p>3. Clique em "Reenviar Código" após 60 segundos</p>
                 </div>
-                <p className="text-xs text-gray-500 mt-4">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
                   Precisa de Ajuda? Contate o{' '}
                   <a 
                     href="mailto:administracao@smartgesti.com.br" 
-                    className="text-blue-600 hover:text-blue-700 font-semibold underline"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold underline"
                   >
                     suporte
                   </a>

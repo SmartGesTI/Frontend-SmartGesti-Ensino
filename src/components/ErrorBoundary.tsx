@@ -46,21 +46,21 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-          <div className="max-w-md w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full">
-              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="max-w-md w-full bg-card shadow-lg rounded-lg p-6 border border-border">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-500/10 rounded-full">
+              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100 text-center">
+            <h3 className="mt-4 text-lg font-medium text-foreground text-center">
               Algo deu errado
             </h3>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+            <p className="mt-2 text-sm text-muted-foreground text-center">
               {this.state.error?.message || 'Erro desconhecido'}
             </p>
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-900 rounded-md">
-              <details className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="mt-4 p-3 bg-muted rounded-md">
+              <details className="text-xs text-muted-foreground">
                 <summary className="cursor-pointer font-medium">Stack Trace</summary>
                 <pre className="mt-2 overflow-auto max-h-40 text-xs">
                   {this.state.error?.stack}
@@ -70,13 +70,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                className="flex-1 bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
               >
                 Recarregar Página
               </button>
               <button
                 onClick={() => this.setState({ hasError: false, error: null })}
-                className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/80 transition-colors"
               >
                 Tentar Novamente
               </button>

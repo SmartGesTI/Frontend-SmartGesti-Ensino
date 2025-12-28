@@ -11,7 +11,9 @@ import { useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/services/api'
 import { useAccessToken } from '@/hooks/useAccessToken'
 import { useState } from 'react'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useQueryClient } from '@tanstack/react-query'
+import { clearAllSessionData } from '@/lib/storage'
 
 interface Tenant {
   id: string
@@ -55,18 +57,8 @@ export default function PendingApproval() {
       // Resetar PostHog
       logger.reset()
 
-      // Limpar COMPLETAMENTE localStorage
-      localStorage.clear()
-
-      // Limpar COMPLETAMENTE sessionStorage
-      sessionStorage.clear()
-
-      // Limpar cookies
-      document.cookie.split(';').forEach((cookie) => {
-        const name = cookie.split('=')[0].trim()
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`
-      })
+      // Limpar storage (preserva tema)
+      clearAllSessionData()
 
       // Fazer logout do Supabase
       await signOut()
@@ -82,14 +74,7 @@ export default function PendingApproval() {
       try {
         queryClient.clear()
         logger.reset()
-        localStorage.clear()
-        sessionStorage.clear()
-
-        // Limpar cookies
-        document.cookie.split(';').forEach((cookie) => {
-          const name = cookie.split('=')[0].trim()
-          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
-        })
+        clearAllSessionData()
       } catch (e) {
         console.error('Error clearing storage:', e)
       }
@@ -119,17 +104,21 @@ export default function PendingApproval() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
-      <Card className="w-full max-w-2xl shadow-2xl border-2 border-gray-200 bg-white">
-        <CardHeader className="text-center bg-gray-100/50 pb-6 pt-8 px-8 border-b-2 border-gray-200">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+      {/* Botão de Tema */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      <Card className="w-full max-w-2xl shadow-2xl border-2 border-border bg-card">
+        <CardHeader className="text-center bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30 dark:to-transparent pb-6 pt-8 px-8 border-b-2 border-border">
           <div className="flex justify-center mb-4">
-            <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+            <Avatar className="h-24 w-24 border-4 border-white dark:border-gray-700 shadow-lg">
               <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} alt={user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User'} />
               <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">{getUserInitials()}</AvatarFallback>
             </Avatar>
           </div>
-          <CardTitle className="text-4xl font-bold text-blue-600 mb-2">Aguardando Aprovação</CardTitle>
-          <CardDescription className="text-lg text-gray-600">Seu acesso está pendente</CardDescription>
+          <CardTitle className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">Aguardando Aprovação</CardTitle>
+          <CardDescription className="text-lg text-gray-600 dark:text-gray-300">Seu acesso está pendente</CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-6">
           <Alert className="animate-in fade-in">
@@ -141,44 +130,44 @@ export default function PendingApproval() {
             </AlertDescription>
           </Alert>
 
-          <div className="space-y-3 bg-gray-50 p-5 rounded-lg border border-gray-200">
+          <div className="space-y-3 bg-gray-100/50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex items-start gap-2">
-              <span className="font-semibold min-w-[120px] text-gray-800">Nome:</span>
-              <span className="text-gray-600">{user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'Não informado'}</span>
+              <span className="font-semibold min-w-[120px] text-gray-800 dark:text-gray-100">Nome:</span>
+              <span className="text-gray-600 dark:text-gray-400">{user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'Não informado'}</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="font-semibold min-w-[120px] text-gray-800">Email:</span>
-              <span className="text-gray-600">{user?.email}</span>
+              <span className="font-semibold min-w-[120px] text-gray-800 dark:text-gray-100">Email:</span>
+              <span className="text-gray-600 dark:text-gray-400">{user?.email}</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="font-semibold min-w-[120px] text-gray-800">Instituição:</span>
-              <span className="text-gray-600">
+              <span className="font-semibold min-w-[120px] text-gray-800 dark:text-gray-100">Instituição:</span>
+              <span className="text-gray-600 dark:text-gray-400">
                 {tenant?.name || tenantSubdomain || 'Não identificada'}
               </span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="font-semibold min-w-[120px] text-gray-800">Status:</span>
-              <span className="text-yellow-600 font-medium">
+              <span className="font-semibold min-w-[120px] text-gray-800 dark:text-gray-100">Status:</span>
+              <span className="text-amber-600 dark:text-amber-400 font-medium">
                 Aguardando aprovação
               </span>
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
-            <h3 className="font-semibold text-blue-900 mb-3 text-lg">
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-5">
+            <h3 className="font-semibold text-blue-600 dark:text-blue-400 mb-3 text-lg">
               O que fazer agora?
             </h3>
-            <ul className="space-y-2 text-sm text-blue-800">
+            <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
                 <span>Entre em contato com o administrador da instituição</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
                 <span>Aguarde a aprovação do seu acesso</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
                 <span>Você receberá um email quando seu acesso for liberado</span>
               </li>
             </ul>
@@ -189,7 +178,7 @@ export default function PendingApproval() {
               variant="outline"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex-1 border-gray-300 hover:bg-gray-100 text-gray-700"
+              className="flex-1 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-700"
               size="sm"
             >
               {isLoggingOut ? (

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configuração crítica para Tailwind v4 - Dark mode via classe */
+@custom-variant dark (&:is(.dark *));
+
 @layer base {
   :root {
     /* Backgrounds - Tons claros e suaves */
@@ -24,15 +27,31 @@
     
     /* Muted - Cinza médio para textos secundários */
     --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 20% 43%;
     
     /* Accent - Azul claro para destaques */
     --accent: 217 33% 97%;
     --accent-foreground: 217 91% 60%;
     
-    /* Destructive - Vermelho suave */
-    --destructive: 0 84% 60%;
+    /* Destructive - Vermelho vibrante */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
+    
+    /* Error - Vermelho para validação (alias) */
+    --error: 0 72% 51%;
+    --error-foreground: 0 0% 100%;
+    
+    /* Success - Verde Emerald (para botões de ação) */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Warning - Amarelo/Laranja */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Info - Azul (para abas e focus) */
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
     
     /* Borders e Inputs - Cinza muito claro */
     --border: 214 32% 91%;
@@ -48,33 +67,78 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    
+    /* Gradients */
+    --gradient-from: 210 40% 96%;
+    --gradient-via: 217 91% 97%;
+    --gradient-to: 239 84% 97%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Backgrounds - Tons escuros profundos */
+    --background: 222 47% 6%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    
+    /* Cards - Cinza escuro com contraste */
+    --card: 222 47% 9%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    
+    /* Popovers */
+    --popover: 222 47% 9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    
+    /* Primary - Azul claro no tema escuro */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Cinza escuro */
+    --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    
+    /* Muted - Cinza médio escuro */
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 70%;
+    
+    /* Accent - Azul escuro para destaques */
+    --accent: 217 33% 17%;
+    --accent-foreground: 217 91% 70%;
+    
+    /* Destructive - Vermelho vibrante no escuro */
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Error - Vermelho para validação (alias) */
+    --error: 0 72% 55%;
+    --error-foreground: 0 0% 100%;
+    
+    /* Success - Verde Emerald mais claro no escuro */
+    --success: 160 84% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Warning - Amarelo/Laranja mais claro */
+    --warning: 38 92% 55%;
+    --warning-foreground: 0 0% 0%;
+    
+    /* Info - Azul mais claro no escuro */
+    --info: 217 91% 65%;
+    --info-foreground: 0 0% 100%;
+    
+    /* Borders e Inputs - Cinza escuro */
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 217 91% 60%;
+    
+    /* Charts - Cores vibrantes para tema escuro */
+    --chart-1: 217 91% 65%;
+    --chart-2: 160 60% 50%;
+    --chart-3: 30 80% 60%;
+    --chart-4: 280 65% 65%;
+    --chart-5: 340 75% 60%;
+    
+    /* Gradients - Escuro */
+    --gradient-from: 222 47% 8%;
+    --gradient-via: 225 47% 10%;
+    --gradient-to: 230 47% 12%;
   }
 }
 

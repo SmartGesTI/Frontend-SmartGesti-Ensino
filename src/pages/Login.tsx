@@ -15,6 +15,7 @@ import { Tenant } from '@/types'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { SystemInfoSidebar } from '@/components/SystemInfoSidebar'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 // Componente do ícone do Google com cores oficiais
 const GoogleIcon = () => (
@@ -83,17 +84,17 @@ const PasswordRequirements = ({ password }: { password: string }) => {
   if (!password) return null
 
   return (
-    <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-      <p className="text-xs font-semibold text-gray-700 mb-2">Requisitos da senha:</p>
+    <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+      <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 mb-2">Requisitos da senha:</p>
       <ul className="space-y-1.5">
         {requirements.map((req, index) => (
           <li key={index} className="flex items-center gap-2 text-xs">
             {req.met ? (
-              <Check className="h-3.5 w-3.5 text-green-600 flex-shrink-0" />
+              <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400 flex-shrink-0" />
             ) : (
-              <X className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+              <X className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
             )}
-            <span className={req.met ? 'text-green-700' : 'text-gray-600'}>
+            <span className={req.met ? 'text-green-700 dark:text-green-400 font-medium' : 'text-gray-600 dark:text-gray-400'}>
               {req.label}
             </span>
           </li>
@@ -394,7 +395,7 @@ export default function Login() {
 
   if (loadingTenant) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">Carregando...</p>
@@ -404,23 +405,27 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen flex bg-background">
+      {/* Botão de Tema */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       {/* Lado Esquerdo - Informações do Sistema */}
       <SystemInfoSidebar />
 
       {/* Lado Direito - Formulário */}
       <div className="flex-1 flex items-center justify-center p-4 lg:p-12">
-        <Card className="w-full max-w-lg shadow-2xl border-2 border-gray-200 bg-white">
-          <CardHeader className="text-center pb-6 pt-8 px-8 border-b-2 border-gray-200 bg-gray-100/50">
+        <Card className="w-full max-w-lg shadow-2xl border-2 border-border bg-card">
+          <CardHeader className="text-center pb-6 pt-8 px-8 border-b-2 border-border bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30 dark:to-transparent">
             {tenant?.logo_url && (
               <div className="mb-4 flex justify-center">
                 <img src={tenant.logo_url} alt={tenant.name} className="h-14 w-auto" />
               </div>
             )}
-            <CardTitle className="text-4xl font-bold text-blue-600 mb-2">
+            <CardTitle className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
               {tenant ? tenant.name : 'SmartGesti Ensino'}
             </CardTitle>
-            <CardDescription className="text-base text-gray-600">
+            <CardDescription className="text-base text-gray-600 dark:text-gray-300">
               {tenant ? 'Sistema de gestão educacional' : 'Acesse sua conta ou crie uma nova'}
             </CardDescription>
           </CardHeader>
@@ -430,16 +435,16 @@ export default function Login() {
                 onValueChange={handleTabChange}
                 className="w-full"
               >
-              <TabsList className="grid w-full grid-cols-2 mb-8 h-12 bg-gray-100/50 p-1">
+              <TabsList className="grid w-full grid-cols-2 mb-8 h-12 bg-gray-100/50 dark:bg-gray-800/50 p-1">
                 <TabsTrigger 
                   value="login" 
-                  className="text-base font-semibold data-[state=active]:bg-blue-400 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 ease-in-out"
+                  className="text-base font-semibold data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 ease-in-out"
                 >
                   Entrar
                 </TabsTrigger>
                 <TabsTrigger 
                   value="register" 
-                  className="text-base font-semibold data-[state=active]:bg-blue-400 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 ease-in-out"
+                  className="text-base font-semibold data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 ease-in-out"
                 >
                   Criar Conta
                 </TabsTrigger>
@@ -460,7 +465,7 @@ export default function Login() {
                     onClick={handleGoogleAuth}
                     disabled={loading || isSubmitting}
                     variant="google"
-                    className="w-full h-12 text-base font-semibold bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 shadow-md hover:shadow-lg transition-all pb-0 mb-0"
+                    className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all pb-0 mb-0"
                     size="lg"
                   >
                     {loading ? (
@@ -477,13 +482,10 @@ export default function Login() {
                   </Button>
 
                   {/* Divisor */}
-                  <div className="relative my-5">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t-2 border-gray-200"></span>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="bg-white px-4 text-gray-500 font-medium">ou</span>
-                    </div>
+                  <div className="flex items-center gap-4 my-5">
+                    <div className="flex-1 h-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                    <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">ou</span>
+                    <div className="flex-1 h-0.5 bg-gray-200 dark:bg-gray-700"></div>
                   </div>
 
                   {/* Botão Entrar com Email */}
@@ -561,7 +563,7 @@ export default function Login() {
                             setPassword('')
                             setAuthError(null)
                           }}
-                          className="flex-1 border-gray-300 hover:bg-gray-100 text-gray-700"
+                          className="flex-1 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-700"
                           disabled={isSubmitting || loading}
                           size="sm"
                         >
@@ -606,7 +608,7 @@ export default function Login() {
                     onClick={handleGoogleAuth}
                     disabled={loading || isSubmitting}
                     variant="google"
-                    className="w-full h-12 text-base font-semibold bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400 shadow-md hover:shadow-lg transition-all pb-0 mb-0"
+                    className="w-full h-12 text-base font-semibold shadow-md hover:shadow-lg transition-all pb-0 mb-0"
                     size="lg"
                   >
                     {loading ? (
@@ -623,13 +625,10 @@ export default function Login() {
                   </Button>
 
                   {/* Divisor */}
-                  <div className="relative my-5">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t-2 border-gray-200"></span>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="bg-white px-4 text-gray-500 font-medium">ou</span>
-                    </div>
+                  <div className="flex items-center gap-4 my-5">
+                    <div className="flex-1 h-0.5 bg-gray-200 dark:bg-gray-700"></div>
+                    <span className="text-gray-500 dark:text-gray-400 font-medium text-sm">ou</span>
+                    <div className="flex-1 h-0.5 bg-gray-200 dark:bg-gray-700"></div>
                   </div>
 
                   {/* Formulário de Registro */}

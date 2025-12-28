@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { SchoolSelector } from '@/components/SchoolSelector'
 import { Sidebar } from '@/components/Sidebar'
 import { logger } from '@/lib/logger'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { clearAllSessionData } from '@/lib/storage'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -28,41 +30,24 @@ export function Layout({ children }: LayoutProps) {
       // 2. Resetar PostHog
       logger.reset()
 
-      // 3. Limpar COMPLETAMENTE localStorage
-      localStorage.clear()
+      // 3. Limpar storage (preserva tema)
+      clearAllSessionData()
 
-      // 4. Limpar COMPLETAMENTE sessionStorage
-      sessionStorage.clear()
-
-      // 5. Limpar cookies (melhor esforço)
-      document.cookie.split(';').forEach((cookie) => {
-        const name = cookie.split('=')[0].trim()
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`
-      })
-
-      // 6. Fazer logout do Supabase
+      // 4. Fazer logout do Supabase
       await signOut()
 
-      // 7. Forçar reload completo da página (limpa tudo da memória)
+      // 5. Forçar reload completo da página
       setTimeout(() => {
         window.location.replace('/login')
       }, 100)
     } catch (error) {
       logger.error('Error during logout', 'Layout', { error })
       
-      // Fallback: limpar TUDO e forçar reload
+      // Fallback: limpar e forçar reload
       try {
         queryClient.clear()
         logger.reset()
-        localStorage.clear()
-        sessionStorage.clear()
-        
-        // Limpar cookies
-        document.cookie.split(';').forEach((cookie) => {
-          const name = cookie.split('=')[0].trim()
-          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
-        })
+        clearAllSessionData()
       } catch (e) {
         console.error('Error clearing storage:', e)
       }
@@ -75,12 +60,18 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card sticky top-0 z-50">
+      <header className="border-b border-gray-200 dark:border-gray-700 bg-card sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center gap-4">
-          <h1 className="text-2xl font-bold">SmartGesti Ensino</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">SmartGesti Ensino</h1>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <SchoolSelector />
-            <Button variant="outline" onClick={handleLogout} disabled={isLoggingOut}>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout} 
+              disabled={isLoggingOut}
+              className="border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-700"
+            >
               {isLoggingOut ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2 inline-block"></div>

@@ -38,25 +38,25 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">Bem-vindo ao sistema de gestão educacional</p>
+        <h2 className="text-3xl font-bold tracking-tight text-gray-800 dark:text-gray-100">Dashboard</h2>
+        <p className="text-gray-600 dark:text-gray-400">Bem-vindo ao sistema de gestão educacional</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Visão Geral</CardTitle>
-          <CardDescription>Informações do usuário e escola atual</CardDescription>
+      <Card className="border-2 border-border">
+        <CardHeader className="bg-gradient-to-b from-blue-50/50 to-transparent dark:from-blue-950/30 dark:to-transparent border-b border-border">
+          <CardTitle className="text-blue-600 dark:text-blue-400">Visão Geral</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-gray-400">Informações do usuário e escola atual</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {(isLoading || tokenLoading) ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3 text-muted-foreground">Carregando...</span>
+              <span className="ml-3 text-gray-600 dark:text-gray-400">Carregando...</span>
             </div>
           ) : userError ? (
-            <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+            <div className="p-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
               <p className="font-semibold">Erro ao carregar dados</p>
-              <p className="text-xs mt-1">{userError.message}</p>
+              <p className="text-xs mt-1 text-red-500 dark:text-red-400">{userError.message}</p>
               <Button
                 variant="outline"
                 size="sm"
@@ -69,7 +69,7 @@ export default function Dashboard() {
           ) : (
             <>
               <div>
-                <h3 className="text-lg font-semibold mb-2">Informações do Usuário</h3>
+                <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">Informações do Usuário</h3>
                 <div className="space-y-2">
                   <p>
                     <strong>Nome:</strong> {userData?.full_name || user?.name || 'N/A'}
@@ -84,7 +84,7 @@ export default function Dashboard() {
               </div>
               {school && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Escola Atual</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">Escola Atual</h3>
                   <div className="space-y-2">
                     <p>
                       <strong>Nome:</strong> {school.name}
@@ -103,14 +103,14 @@ export default function Dashboard() {
                 </div>
               )}
               {schoolError && (
-                <div className="p-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
                   <p className="font-semibold">Erro ao carregar escola</p>
-                  <p className="text-xs mt-1">{schoolError.message}</p>
+                  <p className="text-xs mt-1 text-red-500 dark:text-red-400">{schoolError.message}</p>
                 </div>
               )}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Status</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">Status</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Sistema inicializado com sucesso! Autenticação funcionando.
                 </p>
               </div>

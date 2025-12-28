@@ -55,7 +55,7 @@ export function ContatosTab({ school }: ContatosTabProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-sm font-medium mb-1.5 block">Email</Label>
           <Input
             id="email"
             type="email"
@@ -66,7 +66,7 @@ export function ContatosTab({ school }: ContatosTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Telefone</Label>
+          <Label htmlFor="phone" className="text-sm font-medium mb-1.5 block">Telefone</Label>
           <Input
             id="phone"
             type="tel"
@@ -77,7 +77,7 @@ export function ContatosTab({ school }: ContatosTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="whatsapp">WhatsApp</Label>
+          <Label htmlFor="whatsapp" className="text-sm font-medium mb-1.5 block">WhatsApp</Label>
           <Input
             id="whatsapp"
             type="tel"
@@ -88,7 +88,7 @@ export function ContatosTab({ school }: ContatosTabProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="website">Website</Label>
+          <Label htmlFor="website" className="text-sm font-medium mb-1.5 block">Website</Label>
           <Input
             id="website"
             type="url"
@@ -99,7 +99,7 @@ export function ContatosTab({ school }: ContatosTabProps) {
         </div>
       </div>
 
-      <Button type="submit" disabled={updateMutation.isPending}>
+      <Button type="submit" disabled={updateMutation.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-white">
         {updateMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
       </Button>
     </form>

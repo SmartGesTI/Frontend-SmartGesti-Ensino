@@ -11,6 +11,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { queryClient } from './lib/queryClient'
 import { AuthProvider } from './contexts/AuthContext'
 import { AuthSync } from './components/AuthSync'
+import { ThemeProvider } from './contexts/ThemeContext'
 
 // Chave para identificar a sessão por tenant
 const TENANT_SESSION_KEY = 'auth_tenant_session'
@@ -96,12 +97,14 @@ function AppWithAuth() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AppWithAuth />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ErrorBoundary>
+    <ThemeProvider defaultTheme="system">
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AppWithAuth />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    </ThemeProvider>
   </StrictMode>,
 )
