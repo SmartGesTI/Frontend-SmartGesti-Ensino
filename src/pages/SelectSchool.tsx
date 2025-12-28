@@ -8,6 +8,7 @@ import { School, User } from '@/types'
 import { logger } from '@/lib/logger'
 import { useAccessToken } from '@/hooks/useAccessToken'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { routes } from '@/lib/routes'
 import { useEffect } from 'react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
@@ -63,7 +64,7 @@ export default function SelectSchool() {
         userId: currentUser.id,
         email: currentUser.email,
       })
-      navigate('/verificar-email', { replace: true })
+      navigate(routes.verifyEmail(), { replace: true })
       return
     }
 
@@ -77,7 +78,7 @@ export default function SelectSchool() {
         email: currentUser.email,
         fullName: currentUser.full_name,
       })
-      navigate('/completar-cadastro', { replace: true })
+      navigate(routes.completeProfile(), { replace: true })
       return
     }
 
@@ -100,7 +101,7 @@ export default function SelectSchool() {
   const checkIfOwnerWithoutTenant = async (userId: string, userEmail: string) => {
     try {
       if (!token) {
-        navigate('/aguardando-aprovacao', { replace: true })
+        navigate(routes.pendingApproval(), { replace: true })
         return
       }
 
@@ -138,10 +139,10 @@ export default function SelectSchool() {
         userId,
         email: userEmail,
       })
-      navigate('/aguardando-aprovacao', { replace: true })
+      navigate(routes.pendingApproval(), { replace: true })
     } catch (error) {
       logger.error('Failed to check owner status', 'SelectSchool', { error })
-      navigate('/aguardando-aprovacao', { replace: true })
+      navigate(routes.pendingApproval(), { replace: true })
     }
   }
 
@@ -169,7 +170,7 @@ export default function SelectSchool() {
             userId,
             tenantId,
           })
-          navigate('/aguardando-aprovacao', { replace: true })
+          navigate(routes.pendingApproval(), { replace: true })
         }
       }
     } catch (error) {
@@ -184,13 +185,13 @@ export default function SelectSchool() {
         slug: schools[0].slug,
         tenantSubdomain,
       })
-      navigate(`/escola/${schools[0].slug}/painel`, { replace: true })
+      navigate(routes.school.dashboard(schools[0].slug), { replace: true })
     }
   }, [schools, currentUser, navigate, tenantSubdomain])
 
   const handleSelectSchool = (school: School) => {
     logger.info('Selecting school', 'SelectSchool', { slug: school.slug, tenantSubdomain })
-    navigate(`/escola/${school.slug}/painel`, { replace: true })
+    navigate(routes.school.dashboard(school.slug), { replace: true })
   }
 
   const isLoadingInitial = tokenLoading || userLoading
@@ -211,7 +212,7 @@ export default function SelectSchool() {
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               Entre em contato com o administrador da instituição para solicitar acesso.
             </p>
-            <Button variant="outline" onClick={() => navigate('/login')}>
+            <Button variant="outline" onClick={() => navigate(routes.login())}>
               Voltar ao Login
             </Button>
           </CardContent>

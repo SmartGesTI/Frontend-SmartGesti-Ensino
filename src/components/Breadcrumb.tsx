@@ -2,6 +2,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { ChevronRight, Home, Maximize2, Minimize2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLayoutMode } from '@/contexts/LayoutContext'
+import { routes } from '@/lib/routes'
 
 interface PageInfo {
   title: string
@@ -53,15 +54,27 @@ export function Breadcrumb() {
   const category = categoryMap[pathAfterSlug]
   
   // Construir breadcrumbs
-  const breadcrumbs: { label: string; path?: string }[] = [
-    { label: 'Início', path: `/escola/${slug}/painel` }
-  ]
+  const breadcrumbs: { label: string; path?: string }[] = slug ? [
+    { label: 'Início', path: routes.school.dashboard(slug) }
+  ] : []
   
   // Adicionar categoria se existir e for diferente da página atual
-  if (category && category.name !== pageInfo.breadcrumb) {
+  if (category && category.name !== pageInfo.breadcrumb && slug) {
+    // Mapear category.path para a rota correta
+    const categoryPathMap: Record<string, (slug: string) => string> = {
+      'painel': routes.school.dashboard,
+      'turmas': routes.school.classes,
+      'alunos': routes.school.students,
+      'matriculas': routes.school.enrollments,
+      'escola-atual': routes.school.details,
+    }
+    const categoryPath = categoryPathMap[category.path] 
+      ? categoryPathMap[category.path](slug)
+      : routes.school.dashboard(slug)
+    
     breadcrumbs.push({ 
       label: category.name, 
-      path: `/escola/${slug}/${category.path}` 
+      path: categoryPath
     })
   }
   

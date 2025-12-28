@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
-import { logger } from './logger';
+import { logger } from './logger'
+import { routes } from './routes';
 
 interface ApiError {
   response?: {
@@ -100,7 +101,7 @@ export class ErrorLogger {
       action: redirectToLogin ? {
         label: 'Login',
         onClick: () => {
-          window.location.href = '/login';
+          window.location.href = routes.login();
         },
       } : undefined,
     });

@@ -8,6 +8,7 @@ import { useAccessToken } from '@/hooks/useAccessToken'
 import { getTenantFromSubdomain } from '@/lib/tenant'
 import { Building2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { routes } from '@/lib/routes'
 
 interface SchoolSelectorProps {
   className?: string
@@ -39,7 +40,7 @@ export function SchoolSelector({ className }: SchoolSelectorProps) {
     }
     
     logger.info('Changing school', 'SchoolSelector', { slug: schoolSlug, from: currentSlug })
-    navigate(`/escola/${schoolSlug}/painel`, { replace: true })
+    navigate(routes.school.dashboard(schoolSlug), { replace: true })
   }
 
   // Mostrar loading enquanto carrega

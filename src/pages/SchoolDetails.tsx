@@ -7,6 +7,7 @@ import { EnderecoTab } from '@/components/school-tabs/EnderecoTab'
 import { RedesSociaisTab } from '@/components/school-tabs/RedesSociaisTab'
 import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
+import { routes } from '@/lib/routes'
 
 export default function SchoolDetails() {
   const { school, isLoading, error } = useSchool()
@@ -15,7 +16,7 @@ export default function SchoolDetails() {
   // Redirecionar se não houver escola
   useEffect(() => {
     if (!isLoading && !school && !error) {
-      navigate('/selecionar-escola', { replace: true })
+      navigate(routes.selectSchool(), { replace: true })
     }
   }, [school, isLoading, error, navigate])
 

@@ -10,6 +10,7 @@ import { Mail, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { routes } from '@/lib/routes'
 import { SystemInfoSidebar } from '@/components/SystemInfoSidebar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { apiRequest } from '@/services/api'
@@ -69,7 +70,7 @@ export default function OtpVerification() {
   useEffect(() => {
     if (!email) {
       logger.warn('No email provided for OTP verification', 'OtpVerification')
-      navigate('/login', { replace: true })
+      navigate(routes.login(), { replace: true })
       return
     }
 
@@ -298,7 +299,7 @@ export default function OtpVerification() {
           })
           
           // Redirecionar para selecionar escola (que vai para aguardando aprovação se não tiver tenant_id)
-          navigate('/selecionar-escola', { replace: true })
+          navigate(routes.selectSchool(), { replace: true })
         } catch (syncError: any) {
           logger.error('Failed to sync user after OTP verification', 'OtpVerification', {
             error: syncError.message,
@@ -309,7 +310,7 @@ export default function OtpVerification() {
           // O SelectSchool tentará sincronizar novamente via /api/users/me
           // E o /api/users/me também tenta sincronizar se não encontrar o usuário
           toast.warning('Usuário verificado, mas houve um problema ao sincronizar. Redirecionando...')
-          navigate('/selecionar-escola', { replace: true })
+          navigate(routes.selectSchool(), { replace: true })
         }
       }
     } catch (error: any) {

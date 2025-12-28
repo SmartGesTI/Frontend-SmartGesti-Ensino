@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { routes } from '@/lib/routes'
 
 export default function AuthCallback() {
   const navigate = useNavigate()
@@ -50,7 +51,7 @@ export default function AuthCallback() {
               error,
               errorDescription,
             })
-            navigate(`/login?error=${encodeURIComponent(error)}`, { replace: true })
+            navigate(routes.login(error), { replace: true })
             return
           }
 
@@ -67,7 +68,7 @@ export default function AuthCallback() {
         
         if (error) {
           logger.error('Auth callback error', 'AuthCallback', { error: error.message })
-          navigate('/login?error=auth_failed', { replace: true })
+          navigate(routes.login('auth_failed'), { replace: true })
           return
         }
 
@@ -116,23 +117,23 @@ export default function AuthCallback() {
             })
             // Redirecionar para página de verificação OTP
             // O email será passado via query param
-            navigate(`/verificar-otp?email=${encodeURIComponent(data.session.user.email || '')}`, { replace: true })
+            navigate(routes.verifyOtp(data.session.user.email || ''), { replace: true })
             return
           }
 
           // Redirecionar para selecionar escola (manter subdomínio)
           // O navigate já mantém o hostname atual (com subdomínio)
-          navigate('/selecionar-escola', { replace: true })
+          navigate(routes.selectSchool(), { replace: true })
         } else {
           logger.warn('No session found in callback', 'AuthCallback')
-          navigate('/login', { replace: true })
+          navigate(routes.login(), { replace: true })
         }
       } catch (error: any) {
         logger.error('Auth callback exception', 'AuthCallback', {
           error: error.message,
           stack: error.stack,
         })
-        navigate('/login?error=unknown', { replace: true })
+        navigate(routes.login('unknown'), { replace: true })
       }
     }
 

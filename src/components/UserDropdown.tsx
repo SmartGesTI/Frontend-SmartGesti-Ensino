@@ -21,6 +21,7 @@ import {
 import { User, Settings, LogOut, ChevronDown, Hand } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { clearAllSessionData } from '@/lib/storage'
+import { routes } from '@/lib/routes'
 import { cn } from '@/lib/utils'
 
 interface UserDropdownProps {
@@ -56,7 +57,7 @@ export function UserDropdown({ className }: UserDropdownProps) {
       // Aguardar um momento para o usuário ver a mensagem
       setTimeout(() => {
         // Usar navigate ao invés de window.location para evitar flick
-        navigate('/login', { replace: true })
+        navigate(routes.login(), { replace: true })
       }, 1500)
     } catch (error) {
       logger.error('Error during logout', 'UserDropdown', { error })
@@ -69,7 +70,7 @@ export function UserDropdown({ className }: UserDropdownProps) {
         console.error('Error clearing storage:', e)
       }
       
-      navigate('/login', { replace: true })
+      navigate(routes.login(), { replace: true })
     }
   }
 
@@ -145,7 +146,7 @@ export function UserDropdown({ className }: UserDropdownProps) {
           <DropdownMenuItem
             onClick={() => {
               setIsOpen(false)
-              navigate('/perfil')
+              navigate(routes.profile())
             }}
             className={cn(
               'relative flex cursor-pointer select-none items-center gap-3 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors',
@@ -160,7 +161,7 @@ export function UserDropdown({ className }: UserDropdownProps) {
           <DropdownMenuItem
             onClick={() => {
               setIsOpen(false)
-              navigate('/configuracoes')
+              navigate(routes.settings())
             }}
             className={cn(
               'relative flex cursor-pointer select-none items-center gap-3 rounded-lg px-3 py-2.5 text-sm outline-none transition-colors',

@@ -12,6 +12,7 @@ import { useState, useRef } from 'react'
 import { toast } from 'sonner'
 import { useAccessToken } from '@/hooks/useAccessToken'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { routes } from '@/lib/routes'
 import { supabase } from '@/lib/supabase'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
@@ -250,7 +251,7 @@ export default function CompleteProfile() {
               await new Promise(resolve => setTimeout(resolve, 1000))
               
               // Redirecionar para selecionar escola (o SelectSchool vai verificar novamente)
-              navigate('/selecionar-escola', { replace: true })
+              navigate(routes.selectSchool(), { replace: true })
               return
             }
           }
@@ -263,7 +264,7 @@ export default function CompleteProfile() {
           userId: data.user?.id,
         })
         setTimeout(() => {
-          navigate('/aguardando-aprovacao', { replace: true })
+          navigate(routes.pendingApproval(), { replace: true })
         }, 500)
       } else {
         // Com tenant_id = selecionar escola
@@ -272,7 +273,7 @@ export default function CompleteProfile() {
           tenantId: data.user?.tenant_id,
         })
         setTimeout(() => {
-          navigate('/selecionar-escola', { replace: true })
+          navigate(routes.selectSchool(), { replace: true })
         }, 500)
       }
     } catch (err: any) {

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { logger } from '@/lib/logger'
+import { routes } from '@/lib/routes'
 
 interface AuthContextType {
   user: User | null
@@ -73,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: routes.getAuthCallbackUrl(),
         // Não usar emailRedirectTo para OTP, apenas para magic links
         // O OTP será enviado automaticamente se email confirmations estiver habilitado
       },
@@ -128,14 +129,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInWithGoogle = async () => {
-    // Garantir que usamos o hostname completo (incluindo subdomínio)
-    const currentHost = window.location.host // Inclui subdomínio: escolasilva.localhost:5173
-    const protocol = window.location.protocol // http: ou https:
-    const redirectUrl = `${protocol}//${currentHost}/auth/callback`
+    // Usar URL completa do callback OAuth
+    const redirectUrl = routes.getAuthCallbackUrl()
     
     logger.info('Initiating Google OAuth', 'AuthContext', {
-      currentHost,
-      protocol,
       redirectUrl,
       fullOrigin: window.location.origin,
     })
@@ -169,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: routes.getResetPasswordUrl(),
     })
     
     if (error) {
@@ -186,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: routes.getAuthCallbackUrl(),
       },
     })
     

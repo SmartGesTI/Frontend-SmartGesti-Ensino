@@ -17,6 +17,7 @@ import { PermissionsProvider } from './contexts/PermissionsContext'
 import { Layout } from './components/Layout'
 import { setupAxiosInterceptors } from './lib/axiosInterceptor'
 import { getTenantFromSubdomain } from './lib/tenant'
+import { routes } from './lib/routes'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -26,7 +27,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />
+    return <Navigate to={routes.login()} replace />
   }
 
   return <>{children}</>
@@ -51,7 +52,7 @@ function App() {
     <PermissionsProvider tenantId={tenantId || undefined}>
       <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Navigate to="/login" replace />} />
+      <Route path="/register" element={<Navigate to={routes.login()} replace />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/verificar-otp" element={<OtpVerification />} />
       <Route
@@ -88,7 +89,7 @@ function App() {
       />
       <Route
         path="/select-school"
-        element={<Navigate to="/selecionar-escola" replace />}
+        element={<Navigate to={routes.selectSchool()} replace />}
       />
       <Route
         path="/escola/:slug/painel"
@@ -152,9 +153,9 @@ function App() {
       />
       <Route
         path="/dashboard"
-        element={<Navigate to="/select-school" replace />}
+        element={<Navigate to={routes.selectSchool()} replace />}
       />
-      <Route path="/" element={<Navigate to="/selecionar-escola" replace />} />
+      <Route path="/" element={<Navigate to={routes.selectSchool()} replace />} />
     </Routes>
     </PermissionsProvider>
   )

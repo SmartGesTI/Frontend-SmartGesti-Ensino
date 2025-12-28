@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useQueryClient } from '@tanstack/react-query'
 import { clearAllSessionData } from '@/lib/storage'
+import { routes } from '@/lib/routes'
 
 interface Tenant {
   id: string
@@ -61,7 +62,7 @@ export default function PendingApproval() {
 
       // Forçar reload completo da página
       setTimeout(() => {
-        window.location.replace('/login')
+        window.location.replace(routes.login())
       }, 100)
     } catch (error) {
       logger.error('Error during logout', 'PendingApproval', { error })
@@ -76,7 +77,7 @@ export default function PendingApproval() {
       }
 
       // Forçar reload completo
-      window.location.replace('/login')
+      window.location.replace(routes.login())
     }
   }
 

@@ -24,6 +24,7 @@ import { usePermissions } from '../hooks/usePermissions'
 import { useSchool } from '@/contexts/SchoolContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { useState, useEffect } from 'react'
+import { routes } from '@/lib/routes'
 
 interface MenuItem {
   name: string
@@ -64,7 +65,7 @@ export function Sidebar({ className }: SidebarProps) {
     })
   }, [location.pathname])
 
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItem[] = slug ? [
     {
       name: 'Dashboard',
       icon: LayoutDashboard,
@@ -75,21 +76,21 @@ export function Sidebar({ className }: SidebarProps) {
           name: 'Visão Geral',
           icon: Eye,
           iconColor: 'text-blue-400',
-          path: `/escola/${slug}/painel`,
+          path: routes.school.dashboard(slug),
           requirePermission: false,
         },
         {
           name: 'Financeiro',
           icon: DollarSign,
           iconColor: 'text-blue-500',
-          path: `/escola/${slug}/painel/financeiro`,
+          path: routes.school.financial(slug),
           requirePermission: false,
         },
         {
           name: 'Acadêmico',
           icon: BarChart3,
           iconColor: 'text-blue-600',
-          path: `/escola/${slug}/painel/academico`,
+          path: routes.school.academic(slug),
           requirePermission: false,
         },
       ],
@@ -106,14 +107,14 @@ export function Sidebar({ className }: SidebarProps) {
           name: 'Gerenciar Escola',
           icon: School,
           iconColor: 'text-amber-400',
-          path: `/escola/${slug}/escola-atual`,
+          path: routes.school.details(slug),
           requirePermission: false,
         },
         {
           name: 'Equipe',
           icon: UserCog,
           iconColor: 'text-amber-500',
-          path: `/escola/${slug}/usuarios`,
+          path: routes.school.users(slug),
           resource: 'users',
           action: 'read',
           requirePermission: true,
@@ -122,7 +123,7 @@ export function Sidebar({ className }: SidebarProps) {
           name: 'Permissões',
           icon: Shield,
           iconColor: 'text-amber-600',
-          path: `/escola/${slug}/permissoes`,
+          path: routes.school.permissions(slug),
           resource: 'users',
           action: 'create',
           requirePermission: true,
@@ -139,21 +140,21 @@ export function Sidebar({ className }: SidebarProps) {
           name: 'Turmas',
           icon: Users,
           iconColor: 'text-purple-400',
-          path: `/escola/${slug}/turmas`,
+          path: routes.school.classes(slug),
           requirePermission: false,
         },
         {
           name: 'Alunos',
           icon: BookOpen,
           iconColor: 'text-purple-500',
-          path: `/escola/${slug}/alunos`,
+          path: routes.school.students(slug),
           requirePermission: false,
         },
         {
           name: 'Matrículas',
           icon: ClipboardList,
           iconColor: 'text-purple-600',
-          path: `/escola/${slug}/matriculas`,
+          path: routes.school.enrollments(slug),
           requirePermission: false,
         },
       ],
@@ -168,14 +169,14 @@ export function Sidebar({ className }: SidebarProps) {
           name: 'Ver Calendário',
           icon: Eye,
           iconColor: 'text-cyan-400',
-          path: `/escola/${slug}/calendario`,
+          path: routes.school.calendar(slug),
           requirePermission: false,
         },
         {
           name: 'Novo Evento',
           icon: Plus,
           iconColor: 'text-cyan-600',
-          path: `/escola/${slug}/calendario/novo`,
+          path: routes.school.calendarNew(slug),
           requirePermission: false,
         },
       ],
@@ -184,14 +185,14 @@ export function Sidebar({ className }: SidebarProps) {
       name: 'Documentos',
       icon: FileText,
       iconColor: 'text-teal-500',
-      path: `/escola/${slug}/documentos`,
+      path: routes.school.documents(slug),
       requirePermission: false,
     },
     {
       name: 'Nova Escola',
       icon: Plus,
       iconColor: 'text-green-500',
-      path: `/escola/${slug}/nova-escola`,
+      path: routes.school.create(slug),
       resource: 'schools',
       action: 'create',
       requirePermission: true,
@@ -200,10 +201,10 @@ export function Sidebar({ className }: SidebarProps) {
       name: 'Configurações',
       icon: Settings,
       iconColor: 'text-red-500',
-      path: `/escola/${slug}/configuracoes`,
+      path: routes.school.settings(slug),
       requirePermission: false,
     },
-  ]
+  ] : []
 
   const toggleMenu = (menuName: string) => {
     setExpandedMenus(prev => 

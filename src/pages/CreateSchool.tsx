@@ -10,6 +10,7 @@ import { School } from '@/types'
 import { apiRequest } from '@/services/api'
 import { useAccessToken } from '@/hooks/useAccessToken'
 import { logger } from '@/lib/logger'
+import { routes } from '@/lib/routes'
 
 export default function CreateSchool() {
   const { token } = useAccessToken()
@@ -57,7 +58,7 @@ export default function CreateSchool() {
       logger.info('School created successfully', 'CreateSchool', { schoolId: newSchool.id })
       alert('Escola criada com sucesso!')
       // Navegar para a nova escola
-      navigate(`/escola/${newSchool.slug}/painel`, { replace: true })
+      navigate(routes.school.dashboard(newSchool.slug), { replace: true })
     },
     onError: (error: any) => {
       logger.error('Failed to create school', 'CreateSchool', { error: error.message })
@@ -75,7 +76,11 @@ export default function CreateSchool() {
   }
 
   const handleCancel = () => {
-    navigate(`/escola/${slug}/painel`)
+    if (slug) {
+      navigate(routes.school.dashboard(slug))
+    } else {
+      navigate(routes.selectSchool())
+    }
   }
 
   return (

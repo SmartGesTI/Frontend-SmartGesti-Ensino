@@ -9,6 +9,7 @@ import { User } from '@/types'
 import { logger } from '@/lib/logger'
 import { useAccessToken } from '@/hooks/useAccessToken'
 import { useSchool } from '@/contexts/SchoolContext'
+import { routes } from '@/lib/routes'
 
 export default function Dashboard() {
   const { user } = useAuth()
@@ -20,7 +21,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isLoadingSchool && !slug) {
       logger.warn('No school slug in URL, redirecting to select school', 'Dashboard')
-      navigate('/selecionar-escola', { replace: true })
+      navigate(routes.selectSchool(), { replace: true })
     }
   }, [slug, isLoadingSchool, navigate])
 

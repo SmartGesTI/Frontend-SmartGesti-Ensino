@@ -6,6 +6,7 @@ import { School } from '@/types'
 import { useAccessToken } from '@/hooks/useAccessToken'
 import { logger } from '@/lib/logger'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { routes } from '@/lib/routes'
 
 interface SchoolContextType {
   slug: string | null
@@ -63,7 +64,7 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
         slug,
         error: error?.message,
       })
-      navigate('/selecionar-escola', { replace: true })
+      navigate(routes.selectSchool(), { replace: true })
     }
   }, [school, error, isLoading, slug, navigate])
 

@@ -10,6 +10,7 @@ import { AlertCircle, Loader2, Mail, Lock, UserPlus, Check, X } from 'lucide-rea
 import { logger } from '@/lib/logger'
 import { useEffect, useState } from 'react'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { routes } from '@/lib/routes'
 import { apiRequest } from '@/services/api'
 import { Tenant } from '@/types'
 import { toast } from 'sonner'
@@ -155,13 +156,13 @@ export default function Login() {
       // Se email não está confirmado, redirecionar para verificação OTP
       if (!user.email_confirmed_at) {
         logger.info('Email not confirmed, redirecting to OTP verification', 'LoginPage')
-        navigate(`/verificar-otp?email=${encodeURIComponent(user.email || '')}`, { replace: true })
+        navigate(routes.verifyOtp(user.email || ''), { replace: true })
         return
       }
 
       // Se email está confirmado, redirecionar para selecionar escola
       logger.info('Email confirmed, redirecting to select school', 'LoginPage')
-      navigate('/selecionar-escola', { replace: true })
+      navigate(routes.selectSchool(), { replace: true })
     }
   }, [user, session, loading, tenant, navigate])
 
@@ -280,7 +281,7 @@ export default function Login() {
           logger.info('Signup successful, redirecting to OTP verification', 'LoginPage', { email })
           toast.success('Conta criada! Verifique seu email para o código de confirmação.')
           
-          navigate(`/verificar-otp?email=${encodeURIComponent(email)}`, { replace: true })
+          navigate(routes.verifyOtp(email), { replace: true })
         }
       } else {
         logger.info('Attempting login', 'LoginPage', { email })
@@ -298,7 +299,7 @@ export default function Login() {
             })
             
             // Redirecionar imediatamente sem delay
-            navigate(`/verificar-otp?email=${encodeURIComponent(email)}`, { replace: true })
+            navigate(routes.verifyOtp(email), { replace: true })
             return
           }
           
@@ -335,12 +336,12 @@ export default function Login() {
             // Se email não está confirmado, redirecionar para verificação OTP
             if (!currentSession.user.email_confirmed_at) {
               logger.info('Email not confirmed, redirecting to OTP verification', 'LoginPage')
-              navigate(`/verificar-otp?email=${encodeURIComponent(currentSession.user.email || email)}`, { replace: true })
+              navigate(routes.verifyOtp(currentSession.user.email || email), { replace: true })
               return // Importante: retornar para não continuar o fluxo
             } else {
               // Se email está confirmado, redirecionar para selecionar escola
               logger.info('Email confirmed, redirecting to select school', 'LoginPage')
-              navigate('/selecionar-escola', { replace: true })
+              navigate(routes.selectSchool(), { replace: true })
               return // Importante: retornar para não continuar o fluxo
             }
           } else {
@@ -352,10 +353,10 @@ export default function Login() {
             if (retrySession?.user) {
               if (!retrySession.user.email_confirmed_at) {
                 logger.info('Email not confirmed after retry, redirecting to OTP verification', 'LoginPage')
-                navigate(`/verificar-otp?email=${encodeURIComponent(retrySession.user.email || email)}`, { replace: true })
+                navigate(routes.verifyOtp(retrySession.user.email || email), { replace: true })
                 return
               } else {
-                navigate('/selecionar-escola', { replace: true })
+                navigate(routes.selectSchool(), { replace: true })
                 return
               }
             }
@@ -372,7 +373,7 @@ export default function Login() {
           errorMessage.includes('email not verified') ||
           errorMessage.includes('email_verified')) {
         logger.info('Email verification required, redirecting to OTP', 'LoginPage', { email })
-        navigate(`/verificar-otp?email=${encodeURIComponent(email)}`, { replace: true })
+        navigate(routes.verifyOtp(email), { replace: true })
         return
       }
       

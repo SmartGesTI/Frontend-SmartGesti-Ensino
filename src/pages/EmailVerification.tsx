@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { clearAllSessionData } from '@/lib/storage'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { routes } from '@/lib/routes'
 
 export default function EmailVerification() {
   const { user, signOut, resendConfirmationEmail } = useAuth()
@@ -51,7 +52,7 @@ export default function EmailVerification() {
     clearAllSessionData()
     
     await signOut()
-    window.location.replace('/login')
+    window.location.replace(routes.login())
   }
 
   const handleCheckAgain = () => {
