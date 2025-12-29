@@ -1,15 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams } from 'react-router-dom'
-import { MessageCircle, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ChatMessage } from './components/ChatMessage'
 import { ChatInput } from './components/ChatInput'
 import { mockChatMessages, quickSuggestions, ChatMessage as ChatMessageType } from './components/mockData'
-import { cn } from '@/lib/utils'
 
 export default function AssistenteIA() {
-  const { slug } = useParams<{ slug: string }>()
   const [messages, setMessages] = useState<ChatMessageType[]>(mockChatMessages)
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)

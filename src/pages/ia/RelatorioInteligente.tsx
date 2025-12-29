@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { Wand2, Download, FileSpreadsheet, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -9,7 +8,6 @@ import { relatorioTipos, RelatorioTipo } from './components/mockData'
 import { cn } from '@/lib/utils'
 
 export default function RelatorioInteligente() {
-  const { slug } = useParams<{ slug: string }>()
   const [selectedTipo, setSelectedTipo] = useState<RelatorioTipo | null>(null)
   const [formValues, setFormValues] = useState<Record<string, any>>({})
   const [isGenerating, setIsGenerating] = useState(false)

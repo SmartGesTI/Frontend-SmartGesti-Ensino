@@ -1,7 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Settings, Trash2, Edit, Copy, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { Settings, Trash2, Edit, Copy } from 'lucide-react'
 
 interface ContextMenuProps {
   x: number

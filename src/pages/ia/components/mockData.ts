@@ -31,15 +31,8 @@ import {
   AlertTriangle,
   CreditCard,
   Receipt,
-  Wallet,
   Briefcase,
-  UserCheck,
-  TrendingDown,
-  Percent,
-  Star,
-  Eye,
-  Download,
-  Clock
+  Percent
 } from 'lucide-react'
 
 export interface ChatMessage {

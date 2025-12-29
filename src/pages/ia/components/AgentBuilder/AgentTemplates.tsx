@@ -53,7 +53,7 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
       <Accordion 
         type="multiple" 
         value={expandedCategories}
-        onValueChange={setExpandedCategories}
+        onValueChange={(value) => setExpandedCategories(Array.isArray(value) ? value : [value])}
         className="w-full"
       >
         {templateCategories.map((category) => {

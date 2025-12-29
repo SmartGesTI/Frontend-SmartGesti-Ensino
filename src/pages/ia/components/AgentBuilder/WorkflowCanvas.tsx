@@ -10,9 +10,10 @@ import ReactFlow, {
   NodeProps,
   Handle,
   Position,
+  ReactFlowInstance,
+  MarkerType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { CustomNode } from './types'
 import { availableNodes } from '../mockData'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -32,6 +33,7 @@ interface WorkflowCanvasProps {
   onEdgeContextMenu?: (event: React.MouseEvent, edge: Edge) => void
   onDeleteNode?: (nodeId: string) => void
   onDeleteEdge?: (edgeId: string) => void
+  reactFlowInstanceRef?: React.RefObject<{ fitView: (options?: { padding?: number; duration?: number }) => void } | null>
 }
 
 // Componente customizado para renderizar nós
@@ -90,18 +92,31 @@ export function WorkflowCanvas({
   onEdgesChange,
   onConnect,
   onNodeClick,
-  selectedNode,
   onAddNode,
   onNodeContextMenu,
   onEdgeContextMenu,
+  reactFlowInstanceRef,
 }: WorkflowCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null)
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null)
   const { resolvedTheme } = useTheme()
   const [isDark, setIsDark] = useState(resolvedTheme === 'dark')
 
   useEffect(() => {
     setIsDark(resolvedTheme === 'dark')
   }, [resolvedTheme])
+
+  const onInit = useCallback((instance: ReactFlowInstance) => {
+    reactFlowInstance.current = instance
+    // Expor método fitView através da ref se fornecida
+    if (reactFlowInstanceRef) {
+      reactFlowInstanceRef.current = {
+        fitView: (options?: { padding?: number; duration?: number }) => {
+          instance.fitView(options)
+        },
+      }
+    }
+  }, [reactFlowInstanceRef])
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault()
@@ -113,14 +128,50 @@ export function WorkflowCanvas({
       event.preventDefault()
 
       const nodeType = event.dataTransfer.getData('application/reactflow')
-      if (!nodeType || !reactFlowWrapper.current) {
+      if (!nodeType || !reactFlowWrapper.current || !reactFlowInstance.current) {
         return
       }
 
+      const instance = reactFlowInstance.current
+      const viewport = instance.getViewport()
+
+      // Calcular posição considerando zoom e pan do viewport
       const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect()
+      const relativeX = event.clientX - reactFlowBounds.left
+      const relativeY = event.clientY - reactFlowBounds.top
+      
+      // Converter coordenadas da tela para coordenadas do flow
       const position = {
-        x: event.clientX - reactFlowBounds.left - 100,
-        y: event.clientY - reactFlowBounds.top - 50,
+        x: (relativeX - viewport.x) / viewport.zoom - 100,
+        y: (relativeY - viewport.y) / viewport.zoom - 50,
+      }
+
+      // Se não há nodes, colocar no centro da viewport
+      // Caso contrário, usar a posição calculada ou ajustar se necessário
+      let finalPosition = position
+      
+      if (nodes.length === 0) {
+        // Primeiro node: colocar no centro
+        finalPosition = {
+          x: 0,
+          y: 0,
+        }
+      } else {
+        // Verificar se a posição está dentro de uma área razoável
+        const viewportCenterX = (reactFlowBounds.width / 2 - viewport.x) / viewport.zoom
+        const viewportCenterY = (reactFlowBounds.height / 2 - viewport.y) / viewport.zoom
+        
+        const distanceFromCenter = Math.sqrt(
+          Math.pow(position.x - viewportCenterX, 2) + Math.pow(position.y - viewportCenterY, 2)
+        )
+        
+        // Se a distância for maior que 1000px, usar o centro da viewport
+        if (distanceFromCenter > 1000) {
+          finalPosition = {
+            x: viewportCenterX - 100,
+            y: viewportCenterY,
+          }
+        }
       }
 
       const nodeDefinition = availableNodes.find((n) => n.id === nodeType)
@@ -128,7 +179,7 @@ export function WorkflowCanvas({
         const newNode: Node = {
           id: `${nodeType}-${Date.now()}`,
           type: 'custom',
-          position,
+          position: finalPosition,
           data: {
             label: nodeDefinition.data.label,
             icon: nodeDefinition.data.icon,
@@ -139,21 +190,28 @@ export function WorkflowCanvas({
           },
         }
         onAddNode(newNode)
+        
+        // Ajustar viewport para garantir que o novo node esteja visível
+        setTimeout(() => {
+          if (reactFlowInstance.current) {
+            reactFlowInstance.current.fitView({ padding: 0.2, duration: 300 })
+          }
+        }, 100)
       }
     },
-    [onNodesChange]
+    [nodes, onAddNode]
   )
 
   // Estilos de edges customizados
   const defaultEdgeOptions = {
     animated: true,
-    type: 'smoothstep',
+    type: 'smoothstep' as const,
     style: {
       stroke: '#a855f7',
       strokeWidth: 2,
     },
     markerEnd: {
-      type: 'arrowclosed',
+      type: 'arrowclosed' as MarkerType,
       color: '#a855f7',
     },
   }
@@ -171,6 +229,7 @@ export function WorkflowCanvas({
         onEdgeContextMenu={onEdgeContextMenu}
         onDragOver={onDragOver}
         onDrop={onDrop}
+        onInit={onInit}
         nodeTypes={nodeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
@@ -180,7 +239,6 @@ export function WorkflowCanvas({
         <Background 
           color={isDark ? "#64748b" : "#cbd5e1"} 
           gap={16}
-          variant="dots"
         />
         <Controls className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg" />
         <MiniMap

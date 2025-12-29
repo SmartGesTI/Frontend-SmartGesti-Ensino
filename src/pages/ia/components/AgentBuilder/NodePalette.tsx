@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, FileText, MessageCircle, Brain, CheckCircle, Send, FileSpreadsheet } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { availableNodes } from '../mockData'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'

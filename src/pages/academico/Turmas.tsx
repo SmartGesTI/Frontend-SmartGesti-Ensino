@@ -1,9 +1,7 @@
-import { useParams } from 'react-router-dom'
 import { Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Turmas() {
-  const { slug } = useParams<{ slug: string }>()
 
   return (
     <div className="space-y-6">

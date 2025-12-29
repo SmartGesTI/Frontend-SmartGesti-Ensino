@@ -1,7 +1,6 @@
 import { RelatorioTipo } from './mockData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart3, TrendingUp, Users, Calendar } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface RelatorioPreviewProps {
   tipo: RelatorioTipo
@@ -125,7 +124,7 @@ export function RelatorioPreview({ tipo, values }: RelatorioPreviewProps) {
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    R$ {data.receitas.toLocaleString('pt-BR')}
+                    R$ {(data.receitas ?? 0).toLocaleString('pt-BR')}
                   </p>
                 </div>
                 <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
@@ -136,7 +135,7 @@ export function RelatorioPreview({ tipo, values }: RelatorioPreviewProps) {
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    R$ {data.despesas.toLocaleString('pt-BR')}
+                    R$ {(data.despesas ?? 0).toLocaleString('pt-BR')}
                   </p>
                 </div>
                 <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
@@ -147,7 +146,7 @@ export function RelatorioPreview({ tipo, values }: RelatorioPreviewProps) {
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    R$ {data.saldo.toLocaleString('pt-BR')}
+                    R$ {(data.saldo ?? 0).toLocaleString('pt-BR')}
                   </p>
                 </div>
                 <div className="p-4 rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800">

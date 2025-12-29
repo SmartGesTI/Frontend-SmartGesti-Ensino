@@ -48,7 +48,6 @@ export default function MeusAgentes() {
     const userId = 'user-123' // Mock user ID
     
     return agentTemplates.slice(0, 6).map((template, index) => {
-      const categoryInfo = templateCategories.find((cat) => cat.id === template.category)
       const difficultyMap: Record<string, 'iniciante' | 'intermediario' | 'avancado'> = {
         'analisador-desempenho': 'intermediario',
         'gerador-boletins': 'iniciante',

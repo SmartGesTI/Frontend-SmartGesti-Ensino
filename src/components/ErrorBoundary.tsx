@@ -1,7 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { AlertCircle, RefreshCw, X, Copy, CheckCircle } from 'lucide-react';
+import { AlertCircle, RefreshCw, X, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 

@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils'
 import { useHelpPanel } from '@/contexts/HelpPanelContext'
 import { useHelpHighlight, type HighlightTarget } from '@/contexts/HelpHighlightContext'
 import type { IconColor } from '@/components/HelpButton'
-import { ReactNode } from 'react'
 
 /** Classes de cores para os ícones dos cards */
 const iconColorClasses: Record<IconColor, { bg: string; text: string; shadow: string }> = {

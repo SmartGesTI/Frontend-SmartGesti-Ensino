@@ -68,6 +68,7 @@ const AccordionItem = React.forwardRef<HTMLDivElement, AccordionItemProps>(
 
     return (
       <CollapsiblePrimitive.Root
+        ref={ref}
         open={isOpen}
         onOpenChange={handleOpenChange}
         className={cn("border-b border-gray-200 dark:border-gray-700", className)}

@@ -22,7 +22,6 @@ import { AIButton } from '@/components/ui/ai-button'
 import { useCurrentPage } from '@/hooks/useCurrentPage'
 import { dashboardExplanations } from '@/data/dashboardExplanations'
 import { faqData } from '@/data/faqData'
-import { cn } from '@/lib/utils'
 
 interface IAPage {
   name: string

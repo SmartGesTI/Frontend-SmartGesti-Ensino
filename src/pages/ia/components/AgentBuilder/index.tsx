@@ -1,15 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Node, Edge, Connection, addEdge, applyNodeChanges, applyEdgeChanges, NodeChange, EdgeChange } from 'reactflow'
+import { Node, Edge, Connection, addEdge, applyNodeChanges, applyEdgeChanges, NodeChange, EdgeChange, MarkerType } from 'reactflow'
 import { NodePalette } from './NodePalette'
 import { WorkflowCanvas } from './WorkflowCanvas'
 import { NodeConfigPanel } from './NodeConfigPanel'
 import { AgentTemplates } from './AgentTemplates'
 import { ContextMenu } from './ContextMenu'
 import { agentTemplates } from '../mockData'
-import { CustomNode } from './types'
+import { applyAutoLayout } from './layoutUtils'
 import { Button } from '@/components/ui/button'
-import { Save, Play, FileText, X } from 'lucide-react'
+import { Save, Play, LayoutGrid } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function AgentBuilder() {
@@ -17,7 +17,6 @@ export function AgentBuilder() {
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
-  const [showTemplates, setShowTemplates] = useState(true)
   const [activeTab, setActiveTab] = useState<'templates' | 'config'>('templates')
   const [contextMenu, setContextMenu] = useState<{
     x: number
@@ -29,6 +28,7 @@ export function AgentBuilder() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const hasLoadedFromParams = useRef(false)
+  const reactFlowInstanceRef = useRef<{ fitView: (options?: { padding?: number; duration?: number }) => void } | null>(null)
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setNodes((nds) => applyNodeChanges(changes, nds))
@@ -45,7 +45,7 @@ export function AgentBuilder() {
     []
   )
 
-  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     // Não fazer nada se foi clique com botão direito (já tratado pelo onNodeContextMenu)
     if (isRightClick) {
       setIsRightClick(false)
@@ -142,22 +142,31 @@ export function AgentBuilder() {
       id: e.id,
       source: e.source,
       target: e.target,
-      type: 'smoothstep',
+      type: 'smoothstep' as const,
       animated: true,
       style: {
         stroke: '#a855f7',
         strokeWidth: 2,
       },
       markerEnd: {
-        type: 'arrowclosed',
+        type: 'arrowclosed' as MarkerType,
         color: '#a855f7',
       },
     }))
 
-    setNodes(templateNodes)
+    // Aplicar auto layout aos nodes
+    const layoutedNodes = applyAutoLayout(templateNodes, templateEdges)
+
+    setNodes(layoutedNodes)
     setEdges(templateEdges)
-    setShowTemplates(false)
-  }, [])
+    
+    // Ajustar viewport após aplicar layout
+    setTimeout(() => {
+      if (reactFlowInstanceRef.current) {
+        reactFlowInstanceRef.current.fitView({ padding: 0.2, duration: 300 })
+      }
+    }, 100)
+  }, [reactFlowInstanceRef])
 
   // Carregar template ou agente baseado nos query params
   useEffect(() => {
@@ -196,22 +205,31 @@ export function AgentBuilder() {
           id: e.id,
           source: e.source,
           target: e.target,
-          type: 'smoothstep',
+          type: 'smoothstep' as const,
           animated: true,
           style: {
             stroke: '#a855f7',
             strokeWidth: 2,
           },
           markerEnd: {
-            type: 'arrowclosed',
+            type: 'arrowclosed' as MarkerType,
             color: '#a855f7',
           },
         }))
 
-        setNodes(agentNodes)
+        // Aplicar auto layout aos nodes
+        const layoutedNodes = applyAutoLayout(agentNodes, agentEdges)
+
+        setNodes(layoutedNodes)
         setEdges(agentEdges)
-        setShowTemplates(false)
         hasLoadedFromParams.current = true
+        
+        // Ajustar viewport após aplicar layout
+        setTimeout(() => {
+          if (reactFlowInstanceRef.current) {
+            reactFlowInstanceRef.current.fitView({ padding: 0.2, duration: 300 })
+          }
+        }, 100)
       }
     }
   }, [searchParams, onLoadTemplate])
@@ -230,6 +248,21 @@ export function AgentBuilder() {
     // TODO: Implementar teste
     console.log('Testando agente...', { nodes, edges })
   }
+
+  const handleReorganizeLayout = useCallback(() => {
+    if (nodes.length === 0) return
+    
+    // Aplicar auto layout aos nodes atuais
+    const layoutedNodes = applyAutoLayout(nodes, edges)
+    setNodes(layoutedNodes)
+    
+    // Ajustar viewport após aplicar layout
+    setTimeout(() => {
+      if (reactFlowInstanceRef.current) {
+        reactFlowInstanceRef.current.fitView({ padding: 0.2, duration: 300 })
+      }
+    }, 100)
+  }, [nodes, edges])
 
   // Deletar com tecla Delete
   useEffect(() => {
@@ -293,6 +326,17 @@ export function AgentBuilder() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {nodes.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReorganizeLayout}
+                className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <LayoutGrid className="w-4 h-4 mr-2" />
+                Reorganizar Layout
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -327,6 +371,7 @@ export function AgentBuilder() {
             onEdgeContextMenu={onEdgeContextMenu}
             selectedNode={selectedNode}
             onAddNode={(node) => setNodes((nds) => [...nds, node])}
+            reactFlowInstanceRef={reactFlowInstanceRef}
           />
           {contextMenu && (
             <ContextMenu
