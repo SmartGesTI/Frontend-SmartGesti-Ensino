@@ -122,12 +122,10 @@ export default defineConfig({
               return 'date-fns'
             }
             // Separar outras bibliotecas grandes individualmente se necessário
-            // Mas zustand/react depende do React, então agrupar com React
-            if (id.includes('zustand/react') || id.includes('zustand/esm') && id.includes('/react')) {
-              return 'react-vendor'
-            }
+            // IMPORTANTE: zustand, jotai, recoil podem depender do React indiretamente
+            // Agrupar TODOS com react-vendor para garantir ordem de carregamento
             if (id.includes('zustand') || id.includes('jotai') || id.includes('recoil')) {
-              return 'state-vendor'
+              return 'react-vendor'
             }
             // Separar mais agressivamente: dividir vendor em chunks menores por grupos
             const match = id.match(/node_modules\/(@[^/]+\/)?([^/]+)/)
