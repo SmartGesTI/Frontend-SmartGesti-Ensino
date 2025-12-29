@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react'
 import type { HelpItem } from '@/components/HelpButton'
 
-interface HelpPanelContent {
+export interface HelpPanelContent {
   title: string
   description?: string
-  items: HelpItem[]
+  items?: HelpItem[]  // Para uso com HelpButton
+  customContent?: ReactNode  // Para conteúdo customizado
+  width?: 'default' | 'large' | number  // 'default' = 320px/380px, 'large' = 640px/760px
+  variant?: 'help' | 'custom'
 }
 
 interface HelpPanelContextType {
@@ -31,11 +34,22 @@ export function HelpPanelProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const togglePanel = useCallback((newContent: HelpPanelContent) => {
-    if (isOpen && content?.title === newContent.title) {
-      setIsOpen(false)
+    // Para conteúdo customizado, sempre alterna (não compara por título)
+    if (newContent.variant === 'custom') {
+      if (isOpen && content?.variant === 'custom') {
+        setIsOpen(false)
+      } else {
+        setContent(newContent)
+        setIsOpen(true)
+      }
     } else {
-      setContent(newContent)
-      setIsOpen(true)
+      // Para conteúdo help, compara por título (comportamento original)
+      if (isOpen && content?.title === newContent.title) {
+        setIsOpen(false)
+      } else {
+        setContent(newContent)
+        setIsOpen(true)
+      }
     }
   }, [isOpen, content])
 

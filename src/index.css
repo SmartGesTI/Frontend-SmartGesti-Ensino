@@ -231,6 +231,64 @@
     animation: accordion-up 0.2s ease-out;
   }
 
+  /* Animações para CustomNavbarDropdown */
+  @keyframes slide-down-smooth {
+    from {
+      opacity: 0;
+      transform: translateY(-30px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes slide-up-smooth {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-30px) scale(0.96);
+    }
+  }
+
+  .animate-slide-down-smooth {
+    animation: slide-down-smooth 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .animate-slide-up-smooth {
+    animation: slide-up-smooth 0.35s cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  /* Aplicar animações suaves para dropdowns do Radix UI */
+  [data-radix-popper-content-wrapper][data-state="open"] {
+    animation: slide-down-smooth 0.7s cubic-bezier(0.23, 1, 0.32, 1) !important;
+  }
+
+  [data-radix-popper-content-wrapper][data-state="closed"] {
+    animation: slide-up-smooth 0.5s cubic-bezier(0.4, 0, 1, 1) !important;
+  }
+
+  /* Aplicar diretamente no conteúdo do dropdown */
+  [data-radix-dropdown-menu-content][data-state="open"] {
+    animation: slide-down-smooth 0.7s cubic-bezier(0.23, 1, 0.32, 1) !important;
+  }
+
+  [data-radix-dropdown-menu-content][data-state="closed"] {
+    animation: slide-up-smooth 0.5s cubic-bezier(0.4, 0, 1, 1) !important;
+  }
+
+  /* Classe específica para dropdown suave */
+  .dropdown-smooth-animation[data-state="open"] {
+    animation: slide-down-smooth 0.7s cubic-bezier(0.23, 1, 0.32, 1) !important;
+  }
+
+  .dropdown-smooth-animation[data-state="closed"] {
+    animation: slide-up-smooth 0.5s cubic-bezier(0.4, 0, 1, 1) !important;
+  }
+
   /* Animações para Botões de IA */
   @keyframes shimmer {
     0% {

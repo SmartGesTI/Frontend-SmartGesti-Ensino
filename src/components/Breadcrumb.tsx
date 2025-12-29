@@ -1,8 +1,12 @@
-import { Link, useLocation, useParams } from 'react-router-dom'
-import { ChevronRight, Home, Maximize2, Minimize2 } from 'lucide-react'
+import { Link, useLocation, useParams, useSearchParams, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { ChevronRight, Home, Maximize2, Minimize2, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLayoutMode } from '@/contexts/LayoutContext'
 import { routes } from '@/lib/routes'
+import { agentTemplates } from '@/pages/ia/components/mockData'
+
+const NAVIGATION_HISTORY_KEY = 'navigation_history'
 
 interface PageInfo {
   title: string
@@ -61,16 +65,118 @@ const categoryMap: Record<string, { name: string; path: string }> = {
   'ia/meus-agentes': { name: 'EducaIA', path: 'ia/assistente' },
 }
 
+interface NavigationHistory {
+  path: string
+  breadcrumb: string
+  timestamp: number
+}
+
 export function Breadcrumb() {
   const location = useLocation()
   const { slug } = useParams<{ slug: string }>()
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const { layoutMode, toggleLayoutMode } = useLayoutMode()
+  const [previousPage, setPreviousPage] = useState<NavigationHistory | null>(null)
   
   // Extrair o caminho após /escola/:slug/
   const pathAfterSlug = location.pathname.replace(`/escola/${slug}/`, '')
   
+  // Ler query params para contexto de edição/template
+  const editId = searchParams.get('edit')
+  const templateId = searchParams.get('template')
+  
+  // Rastrear navegação e armazenar no localStorage
+  useEffect(() => {
+    try {
+      const currentPath = location.pathname
+      const currentBreadcrumb = routeMap[pathAfterSlug]?.breadcrumb || pathAfterSlug
+      
+      // Recuperar histórico anterior (que foi salvo na navegação anterior)
+      const historyStr = localStorage.getItem(NAVIGATION_HISTORY_KEY)
+      if (historyStr) {
+        const history: NavigationHistory = JSON.parse(historyStr)
+        
+        // Só usar se não for a mesma página e não for muito antigo (5 minutos)
+        const isRecent = Date.now() - history.timestamp < 5 * 60 * 1000
+        const isDifferent = history.path !== currentPath
+        
+        if (isRecent && isDifferent) {
+          setPreviousPage(history)
+        } else {
+          setPreviousPage(null)
+        }
+      } else {
+        setPreviousPage(null)
+      }
+      
+      // Salvar página atual como histórico (será a "anterior" na próxima navegação)
+      // Usar setTimeout para garantir que só salva após o estado ser atualizado
+      const timer = setTimeout(() => {
+        const newHistory: NavigationHistory = {
+          path: currentPath,
+          breadcrumb: currentBreadcrumb,
+          timestamp: Date.now()
+        }
+        localStorage.setItem(NAVIGATION_HISTORY_KEY, JSON.stringify(newHistory))
+      }, 50)
+      
+      return () => clearTimeout(timer)
+    } catch (error) {
+      console.error('Erro ao gerenciar histórico de navegação:', error)
+      setPreviousPage(null)
+    }
+  }, [location.pathname, pathAfterSlug])
+  
+  // Função para voltar
+  const handleGoBack = () => {
+    if (previousPage) {
+      navigate(previousPage.path)
+    } else if (window.history.length > 1) {
+      navigate(-1)
+    }
+  }
+  
+  // Buscar informações do agente/template se necessário
+  let agentName: string | null = null
+  let templateName: string | null = null
+  
+  if (editId && pathAfterSlug === 'ia/criar') {
+    const agent = agentTemplates.find((t) => t.id === editId)
+    if (agent) {
+      agentName = agent.name
+    }
+  }
+  
+  if (templateId && pathAfterSlug === 'ia/criar') {
+    const template = agentTemplates.find((t) => t.id === templateId)
+    if (template) {
+      templateName = template.name
+    }
+  }
+  
   // Obter informações da página atual
-  const pageInfo = routeMap[pathAfterSlug] || { title: 'Página', subtitle: '', breadcrumb: pathAfterSlug }
+  let pageInfo = routeMap[pathAfterSlug] || { title: 'Página', subtitle: '', breadcrumb: pathAfterSlug }
+  
+  // Ajustar breadcrumb baseado no contexto
+  if (pathAfterSlug === 'ia/criar') {
+    if (editId && agentName) {
+      pageInfo = {
+        ...pageInfo,
+        title: 'Editar Agente IA',
+        subtitle: `Editando: ${agentName}`,
+        breadcrumb: 'Editar Agente'
+      }
+    } else if (templateId && templateName) {
+      pageInfo = {
+        ...pageInfo,
+        title: 'Criar Agente IA',
+        subtitle: `Baseado em: ${templateName}`,
+        breadcrumb: 'Criar Agente'
+      }
+    }
+  }
+  
   const category = categoryMap[pathAfterSlug]
   
   // Construir breadcrumbs
@@ -101,8 +207,19 @@ export function Breadcrumb() {
     })
   }
   
-  // Adicionar página atual (sem link)
+  // Adicionar página atual (sem link, a menos que seja necessário)
   breadcrumbs.push({ label: pageInfo.breadcrumb })
+  
+  // Adicionar nome do agente/template se estiver em modo de edição ou usando template
+  if (pathAfterSlug === 'ia/criar') {
+    if (editId && agentName) {
+      // Adicionar nome do agente (sem link, pois é a página atual)
+      breadcrumbs.push({ label: agentName.length > 30 ? `${agentName.substring(0, 30)}...` : agentName })
+    } else if (templateId && templateName) {
+      // Adicionar nome do template (sem link, pois é a página atual)
+      breadcrumbs.push({ label: templateName.length > 30 ? `${templateName.substring(0, 30)}...` : templateName })
+    }
+  }
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30">
@@ -137,8 +254,23 @@ export function Breadcrumb() {
             ))}
           </nav>
 
-          {/* Subtítulo e Toggle de Layout - Lado Direito */}
+          {/* Botão Voltar, Subtítulo e Toggle de Layout - Lado Direito */}
           <div className="flex items-center gap-2 text-right">
+            {/* Botão Voltar */}
+            {previousPage && (
+              <>
+                <button
+                  onClick={handleGoBack}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 cursor-pointer"
+                  title={`Voltar para ${previousPage.breadcrumb}`}
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Voltar para:</span>
+                  <span className="font-medium">{previousPage.breadcrumb}</span>
+                </button>
+                <div className="h-4 w-px bg-gray-300 dark:bg-gray-700" />
+              </>
+            )}
             {pageInfo.subtitle && (
               <span className="text-xs text-gray-500 dark:text-gray-400">
                 {pageInfo.subtitle}

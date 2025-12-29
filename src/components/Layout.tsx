@@ -14,7 +14,27 @@ interface LayoutProps {
 
 function LayoutContent({ children }: LayoutProps) {
   const { layoutMode } = useLayoutMode()
-  const { isOpen: isHelpPanelOpen } = useHelpPanel()
+  const { isOpen: isHelpPanelOpen, content } = useHelpPanel()
+  
+  // Calcular margem baseado na largura do panel
+  const getMarginClass = () => {
+    if (!isHelpPanelOpen) return ''
+    
+    if (content?.width === 'large') {
+      return 'mr-[640px] sm:mr-[760px]'
+    }
+    // Para valores numéricos, usar style inline (Tailwind não gera classes dinâmicas)
+    if (typeof content?.width === 'number') {
+      return ''
+    }
+    // Default
+    return 'mr-[320px] sm:mr-[380px]'
+  }
+  
+  const getMarginStyle = () => {
+    if (!isHelpPanelOpen || typeof content?.width !== 'number') return undefined
+    return { marginRight: `${content.width}px` }
+  }
   
   return (
     <div className="min-h-screen bg-background">
@@ -22,8 +42,9 @@ function LayoutContent({ children }: LayoutProps) {
       <div 
         className={cn(
           'flex h-screen transition-all duration-300 ease-in-out',
-          isHelpPanelOpen && 'mr-[320px] sm:mr-[380px]'
+          getMarginClass()
         )}
+        style={typeof content?.width === 'number' ? getMarginStyle() : undefined}
       >
         {/* Sidebar - fixa no lado esquerdo */}
         <Sidebar className="hidden lg:flex lg:flex-col h-screen sticky top-0 overflow-visible" />

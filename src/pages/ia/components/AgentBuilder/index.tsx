@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Node, Edge, Connection, addEdge, applyNodeChanges, applyEdgeChanges, NodeChange, EdgeChange } from 'reactflow'
 import { NodePalette } from './NodePalette'
 import { WorkflowCanvas } from './WorkflowCanvas'
@@ -12,6 +13,7 @@ import { Save, Play, FileText, X } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function AgentBuilder() {
+  const [searchParams] = useSearchParams()
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
@@ -24,6 +26,9 @@ export function AgentBuilder() {
     edgeId?: string
   } | null>(null)
   const [isRightClick, setIsRightClick] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
+  const hasLoadedFromParams = useRef(false)
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setNodes((nds) => applyNodeChanges(changes, nds))
@@ -154,6 +159,68 @@ export function AgentBuilder() {
     setShowTemplates(false)
   }, [])
 
+  // Carregar template ou agente baseado nos query params
+  useEffect(() => {
+    const templateId = searchParams.get('template')
+    const editId = searchParams.get('edit')
+
+    // Só carregar uma vez quando os params mudarem
+    if (hasLoadedFromParams.current) return
+
+    if (templateId) {
+      // Carregar template automaticamente
+      const template = agentTemplates.find((t) => t.id === templateId)
+      if (template) {
+        onLoadTemplate(template)
+        setSelectedTemplateId(templateId)
+        setActiveTab('templates') // Garantir que a aba templates esteja ativa
+        hasLoadedFromParams.current = true
+      }
+    } else if (editId) {
+      // Carregar agente para edição
+      setIsEditMode(true)
+      // Por enquanto, buscar do agentTemplates (futuramente da API)
+      const agent = agentTemplates.find((t) => t.id === editId)
+      if (agent) {
+        const agentNodes: Node[] = agent.nodes.map((n) => ({
+          id: n.id,
+          type: 'custom',
+          position: n.position,
+          data: {
+            ...n.data,
+            category: n.category,
+          },
+        }))
+
+        const agentEdges: Edge[] = agent.edges.map((e) => ({
+          id: e.id,
+          source: e.source,
+          target: e.target,
+          type: 'smoothstep',
+          animated: true,
+          style: {
+            stroke: '#a855f7',
+            strokeWidth: 2,
+          },
+          markerEnd: {
+            type: 'arrowclosed',
+            color: '#a855f7',
+          },
+        }))
+
+        setNodes(agentNodes)
+        setEdges(agentEdges)
+        setShowTemplates(false)
+        hasLoadedFromParams.current = true
+      }
+    }
+  }, [searchParams, onLoadTemplate])
+
+  // Resetar flag quando os params mudarem
+  useEffect(() => {
+    hasLoadedFromParams.current = false
+  }, [searchParams.get('template'), searchParams.get('edit')])
+
   const handleSave = () => {
     // TODO: Implementar salvamento
     console.log('Salvando agente...', { nodes, edges })
@@ -219,7 +286,7 @@ export function AgentBuilder() {
         <div className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Criar Agente IA
+              {isEditMode ? 'Editar Agente IA' : 'Criar Agente IA'}
             </h2>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {nodes.length} nós • {edges.length} conexões
@@ -327,7 +394,10 @@ export function AgentBuilder() {
             </TabsList>
           </div>
           <TabsContent value="templates" className="flex-1 overflow-y-auto m-0">
-            <AgentTemplates onLoadTemplate={onLoadTemplate} />
+            <AgentTemplates 
+              onLoadTemplate={onLoadTemplate} 
+              selectedTemplateId={selectedTemplateId || undefined}
+            />
           </TabsContent>
           <TabsContent value="config" className="flex-1 overflow-y-auto m-0">
             <NodeConfigPanel

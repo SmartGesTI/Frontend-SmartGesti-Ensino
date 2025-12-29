@@ -3,9 +3,12 @@ import { UserDropdown } from '@/components/UserDropdown'
 import { NotificationBell } from '@/components/NotificationBell'
 import { HelpButton } from '@/components/HelpButton'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { Input } from '@/components/ui/input'
-import { Search, Building2, Sun, Moon, Bell, PanelLeftClose, PanelLeft } from 'lucide-react'
-import { useState } from 'react'
+import { CustomNavbarDropdown } from '@/components/CustomNavbarDropdown'
+import { EducAIAContent } from '@/components/EducAIAContent'
+import { SearchContent } from '@/components/SearchContent'
+import { useHelpPanel } from '@/contexts/HelpPanelContext'
+import { Search, Building2, Sun, Moon, Bell, PanelLeftClose, PanelLeft, Sparkles } from 'lucide-react'
+import { useState, useRef, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { useHelpHighlight, highlightClasses } from '@/contexts/HelpHighlightContext'
 import { useSidebar } from '@/contexts/SidebarContext'
@@ -16,9 +19,56 @@ interface NavbarProps {
 }
 
 export function Navbar({ className }: NavbarProps) {
-  const [searchFocused, setSearchFocused] = useState(false)
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false)
+  const searchInputRef = useRef<HTMLButtonElement>(null)
+  const { openPanel, closePanel } = useHelpPanel()
   const { highlightedElement } = useHelpHighlight()
   const { isExpanded, toggleSidebar } = useSidebar()
+  const isTogglingRef = useRef(false)
+
+  const handleEducaIAClick = () => {
+    openPanel({
+      title: 'EducaIA',
+      description: 'Central de Inteligência Artificial',
+      customContent: <EducAIAContent closePanel={closePanel} />,
+      variant: 'custom',
+      width: 'large'
+    })
+  }
+
+  const handleSearchToggle = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    // Evitar múltiplos cliques rápidos
+    if (isTogglingRef.current) {
+      return
+    }
+    isTogglingRef.current = true
+    
+    if (searchDropdownOpen) {
+      setSearchDropdownOpen(false)
+    } else {
+      setSearchDropdownOpen(true)
+    }
+    
+    // Resetar flag após um delay maior para evitar cliques durante animação
+    setTimeout(() => {
+      isTogglingRef.current = false
+    }, 400) // Tempo maior que a animação (350ms)
+  }, [searchDropdownOpen])
+
+  const handleSearchClose = useCallback(() => {
+    if (isTogglingRef.current) {
+      return
+    }
+    isTogglingRef.current = true
+    setSearchDropdownOpen(false)
+    // Resetar flag após um delay maior para evitar cliques durante animação
+    setTimeout(() => {
+      isTogglingRef.current = false
+    }, 400) // Tempo maior que a animação (350ms)
+  }, [])
+
 
   return (
     <header className={cn(
@@ -26,9 +76,9 @@ export function Navbar({ className }: NavbarProps) {
       'sticky top-0 z-40 transition-all duration-200',
       className
     )}>
-      <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4">
-        {/* Lado Esquerdo - Botão Toggle + Busca */}
-        <div className="flex items-center gap-3 flex-1">
+      <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4 relative">
+        {/* Lado Esquerdo - Botão Toggle */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Botão Toggle Sidebar */}
           <div className={cn(
             'hidden lg:block',
@@ -54,42 +104,67 @@ export function Navbar({ className }: NavbarProps) {
               )}
             </button>
           </div>
-
-          {/* Barra de Busca */}
-          <div className={cn(
-            'flex-1 max-w-xl hidden md:block',
-            highlightClasses.base,
-            highlightedElement === 'search-bar' && highlightClasses.active
-          )}>
-            <div className={cn(
-              'relative transition-all duration-200',
-              searchFocused && 'scale-[1.02]'
-            )}>
-              <Search className={cn(
-                'absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors duration-200',
-                searchFocused 
-                  ? 'text-blue-500' 
-                  : 'text-gray-400 dark:text-gray-500'
-              )} />
-              <Input
-                type="search"
-                placeholder="Buscar alunos, turmas, documentos..."
-                className={cn(
-                  'pl-10 pr-4 h-10 w-full rounded-lg',
-                  'bg-gray-100 dark:bg-gray-800 border-transparent',
-                  'focus:bg-white dark:focus:bg-gray-900 focus:border-blue-500',
-                  'placeholder:text-gray-400 dark:placeholder:text-gray-500',
-                  'transition-all duration-200'
-                )}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-              />
-            </div>
-          </div>
         </div>
 
-        {/* Lado Direito - Seletor + Ações */}
+        {/* Botão de Busca Centralizado */}
+        <div className={cn(
+          'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] pointer-events-auto',
+          highlightClasses.base,
+          highlightedElement === 'search-bar' && highlightClasses.active
+        )}>
+          <button
+            ref={searchInputRef}
+            onClick={handleSearchToggle}
+            className={cn(
+              'flex items-center gap-2 rounded-lg',
+              'text-gray-500 dark:text-gray-400',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+              'hover:text-gray-700 dark:hover:text-gray-200',
+              'transition-all duration-200',
+              'focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+              searchDropdownOpen 
+                ? 'bg-gray-100 dark:bg-gray-800 text-blue-500 dark:text-blue-400 px-4 h-10' 
+                : 'w-10 h-10 justify-center'
+            )}
+            aria-label="Buscar"
+          >
+            <Search className="w-5 h-5 flex-shrink-0" />
+            {searchDropdownOpen && (
+              <span className="text-sm font-medium whitespace-nowrap">Buscando</span>
+            )}
+          </button>
+            <CustomNavbarDropdown
+              isOpen={searchDropdownOpen}
+              onClose={handleSearchClose}
+              triggerRef={searchInputRef as React.RefObject<HTMLElement>}
+              position="center"
+              width="w-[40vw]"
+              maxWidth="max-w-[90vw]"
+              maxHeight="max-h-[70vh]"
+            >
+              <SearchContent onClose={handleSearchClose} />
+            </CustomNavbarDropdown>
+        </div>
+
+        {/* Lado Direito - EducaIA + Seletor + Ações */}
         <div className="flex items-center gap-1 sm:gap-2">
+          {/* Botão EducaIA */}
+          <button
+            onClick={handleEducaIAClick}
+            className={cn(
+              'flex items-center justify-center w-10 h-10 rounded-xl',
+              'bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500',
+              'text-white shadow-lg shadow-purple-500/30',
+              'hover:shadow-purple-500/50 hover:scale-105',
+              'transition-all duration-200',
+              'focus:outline-none focus:ring-2 focus:ring-purple-500/20',
+              'cursor-pointer'
+            )}
+            aria-label="Abrir EducaIA"
+          >
+            <Sparkles className="w-5 h-5 animate-bounce" />
+          </button>
+
           {/* Help Button */}
           <HelpButton
             title="Central de Ajuda"

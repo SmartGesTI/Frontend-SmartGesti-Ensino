@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { templateCategories } from '../mockData'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -6,9 +7,38 @@ import { cn } from '@/lib/utils'
 
 interface AgentTemplatesProps {
   onLoadTemplate: (template: any) => void
+  selectedTemplateId?: string
 }
 
-export function AgentTemplates({ onLoadTemplate }: AgentTemplatesProps) {
+export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemplatesProps) {
+  const templateRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['academico'])
+
+  // Encontrar a categoria do template selecionado e expandir
+  useEffect(() => {
+    if (selectedTemplateId) {
+      const category = templateCategories.find((cat) =>
+        cat.templates.some((t) => t.id === selectedTemplateId)
+      )
+      if (category) {
+        setExpandedCategories((prev) => {
+          if (!prev.includes(category.id)) {
+            return [...prev, category.id]
+          }
+          return prev
+        })
+      }
+
+      // Scroll para o template selecionado após um pequeno delay
+      setTimeout(() => {
+        const templateElement = templateRefs.current[selectedTemplateId]
+        if (templateElement) {
+          templateElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 300)
+    }
+  }, [selectedTemplateId])
+
   return (
     <div className="p-4 space-y-4">
       <div>
@@ -20,7 +50,12 @@ export function AgentTemplates({ onLoadTemplate }: AgentTemplatesProps) {
         </p>
       </div>
 
-      <Accordion type="multiple" defaultValue={['academico']} className="w-full">
+      <Accordion 
+        type="multiple" 
+        value={expandedCategories}
+        onValueChange={setExpandedCategories}
+        className="w-full"
+      >
         {templateCategories.map((category) => {
           const CategoryIcon = category.icon
           const colorClasses: Record<string, { bg: string; text: string; button: string }> = {
@@ -68,10 +103,19 @@ export function AgentTemplates({ onLoadTemplate }: AgentTemplatesProps) {
                 <div className="space-y-2 pt-2">
                   {category.templates.map((template) => {
                     const Icon = template.icon
+                    const isSelected = selectedTemplateId === template.id
                     return (
                       <Card
                         key={template.id}
-                        className="hover:shadow-md transition-all cursor-pointer border-2 border-gray-200 dark:border-gray-700 hover:scale-[1.02]"
+                        ref={(el) => {
+                          templateRefs.current[template.id] = el
+                        }}
+                        className={cn(
+                          "hover:shadow-md transition-all cursor-pointer border-2 hover:scale-[1.02]",
+                          isSelected
+                            ? "border-purple-500 dark:border-purple-400 bg-purple-50/50 dark:bg-purple-950/30 shadow-md"
+                            : "border-gray-200 dark:border-gray-700"
+                        )}
                       >
                         <CardHeader className="pb-3">
                           <div className="flex items-start justify-between">
