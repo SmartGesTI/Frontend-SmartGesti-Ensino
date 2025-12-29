@@ -126,7 +126,7 @@ export default function DashboardAcademico() {
 
   // Prepara dados do donut chart de frequência
   const frequencia = academico?.frequenciaMedia || 0
-  const ausencia = 100 - frequencia
+  const ausencia = Math.round((100 - frequencia) * 10) / 10
   const frequenciaSegments: DonutSegment[] = [
     { label: 'Presença', value: frequencia, color: frequencia >= 90 ? '#10b981' : frequencia >= 75 ? '#f59e0b' : '#ef4444' },
     { label: 'Ausência', value: ausencia, color: '#d1d5db' },
