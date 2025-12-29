@@ -499,7 +499,7 @@ export default function Login() {
                     <Button
                       onClick={() => setShowEmailFields(true)}
                       variant="outline"
-                      className="w-full h-12 text-base font-semibold border-2 border-primary/30 hover:border-primary/50 hover:bg-primary/5 text-primary hover:text-primary"
+                      className="w-full h-12 text-base font-semibold border-2 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:border-blue-300 dark:hover:border-blue-700"
                       size="lg"
                       disabled={isSubmitting}
                     >

@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { getApiUrl } from './api';
 
 export interface Role {
   id: string;
@@ -37,7 +36,7 @@ export class RolesService {
    * Lista todos os roles do tenant
    */
   static async getRoles(token: string, tenantId: string): Promise<Role[]> {
-    const response = await axios.get<Role[]>(`${API_URL}/api/roles`, {
+    const response = await axios.get<Role[]>(`${getApiUrl()}/api/roles`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'x-tenant-id': tenantId,
@@ -55,7 +54,7 @@ export class RolesService {
     tenantId: string
   ): Promise<Role> {
     const response = await axios.get<Role>(
-      `${API_URL}/api/roles/${roleId}`,
+      `${getApiUrl()}/api/roles/${roleId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -75,7 +74,7 @@ export class RolesService {
     data: CreateRoleData
   ): Promise<Role> {
     const response = await axios.post<Role>(
-      `${API_URL}/api/roles`,
+      `${getApiUrl()}/api/roles`,
       data,
       {
         headers: {
@@ -97,7 +96,7 @@ export class RolesService {
     data: Partial<CreateRoleData>
   ): Promise<Role> {
     const response = await axios.patch<Role>(
-      `${API_URL}/api/roles/${roleId}`,
+      `${getApiUrl()}/api/roles/${roleId}`,
       data,
       {
         headers: {
@@ -117,7 +116,7 @@ export class RolesService {
     roleId: string,
     tenantId: string
   ): Promise<void> {
-    await axios.delete(`${API_URL}/api/roles/${roleId}`, {
+    await axios.delete(`${getApiUrl()}/api/roles/${roleId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'x-tenant-id': tenantId,
@@ -134,7 +133,7 @@ export class RolesService {
     data: AssignRoleData
   ): Promise<any> {
     const response = await axios.post(
-      `${API_URL}/api/roles/assign`,
+      `${getApiUrl()}/api/roles/assign`,
       data,
       {
         headers: {
@@ -154,7 +153,7 @@ export class RolesService {
     userRoleId: string,
     tenantId: string
   ): Promise<void> {
-    await axios.delete(`${API_URL}/api/roles/${userRoleId}`, {
+    await axios.delete(`${getApiUrl()}/api/roles/${userRoleId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         'x-tenant-id': tenantId,

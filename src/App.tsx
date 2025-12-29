@@ -10,6 +10,7 @@ import OtpVerification from './pages/OtpVerification'
 import CompleteProfile from './pages/CompleteProfile'
 import SchoolDetails from './pages/SchoolDetails'
 import CreateSchool from './pages/CreateSchool'
+import OwnerSettings from './pages/OwnerSettings'
 import AuthCallback from './pages/AuthCallback'
 import Loading from './components/Loading'
 import { SchoolProvider } from './contexts/SchoolContext'
@@ -146,6 +147,18 @@ function App() {
             <SchoolProvider>
               <Layout>
                 <CreateSchool />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/configuracoes"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <OwnerSettings />
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>

@@ -2,8 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import { ErrorLogger } from '@/lib/errorLogger';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { getApiUrl } from '@/services/api';
 
 interface PermissionsData {
   permissions: Record<string, string[]>;
@@ -113,7 +112,7 @@ export function usePermissionsApi(
 
       // Buscar permissões e roles em paralelo
       const [permissionsResponse, rolesResponse] = await Promise.all([
-        axios.get<PermissionsData>(`${API_URL}/api/permissions/user`, {
+        axios.get<PermissionsData>(`${getApiUrl()}/api/permissions/user`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'x-tenant-id': tenantId,
@@ -121,7 +120,7 @@ export function usePermissionsApi(
           },
           params: schoolId ? { schoolId } : {},
         }),
-        axios.get(`${API_URL}/api/roles/user/${user.id}`, {
+        axios.get(`${getApiUrl()}/api/roles/user/${user.id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'x-tenant-id': tenantId,

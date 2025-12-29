@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import { ErrorLogger } from '@/lib/errorLogger';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { getApiUrl } from '@/services/api';
 
 interface Invitation {
   id: string;
@@ -44,7 +43,7 @@ export function useInvitations(tenantId: string) {
       }
       const token = session.access_token;
       const response = await axios.get<Invitation[]>(
-        `${API_URL}/api/invitations`,
+        `${getApiUrl()}/api/invitations`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -66,7 +65,7 @@ export function useInvitations(tenantId: string) {
       }
       const token = session.access_token;
       const response = await axios.post(
-        `${API_URL}/api/invitations`,
+        `${getApiUrl()}/api/invitations`,
         data,
         {
           headers: {
@@ -94,7 +93,7 @@ export function useInvitations(tenantId: string) {
       }
       const token = session.access_token;
       await axios.post(
-        `${API_URL}/api/invitations/${invitationId}/cancel`,
+        `${getApiUrl()}/api/invitations/${invitationId}/cancel`,
         {},
         {
           headers: {
@@ -121,7 +120,7 @@ export function useInvitations(tenantId: string) {
       }
       const authToken = session.access_token;
       const response = await axios.post(
-        `${API_URL}/api/invitations/accept`,
+        `${getApiUrl()}/api/invitations/accept`,
         { token },
         {
           headers: {

@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import { ErrorLogger } from '@/lib/errorLogger';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { getApiUrl } from '@/services/api';
 
 interface Role {
   id: string;
@@ -42,7 +41,7 @@ export function useRoles(tenantId: string) {
         throw new Error('No access token available');
       }
       const token = session.access_token;
-      const response = await axios.get<Role[]>(`${API_URL}/api/roles`, {
+      const response = await axios.get<Role[]>(`${getApiUrl()}/api/roles`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'x-tenant-id': tenantId,
@@ -62,7 +61,7 @@ export function useRoles(tenantId: string) {
       }
       const token = session.access_token;
       const response = await axios.post(
-        `${API_URL}/api/roles/assign`,
+        `${getApiUrl()}/api/roles/assign`,
         {
           user_id: data.userId,
           role_id: data.roleId,
@@ -94,7 +93,7 @@ export function useRoles(tenantId: string) {
         throw new Error('No access token available');
       }
       const token = session.access_token;
-      await axios.delete(`${API_URL}/api/roles/${userRoleId}`, {
+      await axios.delete(`${getApiUrl()}/api/roles/${userRoleId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'x-tenant-id': tenantId,

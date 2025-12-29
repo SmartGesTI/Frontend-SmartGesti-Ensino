@@ -15,6 +15,7 @@ import { getTenantFromSubdomain } from '@/lib/tenant'
 import { routes } from '@/lib/routes'
 import { supabase } from '@/lib/supabase'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { getApiUrl } from '@/services/api'
 
 interface CompleteProfileFormData {
   given_name: string
@@ -181,7 +182,7 @@ export default function CompleteProfile() {
         }
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/complete-profile`, {
+      const response = await fetch(`${getApiUrl()}/api/users/complete-profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -229,7 +230,7 @@ export default function CompleteProfile() {
         // Verificar se é owner de algum tenant
         try {
           const statusResponse = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/users/status`,
+            `${getApiUrl()}/api/users/status`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,

@@ -18,6 +18,7 @@ import { PermissionGate } from '../components/PermissionGate';
 import { UserPlus, Mail, Shield } from 'lucide-react';
 import { ErrorLogger } from '../lib/errorLogger';
 import { useUrlTabs } from '@/hooks/useUrlTabs';
+import { getApiUrl } from '@/services/api';
 
 
 const PERMISSION_TABS = ['invite', 'invitations', 'roles'] as const;
@@ -47,7 +48,7 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
       }
       const token = session.access_token;
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/roles`,
+        `${getApiUrl()}/api/roles`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -68,7 +69,7 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
       }
       const token = session.access_token;
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/invitations`,
+        `${getApiUrl()}/api/invitations`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -89,7 +90,7 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
       }
       const token = session.access_token;
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/invitations`,
+        `${getApiUrl()}/api/invitations`,
         data,
         {
           headers: {
@@ -119,7 +120,7 @@ export const ManagePermissions: React.FC<ManagePermissionsProps> = ({
       }
       const token = session.access_token;
       await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/invitations/${invitationId}/cancel`,
+        `${getApiUrl()}/api/invitations/${invitationId}/cancel`,
         {},
         {
           headers: {

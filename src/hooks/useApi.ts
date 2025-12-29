@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import axios, { AxiosRequestConfig } from 'axios';
 import { ErrorLogger } from '@/lib/errorLogger';
+import { getApiUrl } from '@/services/api';
 
 interface UseApiOptions {
   retry?: number;
@@ -17,8 +18,6 @@ interface UseApiReturn<T> {
   error: any;
   refetch: () => Promise<void>;
 }
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 /**
  * Hook genérico para chamadas de API com autenticação automática
@@ -76,7 +75,7 @@ export function useApi<T = any>(
         },
       };
 
-      const response = await axios.get(`${API_URL}${endpoint}`, config);
+      const response = await axios.get(`${getApiUrl()}${endpoint}`, config);
 
       if (mountedRef.current) {
         setData(response.data);

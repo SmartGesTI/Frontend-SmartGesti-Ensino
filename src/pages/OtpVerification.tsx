@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger'
 import { toast } from 'sonner'
 import { getTenantFromSubdomain } from '@/lib/tenant'
 import { routes } from '@/lib/routes'
+import { getApiUrl } from '@/services/api'
 import { SystemInfoSidebar } from '@/components/SystemInfoSidebar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { apiRequest } from '@/services/api'
@@ -276,7 +277,7 @@ export default function OtpVerification() {
           const tenantSubdomain = getTenantFromSubdomain()
           
           // Chamar endpoint de sincronização
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sync`, {
+          const response = await fetch(`${getApiUrl()}/api/auth/sync`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

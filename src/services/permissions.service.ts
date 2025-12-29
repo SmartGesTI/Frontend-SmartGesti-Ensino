@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { getApiUrl } from './api';
 
 export interface PermissionsResponse {
   permissions: Record<string, string[]>;
@@ -25,7 +24,7 @@ export class PermissionsService {
     schoolId?: string
   ): Promise<PermissionsResponse> {
     const response = await axios.get<PermissionsResponse>(
-      `${API_URL}/api/permissions/user`,
+      `${getApiUrl()}/api/permissions/user`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -48,7 +47,7 @@ export class PermissionsService {
     schoolId?: string
   ): Promise<boolean> {
     const response = await axios.get<CheckPermissionResponse>(
-      `${API_URL}/api/permissions/check`,
+      `${getApiUrl()}/api/permissions/check`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -73,7 +72,7 @@ export class PermissionsService {
     tenantId: string
   ): Promise<any[]> {
     const response = await axios.get(
-      `${API_URL}/api/roles/user/${userId}`,
+      `${getApiUrl()}/api/roles/user/${userId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

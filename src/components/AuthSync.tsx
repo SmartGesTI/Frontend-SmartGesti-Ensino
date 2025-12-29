@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { logger } from '@/lib/logger'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import { getApiUrl } from '@/services/api'
 
 // Chave única para controlar sync por sessão (persiste entre re-mounts do StrictMode)
 const SYNC_SESSION_KEY = 'auth_sync_session'
@@ -51,7 +52,7 @@ export function AuthSync() {
         const token = session.access_token
         const tenantSubdomain = getTenantFromSubdomain()
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sync`, {
+        const response = await fetch(`${getApiUrl()}/api/auth/sync`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

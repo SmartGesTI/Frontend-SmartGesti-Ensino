@@ -11,6 +11,7 @@ import { getTenantFromSubdomain } from '@/lib/tenant'
 import { routes } from '@/lib/routes'
 import { useEffect } from 'react'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { getApiUrl } from '@/services/api'
 
 // Componente Skeleton para os cards de escola
 function SchoolCardSkeleton() {
@@ -106,7 +107,7 @@ export default function SelectSchool() {
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/users/status`,
+        `${getApiUrl()}/api/users/status`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -152,7 +153,7 @@ export default function SelectSchool() {
       if (!token) return
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/users/status`,
+        `${getApiUrl()}/api/users/status`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,

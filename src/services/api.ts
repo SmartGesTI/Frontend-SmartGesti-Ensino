@@ -1,7 +1,32 @@
 import { getTenantFromSubdomain } from '@/lib/tenant'
 import { supabase } from '@/lib/supabase'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+/**
+ * Obtém a URL base da API
+ * Em produção: VITE_API_URL é obrigatório (lança erro se não definido)
+ * Em desenvolvimento: permite fallback para localhost apenas se VITE_API_URL não estiver definido
+ */
+export function getApiUrl(): string {
+  const apiUrl = import.meta.env.VITE_API_URL
+  const isProduction = import.meta.env.PROD
+  
+  if (!apiUrl) {
+    if (isProduction) {
+      throw new Error(
+        'VITE_API_URL is required in production. ' +
+        'Please configure it in your Vercel environment variables.'
+      )
+    }
+    // Apenas em desenvolvimento, permite fallback
+    console.warn(
+      'VITE_API_URL not defined, using localhost fallback. ' +
+      'This will not work in production!'
+    )
+    return 'http://localhost:3001'
+  }
+  
+  return apiUrl
+}
 
 export async function getAccessToken(): Promise<string | null> {
   try {
@@ -39,7 +64,7 @@ export async function apiRequest<T>(
     headers['X-School-Id'] = schoolId
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  const response = await fetch(`${getApiUrl()}${endpoint}`, {
     ...options,
     headers,
   })

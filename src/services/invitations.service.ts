@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { getApiUrl } from './api';
 
 export interface Invitation {
   id: string;
@@ -34,7 +33,7 @@ export class InvitationsService {
    */
   static async list(token: string, tenantId: string): Promise<Invitation[]> {
     const response = await axios.get<Invitation[]>(
-      `${API_URL}/api/invitations`,
+      `${getApiUrl()}/api/invitations`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -54,7 +53,7 @@ export class InvitationsService {
     tenantId: string
   ): Promise<Invitation> {
     const response = await axios.get<Invitation>(
-      `${API_URL}/api/invitations/${invitationId}`,
+      `${getApiUrl()}/api/invitations/${invitationId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -74,7 +73,7 @@ export class InvitationsService {
     data: CreateInvitationData
   ): Promise<Invitation> {
     const response = await axios.post<Invitation>(
-      `${API_URL}/api/invitations`,
+      `${getApiUrl()}/api/invitations`,
       data,
       {
         headers: {
@@ -95,7 +94,7 @@ export class InvitationsService {
     tenantId: string
   ): Promise<void> {
     await axios.post(
-      `${API_URL}/api/invitations/${invitationId}/cancel`,
+      `${getApiUrl()}/api/invitations/${invitationId}/cancel`,
       {},
       {
         headers: {
@@ -114,7 +113,7 @@ export class InvitationsService {
     data: AcceptInvitationData
   ): Promise<any> {
     const response = await axios.post(
-      `${API_URL}/api/invitations/accept`,
+      `${getApiUrl()}/api/invitations/accept`,
       data,
       {
         headers: {
@@ -134,7 +133,7 @@ export class InvitationsService {
     tenantId: string
   ): Promise<void> {
     await axios.post(
-      `${API_URL}/api/invitations/${invitationId}/resend`,
+      `${getApiUrl()}/api/invitations/${invitationId}/resend`,
       {},
       {
         headers: {

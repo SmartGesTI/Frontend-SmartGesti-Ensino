@@ -13,6 +13,8 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true, // Permite acesso via IP e subdomínios locais
+    // Proxy apenas para desenvolvimento local
+    // Em produção, as requisições vão diretamente para VITE_API_URL configurado nas variáveis de ambiente
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
