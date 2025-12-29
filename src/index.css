@@ -203,3 +203,102 @@
     scrollbar-color: hsl(217 33% 30%) hsl(222 47% 11%);
   }
 }
+
+@layer utilities {
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-collapsible-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  .animate-accordion-down {
+    animation: accordion-down 0.2s ease-out;
+  }
+
+  .animate-accordion-up {
+    animation: accordion-up 0.2s ease-out;
+  }
+
+  /* Animações para Botões de IA */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(300%);
+    }
+  }
+
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes gradient-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes icon-pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.15);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2.5s linear infinite;
+  }
+
+  .animate-icon-pulse {
+    animation: icon-pulse 2s ease-in-out infinite;
+  }
+
+  /* Efeito de gradiente animado para botões de IA - RGB fluindo suavemente */
+  .ai-button-gradient-animated {
+    background-size: 200% 100% !important;
+    background-image: linear-gradient(
+      90deg,
+      #8b5cf6 0%,
+      #a855f7 20%,
+      #c084fc 40%,
+      #d946ef 60%,
+      #ec4899 80%,
+      #d946ef 100%,
+      #c084fc 120%,
+      #a855f7 140%,
+      #8b5cf6 160%,
+      #a855f7 180%,
+      #8b5cf6 200%
+    ) !important;
+    animation: gradient-flow 5s ease-in-out infinite;
+  }
+}

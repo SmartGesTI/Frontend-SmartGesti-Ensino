@@ -12,6 +12,28 @@ import SchoolDetails from './pages/SchoolDetails'
 import CreateSchool from './pages/CreateSchool'
 import OwnerSettings from './pages/OwnerSettings'
 import AuthCallback from './pages/AuthCallback'
+import Documentos from './pages/Documentos'
+// IA
+import AssistenteIA from './pages/ia/AssistenteIA'
+import RelatorioInteligente from './pages/ia/RelatorioInteligente'
+import CriarAgenteIA from './pages/ia/CriarAgenteIA'
+import VerAgentes from './pages/ia/VerAgentes'
+import MeusAgentes from './pages/ia/MeusAgentes'
+// Administração
+import Matricula from './pages/administracao/Matricula'
+import Rematricula from './pages/administracao/Rematricula'
+import Equipe from './pages/administracao/Equipe'
+import Permissoes from './pages/administracao/Permissoes'
+// Acadêmico
+import Turmas from './pages/academico/Turmas'
+import Alunos from './pages/academico/Alunos'
+import Matriculas from './pages/academico/Matriculas'
+// Calendário
+import Calendario from './pages/calendario/Calendario'
+import NovoEvento from './pages/calendario/NovoEvento'
+// Sites
+import MeusSites from './pages/sites/MeusSites'
+import CriarSite from './pages/sites/CriarSite'
 import Loading from './components/Loading'
 import { SchoolProvider } from './contexts/SchoolContext'
 import { PermissionsProvider } from './contexts/PermissionsContext'
@@ -159,6 +181,216 @@ function App() {
             <SchoolProvider>
               <Layout>
                 <OwnerSettings />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rotas EducaIA */}
+      <Route
+        path="/escola/:slug/ia/assistente"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <AssistenteIA />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/ia/relatorio"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <RelatorioInteligente />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/ia/criar"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <CriarAgenteIA />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/ia/agentes"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <VerAgentes />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/ia/meus-agentes"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <MeusAgentes />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rotas Administração */}
+      <Route
+        path="/escola/:slug/matricula"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Matricula />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/rematricula"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Rematricula />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/usuarios"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Equipe />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/permissoes"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Permissoes />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rotas Acadêmico */}
+      <Route
+        path="/escola/:slug/turmas"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Turmas />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/alunos"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Alunos />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/matriculas"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Matriculas />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rotas Calendário */}
+      <Route
+        path="/escola/:slug/calendario"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Calendario />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/calendario/novo"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <NovoEvento />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rotas Criador de Sites */}
+      <Route
+        path="/escola/:slug/sites"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <MeusSites />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/sites/novo"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <CriarSite />
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rota Documentos */}
+      <Route
+        path="/escola/:slug/documentos"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <Documentos />
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>

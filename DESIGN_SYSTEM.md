@@ -164,6 +164,11 @@ A classe `.dark` é adicionada ao `<html>` para ativar o tema escuro.
 
 ### Botões
 
+O sistema possui **3 padrões de botão** que devem ser usados consistentemente:
+
+#### Padrão 1: Preenchido (Filled)
+Botão com cor de fundo sólida ou gradiente. Usado para ações principais.
+
 ```tsx
 // Botão de ação principal (sucesso/submit)
 <Button className="bg-emerald-500 hover:bg-emerald-600 text-white">
@@ -175,21 +180,49 @@ A classe `.dark` é adicionada ao `<html>` para ativar o tema escuro.
   Continuar
 </Button>
 
-// Botão outline
-<Button variant="outline" className="border-2 border-primary/30 hover:border-primary/50">
-  Cancelar
-</Button>
-
 // Botão destructive
 <Button className="bg-red-500 hover:bg-red-600 text-white">
   Excluir
 </Button>
 ```
 
-**Efeitos de Hover (já aplicados no componente Button):**
-- `hover:scale-[1.02]` - micro-zoom elegante
-- `hover:shadow-lg` - sombra elevada
+#### Padrão 2: Outline sem cor + Cor no hover
+Borda cinza neutra que ganha cor no hover. **Padrão para botões em cards.**
+
+```tsx
+// Botão PDF (vermelho no hover)
+<Button 
+  variant="outline" 
+  className="border-gray-300 dark:border-gray-600 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 dark:hover:border-red-700 hover:text-red-600 dark:hover:text-red-400"
+>
+  PDF
+</Button>
+
+// Botão Preview (roxo no hover)
+<Button variant="aiPrimaryOutlineHover">
+  Preview
+</Button>
+```
+
+#### Padrão 3: Outline Colorido
+Borda e texto já coloridos desde o início, sem mudança de cor no hover.
+
+```tsx
+// Botão com borda verde
+<Button variant="aiActionOutline">
+  Criar
+</Button>
+
+// Botão com borda roxa
+<Button variant="aiPrimaryOutline">
+  Visualizar
+</Button>
+```
+
+**Efeitos de Hover (aplicados automaticamente em todos os botões):**
+- `hover:scale-[1.02]` - pequena expansão no hover
 - `active:scale-[0.98]` - feedback ao clicar
+- Transições suaves em todas as propriedades
 
 **Botões Desabilitados:**
 - Tema claro: `disabled:opacity-60`
@@ -1319,6 +1352,254 @@ const { highlightedElement } = useHelpHighlight()
 
 ---
 
+## 🤖 Botões de IA
+
+Sistema padronizado de botões para todas as funcionalidades relacionadas a IA, com gradientes, três estilos diferentes e efeitos especiais de animação.
+
+### Padrões de Cores
+
+#### 1. Botões de Ação do Usuário (Verde - Gradiente)
+
+**Uso:** Quando o usuário cria conteúdo para o sistema (Salvar, Criar, Enviar)
+
+**Cor:** Gradiente verde (`from-green-500 to-emerald-600`)
+
+**Exemplos:** "Salvar Agente", "Criar Novo Agente", "Enviar", "Criar Primeiro Agente"
+
+#### 2. Botões de Edição (Azul para Roxo - Gradiente)
+
+**Uso:** Editar conteúdo existente
+
+**Cor:** Gradiente azul para roxo (`from-blue-500 via-purple-500 to-pink-500`)
+
+**Exemplos:** "Editar Agente", "Editar Configuração"
+
+#### 3. Botões de Ação da IA (Roxo - Cor EducaIA)
+
+**Uso:** Quando a IA faz algo sozinha pelo usuário
+
+**Cor:** Roxo (`purple-500`) - mesma cor do menu EducaIA
+
+**Efeito especial:** Animação de shimmer (flash de luz) + ícone pulsante
+
+**Exemplos:** "Analisar com IA", "Gerar Relatório com IA", "Preview"
+
+### Estilos de Botão
+
+Cada categoria possui 3 variações:
+
+1. **Preenchido (Filled):** Botão com fundo gradiente sólido
+2. **Outline + Hover:** Borda colorida, fundo transparente, preenche no hover
+3. **Outline Colorido:** Borda e texto coloridos, sem preenchimento no hover
+
+### Botões de Ação do Usuário (Verde)
+
+```tsx
+// Preenchido - Gradiente Verde
+<Button variant="aiAction">
+  <Save className="w-4 h-4" />
+  Salvar Agente
+</Button>
+
+// Outline + Hover
+<Button variant="aiActionOutline">
+  <Plus className="w-4 h-4" />
+  Criar Novo
+</Button>
+
+// Outline Colorido
+<Button variant="aiActionOutlineColored">
+  <Send className="w-4 h-4" />
+  Enviar
+</Button>
+```
+
+**Quando usar:**
+- Ações de criação de conteúdo pelo usuário
+- Salvar dados no sistema
+- Criar novos recursos
+- Enviar formulários
+
+### Botões de Edição (Azul-Roxo)
+
+```tsx
+// Preenchido - Gradiente Azul-Roxo-Rosa
+<Button variant="aiEdit">
+  <Edit className="w-4 h-4" />
+  Editar Agente
+</Button>
+
+// Outline + Hover
+<Button variant="aiEditOutline">
+  <Edit className="w-4 h-4" />
+  Editar
+</Button>
+
+// Outline Colorido
+<Button variant="aiEditOutlineColored">
+  <Edit className="w-4 h-4" />
+  Editar Configuração
+</Button>
+```
+
+**Quando usar:**
+- Editar conteúdo existente
+- Modificar configurações
+- Atualizar dados
+
+### Botões de Ação da IA (Roxo com Efeitos)
+
+```tsx
+// Preenchido - Roxo com efeito shimmer
+import { AIButton } from '@/components/ui/ai-button'
+
+<AIButton variant="aiPrimary" shimmer iconPulse>
+  <Sparkles className="w-4 h-4" />
+  Analisar com IA
+</AIButton>
+
+// Outline + Hover
+<Button variant="aiPrimaryOutline">
+  <Eye className="w-4 h-4" />
+  Preview
+</Button>
+
+// Outline Colorido
+<Button variant="aiPrimaryOutlineColored">
+  <Brain className="w-4 h-4" />
+  Gerar Relatório com IA
+</Button>
+```
+
+**Quando usar:**
+- Ações que a IA executa automaticamente
+- Análises e processamentos com IA
+- Geração de relatórios inteligentes
+- Visualizações e previews de IA
+
+### Componente AIButton
+
+O componente `AIButton` adiciona efeitos especiais aos botões de ação da IA:
+
+```tsx
+import { AIButton } from '@/components/ui/ai-button'
+import { Sparkles } from 'lucide-react'
+
+// Com efeito shimmer (flash de luz)
+<AIButton variant="aiPrimary" shimmer>
+  <Sparkles className="w-4 h-4" />
+  Analisar com IA
+</AIButton>
+
+// Com animação de ícone pulsante
+<AIButton variant="aiPrimary" iconPulse>
+  <Brain className="w-4 h-4" />
+  Gerar Relatório
+</AIButton>
+
+// Com ambos os efeitos
+<AIButton variant="aiPrimary" shimmer iconPulse>
+  <Zap className="w-4 h-4" />
+  Processar com IA
+</AIButton>
+```
+
+**Props do AIButton:**
+
+| Prop | Tipo | Padrão | Descrição |
+|------|------|--------|-----------|
+| `shimmer` | `boolean` | `false` | Adiciona efeito de flash de luz passando pelo botão |
+| `iconPulse` | `boolean` | `false` | Adiciona animação de pulso no ícone |
+| `variant` | `string` | - | Variante do botão (deve ser `aiPrimary` para melhor efeito) |
+
+### Exemplos Completos
+
+#### Página de Agentes
+
+```tsx
+// Botão de criar novo agente
+<Button variant="aiAction">
+  <Plus className="w-4 h-4" />
+  Criar Novo Agente
+</Button>
+
+// Botão de preview (ação da IA)
+<Button variant="aiPrimaryOutline">
+  <Eye className="w-4 h-4" />
+  Preview
+</Button>
+
+// Botão de usar template (ação do usuário)
+<Button variant="aiAction">
+  <Download className="w-4 h-4" />
+  Usar
+</Button>
+```
+
+#### Modal de Detalhes
+
+```tsx
+// Botão de visualizar (ação da IA)
+<Button variant="aiPrimaryOutline">
+  <Eye className="w-4 h-4" />
+  Visualizar
+</Button>
+
+// Botão de usar agente (ação do usuário)
+<Button variant="aiAction">
+  <Download className="w-4 h-4" />
+  Usar Este Agente
+</Button>
+
+// Botão de editar (edição)
+<Button variant="aiEdit">
+  <Edit className="w-4 h-4" />
+  Editar Agente
+</Button>
+```
+
+#### Builder de Agentes
+
+```tsx
+// Botão de salvar (ação do usuário)
+<Button variant="aiAction">
+  <Save className="w-4 h-4" />
+  Salvar Agente
+</Button>
+
+// Botão de executar com IA (ação da IA)
+<AIButton variant="aiPrimary" shimmer iconPulse>
+  <Play className="w-4 h-4" />
+  Executar com IA
+</AIButton>
+```
+
+### Animações
+
+As animações são aplicadas automaticamente:
+
+- **Shimmer:** Flash de luz que passa pelo botão a cada 3 segundos
+- **Icon Pulse:** Ícone pulsa suavemente (escala de 1.0 a 1.15)
+- **Hover Scale:** Todos os botões têm `hover:scale-[1.02]` e `active:scale-[0.98]`
+
+### Acessibilidade
+
+- Todos os botões mantêm contraste adequado em tema claro e escuro
+- Estados de foco visíveis com `focus-visible:ring`
+- Animações respeitam `prefers-reduced-motion` (pode ser adicionado futuramente)
+- Textos descritivos para leitores de tela
+
+### Boas Práticas
+
+1. **Use `aiAction`** para ações de criação/salvamento do usuário
+2. **Use `aiEdit`** para ações de edição
+3. **Use `aiPrimary`** para ações executadas pela IA
+4. **Adicione `shimmer` e `iconPulse`** apenas em botões de ação da IA para destacar
+5. **Mantenha consistência:** Use o mesmo estilo para ações similares em toda a aplicação
+6. **Não misture:** Evite usar botões de IA em contextos não relacionados a IA
+
+---
+
 ## 💱 Arquivos de Referência
 
 - `src/index.css` - Variáveis CSS e configuração de temas
@@ -1329,5 +1610,6 @@ const { highlightedElement } = useHelpHighlight()
 - `src/components/ui/theme-toggle.tsx` - Componente de toggle
 - `src/components/ui/input.tsx` - Input com estados de erro
 - `src/components/ui/button.tsx` - Variantes de botões
+- `src/components/ui/ai-button.tsx` - Componente de botão com efeitos especiais para IA
 - `src/components/ui/alert.tsx` - Alerts com variante destructive
 - `src/components/SystemInfoSidebar.tsx` - Exemplo de sidebar com features

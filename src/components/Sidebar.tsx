@@ -28,7 +28,9 @@ import {
   Zap,
   CalendarDays,
   ClipboardCheck,
-  RefreshCw
+  RefreshCw,
+  Grid3x3,
+  UserCircle
 } from 'lucide-react'
 import { PermissionGate } from './PermissionGate'
 import { usePermissions } from '../hooks/usePermissions'
@@ -102,6 +104,20 @@ export function Sidebar({ className }: SidebarProps) {
           icon: Bot,
           iconColor: 'text-purple-600',
           path: `/escola/${slug}/ia/criar`,
+          requirePermission: false,
+        },
+        {
+          name: 'Ver Agentes',
+          icon: Grid3x3,
+          iconColor: 'text-purple-500',
+          path: `/escola/${slug}/ia/agentes`,
+          requirePermission: false,
+        },
+        {
+          name: 'Meus Agentes',
+          icon: UserCircle,
+          iconColor: 'text-purple-400',
+          path: `/escola/${slug}/ia/meus-agentes`,
           requirePermission: false,
         },
       ],
@@ -326,7 +342,7 @@ export function Sidebar({ className }: SidebarProps) {
             )}
             <Icon className={cn(
               'w-[18px] h-[18px] transition-colors flex-shrink-0 relative z-10',
-              isAIMenu ? 'text-white animate-pulse' : itemActive ? 'text-blue-600 dark:text-blue-400' : item.iconColor
+              isAIMenu ? 'text-white animate-bounce' : itemActive ? 'text-blue-600 dark:text-blue-400' : item.iconColor
             )} />
             <span className="font-medium flex-1 text-left text-[13px] relative z-10">{item.name}</span>
             {isAIMenu && (
@@ -434,7 +450,7 @@ export function Sidebar({ className }: SidebarProps) {
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
             )}
           >
-            <Icon className={cn('w-[18px] h-[18px]', isAIMenu ? 'text-white animate-pulse' : !itemActive && item.iconColor)} />
+            <Icon className={cn('w-[18px] h-[18px]', isAIMenu ? 'text-white animate-bounce' : !itemActive && item.iconColor)} />
           </button>
         ) : (
           <Link
