@@ -10,15 +10,25 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+  },
   build: {
     rollupOptions: {
       output: {
         manualChunks(id) {
           // Separar node_modules em chunks menores
           if (id.includes('node_modules')) {
-            // React e ReactDOM juntos
+            // React e ReactDOM juntos - SEMPRE primeiro (chunk base)
+            // Incluir também react-router que depende do React
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'react-vendor'
+            }
+            // Radix UI components - DEPENDEM DO REACT
+            // Agrupar com React para garantir que sejam carregados juntos
+            // Isso evita o erro "Cannot read properties of undefined (reading 'useLayoutEffect')"
+            if (id.includes('@radix-ui')) {
+              return 'react-vendor' // Agrupar com React para garantir ordem
             }
             // ReactFlow separado (biblioteca muito grande ~400KB)
             // Verifica tanto 'reactflow' quanto '@reactflow' e '@xyflow' (nomes internos)
@@ -29,11 +39,7 @@ export default defineConfig({
             if (id.includes('d3-')) {
               return 'd3-vendor'
             }
-            // Radix UI components juntos
-            if (id.includes('@radix-ui')) {
-              return 'ui-vendor'
-            }
-            // Lucide icons (pode ser grande)
+            // Lucide icons (pode ser grande, mas não depende do React diretamente)
             if (id.includes('lucide-react')) {
               return 'icons-vendor'
             }
