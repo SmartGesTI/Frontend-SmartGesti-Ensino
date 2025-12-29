@@ -1,39 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
-import Login from './pages/Login'
-import { DashboardVisaoGeral, DashboardFinanceiro, DashboardAcademico } from './pages/dashboards'
-import SelectSchool from './pages/SelectSchool'
-import PendingApproval from './pages/PendingApproval'
-import EmailVerification from './pages/EmailVerification'
-import OtpVerification from './pages/OtpVerification'
-import CompleteProfile from './pages/CompleteProfile'
-import SchoolDetails from './pages/SchoolDetails'
-import CreateSchool from './pages/CreateSchool'
-import OwnerSettings from './pages/OwnerSettings'
-import AuthCallback from './pages/AuthCallback'
-import Documentos from './pages/Documentos'
-// IA
-import AssistenteIA from './pages/ia/AssistenteIA'
-import RelatorioInteligente from './pages/ia/RelatorioInteligente'
-import CriarAgenteIA from './pages/ia/CriarAgenteIA'
-import VerAgentes from './pages/ia/VerAgentes'
-import MeusAgentes from './pages/ia/MeusAgentes'
-// Administração
-import Matricula from './pages/administracao/Matricula'
-import Rematricula from './pages/administracao/Rematricula'
-import Equipe from './pages/administracao/Equipe'
-import Permissoes from './pages/administracao/Permissoes'
-// Acadêmico
-import Turmas from './pages/academico/Turmas'
-import Alunos from './pages/academico/Alunos'
-import Matriculas from './pages/academico/Matriculas'
-// Calendário
-import Calendario from './pages/calendario/Calendario'
-import NovoEvento from './pages/calendario/NovoEvento'
-// Sites
-import MeusSites from './pages/sites/MeusSites'
-import CriarSite from './pages/sites/CriarSite'
 import Loading from './components/Loading'
 import { SchoolProvider } from './contexts/SchoolContext'
 import { PermissionsProvider } from './contexts/PermissionsContext'
@@ -41,6 +8,60 @@ import { Layout } from './components/Layout'
 import { setupAxiosInterceptors } from './lib/axiosInterceptor'
 import { getTenantFromSubdomain } from './lib/tenant'
 import { routes } from './lib/routes'
+
+// Componentes críticos - carregar imediatamente (autenticação)
+import Login from './pages/Login'
+import AuthCallback from './pages/AuthCallback'
+
+// Lazy loading - componentes carregados sob demanda
+// Autenticação e cadastro
+const OtpVerification = lazy(() => import('./pages/OtpVerification'))
+const EmailVerification = lazy(() => import('./pages/EmailVerification'))
+const CompleteProfile = lazy(() => import('./pages/CompleteProfile'))
+const SelectSchool = lazy(() => import('./pages/SelectSchool'))
+const PendingApproval = lazy(() => import('./pages/PendingApproval'))
+
+// Dashboards
+const DashboardVisaoGeral = lazy(() => import('./pages/dashboards').then(m => ({ default: m.DashboardVisaoGeral })))
+const DashboardFinanceiro = lazy(() => import('./pages/dashboards').then(m => ({ default: m.DashboardFinanceiro })))
+const DashboardAcademico = lazy(() => import('./pages/dashboards').then(m => ({ default: m.DashboardAcademico })))
+
+// Escola
+const SchoolDetails = lazy(() => import('./pages/SchoolDetails'))
+const CreateSchool = lazy(() => import('./pages/CreateSchool'))
+const OwnerSettings = lazy(() => import('./pages/OwnerSettings'))
+const Documentos = lazy(() => import('./pages/Documentos'))
+
+// IA
+const AssistenteIA = lazy(() => import('./pages/ia/AssistenteIA'))
+const RelatorioInteligente = lazy(() => import('./pages/ia/RelatorioInteligente'))
+const CriarAgenteIA = lazy(() => import('./pages/ia/CriarAgenteIA'))
+const VerAgentes = lazy(() => import('./pages/ia/VerAgentes'))
+const MeusAgentes = lazy(() => import('./pages/ia/MeusAgentes'))
+
+// Administração
+const Matricula = lazy(() => import('./pages/administracao/Matricula'))
+const Rematricula = lazy(() => import('./pages/administracao/Rematricula'))
+const Equipe = lazy(() => import('./pages/administracao/Equipe'))
+const Permissoes = lazy(() => import('./pages/administracao/Permissoes'))
+
+// Acadêmico
+const Turmas = lazy(() => import('./pages/academico/Turmas'))
+const Alunos = lazy(() => import('./pages/academico/Alunos'))
+const Matriculas = lazy(() => import('./pages/academico/Matriculas'))
+
+// Calendário
+const Calendario = lazy(() => import('./pages/calendario/Calendario'))
+const NovoEvento = lazy(() => import('./pages/calendario/NovoEvento'))
+
+// Sites
+const MeusSites = lazy(() => import('./pages/sites/MeusSites'))
+const CriarSite = lazy(() => import('./pages/sites/CriarSite'))
+
+// Componente wrapper para Suspense
+function LazyRoute({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<Loading />}>{children}</Suspense>
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -77,12 +98,12 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Navigate to={routes.login()} replace />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/verificar-otp" element={<OtpVerification />} />
+      <Route path="/verificar-otp" element={<LazyRoute><OtpVerification /></LazyRoute>} />
       <Route
         path="/verificar-email"
         element={
           <ProtectedRoute>
-            <EmailVerification />
+            <LazyRoute><EmailVerification /></LazyRoute>
           </ProtectedRoute>
         }
       />
@@ -90,7 +111,7 @@ function App() {
         path="/completar-cadastro"
         element={
           <ProtectedRoute>
-            <CompleteProfile />
+            <LazyRoute><CompleteProfile /></LazyRoute>
           </ProtectedRoute>
         }
       />
@@ -98,7 +119,7 @@ function App() {
         path="/selecionar-escola"
         element={
           <ProtectedRoute>
-            <SelectSchool />
+            <LazyRoute><SelectSchool /></LazyRoute>
           </ProtectedRoute>
         }
       />
@@ -106,7 +127,7 @@ function App() {
         path="/aguardando-aprovacao"
         element={
           <ProtectedRoute>
-            <PendingApproval />
+            <LazyRoute><PendingApproval /></LazyRoute>
           </ProtectedRoute>
         }
       />
@@ -120,7 +141,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <DashboardVisaoGeral />
+                <LazyRoute><DashboardVisaoGeral /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -132,7 +153,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <DashboardFinanceiro />
+                <LazyRoute><DashboardFinanceiro /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -144,7 +165,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <DashboardAcademico />
+                <LazyRoute><DashboardAcademico /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -156,7 +177,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <SchoolDetails />
+                <LazyRoute><SchoolDetails /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -168,7 +189,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <CreateSchool />
+                <LazyRoute><CreateSchool /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -180,7 +201,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <OwnerSettings />
+                <LazyRoute><OwnerSettings /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -193,7 +214,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <AssistenteIA />
+                <LazyRoute><AssistenteIA /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -205,7 +226,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <RelatorioInteligente />
+                <LazyRoute><RelatorioInteligente /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -217,7 +238,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <CriarAgenteIA />
+                <LazyRoute><CriarAgenteIA /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -229,7 +250,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <VerAgentes />
+                <LazyRoute><VerAgentes /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -241,7 +262,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <MeusAgentes />
+                <LazyRoute><MeusAgentes /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -254,7 +275,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Matricula />
+                <LazyRoute><Matricula /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -266,7 +287,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Rematricula />
+                <LazyRoute><Rematricula /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -278,7 +299,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Equipe />
+                <LazyRoute><Equipe /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -290,7 +311,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Permissoes />
+                <LazyRoute><Permissoes /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -303,7 +324,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Turmas />
+                <LazyRoute><Turmas /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -315,7 +336,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Alunos />
+                <LazyRoute><Alunos /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -327,7 +348,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Matriculas />
+                <LazyRoute><Matriculas /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -340,7 +361,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Calendario />
+                <LazyRoute><Calendario /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -352,7 +373,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <NovoEvento />
+                <LazyRoute><NovoEvento /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -365,7 +386,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <MeusSites />
+                <LazyRoute><MeusSites /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -377,7 +398,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <CriarSite />
+                <LazyRoute><CriarSite /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
@@ -390,7 +411,7 @@ function App() {
           <ProtectedRoute>
             <SchoolProvider>
               <Layout>
-                <Documentos />
+                <LazyRoute><Documentos /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>
