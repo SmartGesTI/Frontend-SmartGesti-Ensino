@@ -8,6 +8,7 @@ interface PermissionsData {
   permissions: Record<string, string[]>;
   isOwner: boolean;
   hierarchy?: number;
+  roles?: any[]; // Roles agora vêm na mesma resposta
 }
 
 interface RoleData {
@@ -30,10 +31,11 @@ const permissionsCache = new Map<string, {
   permissions: Record<string, string[]>;
   roles: RoleData[];
   isOwner: boolean;
+  permissionsVersion?: string; // UUID que muda quando permissões são alteradas
   timestamp: number;
 }>();
 
-const CACHE_TTL = 30000; // 30 segundos
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos - evita recarregamento ao voltar para a aba
 
 /**
  * Hook especializado para buscar permissões e roles do usuário
@@ -51,10 +53,23 @@ export function usePermissionsApi(
   const { user, session } = useAuth();
   const isAuthenticated = !!user && !!session;
   
-  const [permissions, setPermissions] = useState<Record<string, string[]>>({});
-  const [roles, setRoles] = useState<RoleData[]>([]);
-  const [isOwner, setIsOwner] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // Inicializar com cache se disponível (para evitar loading desnecessário)
+  const getInitialCache = () => {
+    if (!user || !tenantId) return null;
+    const key = `${user.id}-${tenantId}-${schoolId || 'none'}`;
+    const cached = permissionsCache.get(key);
+    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+      return cached;
+    }
+    return null;
+  };
+
+  const initialCache = getInitialCache();
+  const [permissions, setPermissions] = useState<Record<string, string[]>>(initialCache?.permissions || {});
+  const [roles, setRoles] = useState<RoleData[]>(initialCache?.roles || []);
+  const [isOwner, setIsOwner] = useState(initialCache?.isOwner || false);
+  // Só mostrar loading se não tiver cache inicial
+  const [loading, setLoading] = useState(!initialCache);
   const [error, setError] = useState<any>(null);
   
   // Refs para controle de fetch
@@ -78,18 +93,27 @@ export function usePermissionsApi(
     }
 
     // Chave do cache
-    const cacheKey = `${user.id}-${tenantId}-${schoolId || 'none'}`;
+    const currentCacheKey = `${user.id}-${tenantId}-${schoolId || 'none'}`;
     
     // Verificar cache válido
-    const cached = permissionsCache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+    const cached = permissionsCache.get(currentCacheKey);
+    const cacheAge = cached ? Date.now() - cached.timestamp : Infinity;
+    const isCacheValid = cached && cacheAge < CACHE_TTL;
+    
+    if (isCacheValid) {
+      // Cache válido - usar dados do cache sem mostrar loading
       if (mountedRef.current) {
         setPermissions(cached.permissions);
         setRoles(cached.roles);
         setIsOwner(cached.isOwner);
         setLoading(false);
       }
-      return;
+      // Se cache está próximo de expirar (últimos 30s), atualizar em background
+      if (cacheAge > CACHE_TTL - 30000) {
+        // Continuar para fazer fetch em background (sem mostrar loading)
+      } else {
+        return; // Cache ainda muito fresco, não precisa atualizar
+      }
     }
 
     // Evitar fetch paralelo
@@ -98,8 +122,13 @@ export function usePermissionsApi(
     }
     isFetchingRef.current = true;
     
+    // Só mostrar loading se não tiver dados em cache
     if (mountedRef.current) {
-      setLoading(true);
+      // Se já temos dados (mesmo que do cache antigo), não mostrar loading
+      const hasData = Object.keys(permissions).length > 0 || roles.length > 0;
+      if (!hasData) {
+        setLoading(true);
+      }
       setError(null);
     }
 
@@ -110,36 +139,45 @@ export function usePermissionsApi(
       }
       const token = session.access_token;
 
-      // Buscar permissões e roles em paralelo
-      const [permissionsResponse, rolesResponse] = await Promise.all([
-        axios.get<PermissionsData>(`${getApiUrl()}/api/permissions/user`, {
+      // Buscar permissões e roles em UMA ÚNICA requisição (unificada)
+      const permissionsResponse = await axios.get<PermissionsData>(
+        `${getApiUrl()}/api/permissions/user`,
+        {
           headers: {
             Authorization: `Bearer ${token}`,
             'x-tenant-id': tenantId,
             'X-Skip-Interceptor': 'true', // Não processar no interceptor global
           },
           params: schoolId ? { schoolId } : {},
-        }),
-        axios.get(`${getApiUrl()}/api/roles/user/${user.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'x-tenant-id': tenantId,
-            'X-Skip-Interceptor': 'true', // Não processar no interceptor global
-          },
-        }).catch(() => ({ data: [] })), // Falha silenciosa para roles
-      ]);
+        }
+      );
+
+      // Extrair permissions_version do header
+      const newPermissionsVersion = permissionsResponse.headers['x-permissions-version'] as string | undefined;
+      
+      // Verificar se permissions_version mudou (invalida cache se diferente)
+      const cachedVersion = cached?.permissionsVersion;
+      if (cachedVersion && newPermissionsVersion && cachedVersion !== newPermissionsVersion) {
+        console.log('[usePermissionsApi] Permissions version changed, invalidating cache', {
+          oldVersion: cachedVersion,
+          newVersion: newPermissionsVersion,
+        });
+        // Invalidar cache - limpar dados antigos
+        permissionsCache.delete(currentCacheKey);
+      }
 
       if (mountedRef.current) {
         console.log('[usePermissionsApi] Resposta do backend:', {
           permissions: permissionsResponse.data.permissions,
           isOwner: permissionsResponse.data.isOwner,
           hierarchy: permissionsResponse.data.hierarchy,
-          roles: rolesResponse.data,
+          roles: permissionsResponse.data.roles,
+          permissionsVersion: newPermissionsVersion,
         });
 
         const newPermissions = permissionsResponse.data.permissions || {};
         const newIsOwner = permissionsResponse.data.isOwner || false;
-        const newRoles = rolesResponse.data.map((ur: any) => ({
+        const newRoles = (permissionsResponse.data.roles || []).map((ur: any) => ({
           id: ur.roles?.id || ur.id,
           name: ur.roles?.name || ur.name,
           slug: ur.roles?.slug || ur.slug,
@@ -149,11 +187,12 @@ export function usePermissionsApi(
         setIsOwner(newIsOwner);
         setRoles(newRoles);
 
-        // Salvar no cache
-        permissionsCache.set(cacheKey, {
+        // Salvar no cache com permissions_version
+        permissionsCache.set(currentCacheKey, {
           permissions: newPermissions,
           roles: newRoles,
           isOwner: newIsOwner,
+          permissionsVersion: newPermissionsVersion,
           timestamp: Date.now(),
         });
       }
@@ -165,22 +204,14 @@ export function usePermissionsApi(
         setIsOwner(false);
 
         // Tratamento de erro específico - APENAS UM TOAST
-        // Não mostrar toast para erro 404 em roles (falha silenciosa)
-        const isRolesNotFound = err.config?.url?.includes('/api/roles/user/') && err.response?.status === 404;
-        
-        if (!isRolesNotFound) {
-          if (err.response?.status === 401) {
-            ErrorLogger.handleAuthError(false);
-          } else if (err.response?.status === 403) {
-            ErrorLogger.handlePermissionError('permissões', 'carregar');
-          } else if (!err.response) {
-            ErrorLogger.handleNetworkError();
-          } else {
-            ErrorLogger.handleApiError(err, 'usePermissionsApi');
-          }
+        if (err.response?.status === 401) {
+          ErrorLogger.handleAuthError(false);
+        } else if (err.response?.status === 403) {
+          ErrorLogger.handlePermissionError('permissões', 'carregar');
+        } else if (!err.response) {
+          ErrorLogger.handleNetworkError();
         } else {
-          // Log silencioso para roles não encontrados
-          console.warn('Roles não encontrados para o usuário (esperado em primeira execução)');
+          ErrorLogger.handleApiError(err, 'usePermissionsApi');
         }
       }
     } finally {

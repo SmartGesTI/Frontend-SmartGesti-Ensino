@@ -44,6 +44,7 @@ export default function SelectSchool() {
   })
 
   // Buscar TODAS as escolas da instituição (não apenas as que o usuário é membro)
+  // Cache compartilhado com SchoolContext, SchoolSelector e EscolasTab
   const { data: schools, isLoading: schoolsLoading } = useQuery({
     queryKey: ['schools-all', tenantSubdomain],
     queryFn: async () => {
@@ -52,7 +53,7 @@ export default function SelectSchool() {
       return apiRequest<School[]>('/api/schools?all=true', {}, token)
     },
     enabled: isReady && !!token,
-    staleTime: 30000, // 30 segundos
+    staleTime: 5 * 60 * 1000, // 5 minutos - consistência com SchoolContext
   })
 
   // Lógica de redirecionamento com prioridades

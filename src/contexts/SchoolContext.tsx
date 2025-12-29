@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useEffect } from 'react'
+import { createContext, useContext, ReactNode, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/services/api'
@@ -26,47 +26,56 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
 
   const slug = slugParam || null
 
-  // Buscar dados da escola
   const {
-    data: school,
+    data: schools,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['school', slug, tenantSubdomain],
+    queryKey: ['schools-all', tenantSubdomain], // Mesma queryKey do SelectSchool, SchoolSelector e EscolasTab
     queryFn: async () => {
-      if (!slug || !token) {
-        throw new Error('School slug or token not available')
+      if (!token) {
+        throw new Error('Token not available')
       }
-
-      // Buscar todas as escolas do tenant para validar
-      const schools = await apiRequest<School[]>('/api/schools?all=true', {}, token)
-      const foundSchool = schools.find((s) => s.slug === slug)
-
-      if (!foundSchool) {
-        logger.warn('School not found or does not belong to tenant', 'SchoolContext', {
-          slug,
-          tenantSubdomain,
-        })
-        return null
-      }
-
-      return foundSchool
+      return apiRequest<School[]>('/api/schools?all=true', {}, token)
     },
-    enabled: isReady && !!token && !!slug,
+    enabled: isReady && !!token,
     retry: 1,
-    staleTime: 30000, // 30 seconds
+    staleTime: 5 * 60 * 1000, // 5 minutos - evita recarregamento ao voltar para a aba
   })
+
+  // Buscar escola específica do array em cache
+  const school = useMemo(() => {
+    if (!schools || !slug) return null
+    const foundSchool = schools.find((s) => s.slug === slug)
+    
+    if (!foundSchool && schools.length > 0) {
+      // Se não encontrou mas tem escolas, logar aviso
+      logger.warn('School not found or does not belong to tenant', 'SchoolContext', {
+        slug,
+        tenantSubdomain,
+        availableSlugs: schools.map(s => s.slug),
+      })
+    }
+    
+    return foundSchool || null
+  }, [schools, slug, tenantSubdomain])
 
   // Redirecionar para seleção de escola se não encontrou ou houve erro
   useEffect(() => {
-    if (!isLoading && slug && (school === null || error)) {
+    // Só redirecionar se:
+    // 1. Não está carregando
+    // 2. Tem slug na URL
+    // 3. Tem escolas carregadas (para evitar redirecionar durante carregamento inicial)
+    // 4. A escola não foi encontrada OU houve erro
+    if (!isLoading && slug && schools && (school === null || error)) {
       logger.warn('School not found or error loading, redirecting to select school', 'SchoolContext', {
         slug,
         error: error?.message,
+        availableSlugs: schools.map(s => s.slug),
       })
       navigate(routes.selectSchool(), { replace: true })
     }
-  }, [school, error, isLoading, slug, navigate])
+  }, [school, schools, error, isLoading, slug, navigate])
 
   const value: SchoolContextType = {
     slug,

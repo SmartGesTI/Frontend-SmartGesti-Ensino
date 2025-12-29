@@ -547,7 +547,12 @@ export function Sidebar({ className }: SidebarProps) {
     return <div key={item.name} className={cn(isAIMenu && 'mb-1')}>{menuContent}</div>
   }
 
-  if (loading || schoolLoading) {
+  const hasSchoolData = !!school
+  const hasMenuContext = !!slug // Se tem slug, temos contexto para montar menu
+  const hasData = hasSchoolData || hasMenuContext
+  const isInitialLoad = (loading && !hasData) || (schoolLoading && !school)
+  
+  if (isInitialLoad) {
     return (
       <aside className={cn(
         'bg-card border-r border-gray-200 dark:border-gray-700',
