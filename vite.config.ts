@@ -160,23 +160,24 @@ export default defineConfig({
             }
             
             // Dividir vendor restante em chunks maiores para reduzir número de chunks
-            // e evitar problemas de ordem de carregamento
-            // Agrupar em chunks maiores: a-l, m-z
+            // IMPORTANTE: Agrupar vendor-m-z com react-vendor para evitar erros de ordem
+            // Algumas bibliotecas em vendor-m-z podem depender do React indiretamente
             const match2 = id.match(/node_modules\/(@[^/]+\/)?([^/]+)/)
             if (match2) {
               const packageName = (match2[2] || match2[1]?.slice(1) || '').toLowerCase()
               if (packageName.length > 0) {
-                // Dividir em apenas 2 grupos grandes para reduzir problemas de ordem
                 const firstLetter = packageName[0]
                 if (firstLetter >= 'a' && firstLetter <= 'l') {
                   return 'vendor-a-l'
                 } else if (firstLetter >= 'm' && firstLetter <= 'z') {
-                  return 'vendor-m-z'
+                  // Agrupar vendor-m-z com react-vendor para garantir que React esteja disponível
+                  // Isso evita o erro "Cannot read properties of undefined (reading 'useLayoutEffect')"
+                  return 'react-vendor'
                 }
               }
             }
-            // Fallback
-            return 'vendor-other'
+            // Fallback - também agrupar com react-vendor por segurança
+            return 'react-vendor'
           }
         },
         // Garantir que react-vendor seja sempre o primeiro chunk a ser carregado
@@ -195,7 +196,7 @@ export default defineConfig({
       // Garantir ordem de carregamento através de output.entryFileNames
       // mas isso não é necessário aqui
     },
-    chunkSizeWarningLimit: 1000, // Aumentar limite para 1MB (já que estamos fazendo code splitting)
+    chunkSizeWarningLimit: 1100, // Aumentar limite para 1.1MB (react-vendor agora inclui vendor-m-z para garantir ordem)
   },
   server: {
     port: 5173,
