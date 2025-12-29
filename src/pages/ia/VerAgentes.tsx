@@ -496,8 +496,8 @@ export default function VerAgentes() {
                     iconPulse
                     className="flex-1 gap-2"
                   >
-                    <Sparkles className="w-4 h-4" />
-                    Usar
+                    <Sparkles className="w-4 h-4 icon-swing-on-hover" />
+                    Usar este Agente
                   </AIButton>
                 </div>
               </CardContent>
@@ -656,8 +656,8 @@ export default function VerAgentes() {
                   iconPulse
                   className="flex-1 gap-2"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  Usar Este Agente
+                  <Sparkles className="w-4 h-4 group-hover:animate-icon-swing" />
+                  Usar este Agente
                 </AIButton>
               </div>
             </div>

@@ -274,6 +274,29 @@
     }
   }
 
+  @keyframes icon-swing {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-10deg);
+    }
+    75% {
+      transform: rotate(10deg);
+    }
+  }
+
+  .animate-icon-swing {
+    animation: icon-swing 0.5s ease-in-out infinite;
+    transform-origin: top center;
+  }
+
+  /* Animação de balanço no hover para botões aiPrimary */
+  .group:hover .icon-swing-on-hover {
+    animation: icon-swing 0.5s ease-in-out infinite;
+    transform-origin: top center;
+  }
+
   .animate-shimmer {
     animation: shimmer 2.5s linear infinite;
   }

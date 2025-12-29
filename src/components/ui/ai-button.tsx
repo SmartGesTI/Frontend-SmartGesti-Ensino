@@ -23,7 +23,7 @@ const AIButton = React.forwardRef<HTMLButtonElement, AIButtonProps>(
       <Button
         ref={ref}
         className={cn(
-          "relative overflow-hidden",
+          "relative overflow-hidden group",
           shimmer && "ai-button-gradient-animated",
           className
         )}
