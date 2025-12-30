@@ -14,9 +14,50 @@ import ReactFlow, {
   MarkerType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
+import { ArrowDownToLine, Bot, ArrowUpFromLine } from 'lucide-react'
 import { availableNodesV1 } from '../nodeCatalog.v1'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/contexts/ThemeContext'
+
+// Ícone indicador por categoria (com cores correspondentes)
+function getCategoryIndicator(category: string) {
+  switch (category) {
+    case 'ENTRADA':
+      return { 
+        icon: ArrowDownToLine, 
+        label: 'Entrada',
+        iconColor: 'text-blue-600 dark:text-blue-400',
+        bgColor: 'bg-blue-50 dark:bg-blue-900/50',
+        borderColor: 'border-blue-200 dark:border-blue-700'
+      }
+    case 'AGENTES':
+      return { 
+        icon: Bot, 
+        label: 'IA',
+        iconColor: 'text-purple-600 dark:text-purple-400',
+        bgColor: 'bg-purple-50 dark:bg-purple-900/50',
+        borderColor: 'border-purple-200 dark:border-purple-700'
+      }
+    case 'AGENTES DE RH':
+      return { 
+        icon: Bot, 
+        label: 'IA',
+        iconColor: 'text-amber-600 dark:text-amber-400',
+        bgColor: 'bg-amber-50 dark:bg-amber-900/50',
+        borderColor: 'border-amber-200 dark:border-amber-700'
+      }
+    case 'SAIDA':
+      return { 
+        icon: ArrowUpFromLine, 
+        label: 'Saída',
+        iconColor: 'text-emerald-600 dark:text-emerald-400',
+        bgColor: 'bg-emerald-50 dark:bg-emerald-900/50',
+        borderColor: 'border-emerald-200 dark:border-emerald-700'
+      }
+    default:
+      return null
+  }
+}
 
 import { NodeChange, EdgeChange } from 'reactflow'
 
@@ -39,6 +80,8 @@ interface WorkflowCanvasProps {
 // Componente customizado para renderizar nós
 function CustomNodeComponent({ data, selected }: NodeProps) {
   const Icon = data.icon
+  const indicator = getCategoryIndicator(data.category)
+  const IndicatorIcon = indicator?.icon
 
   const colorClasses: Record<string, string> = {
     blue: 'bg-blue-500 border-blue-600',
@@ -56,6 +99,20 @@ function CustomNodeComponent({ data, selected }: NodeProps) {
         'transition-all'
       )}
     >
+      {/* Ícone indicador de categoria (canto superior direito) */}
+      {IndicatorIcon && indicator && (
+        <div 
+          className={cn(
+            'absolute -top-2 -right-2 w-6 h-6 rounded-full shadow-md flex items-center justify-center border',
+            indicator.bgColor,
+            indicator.borderColor
+          )}
+          title={indicator.label}
+        >
+          <IndicatorIcon className={cn('w-3.5 h-3.5', indicator.iconColor)} />
+        </div>
+      )}
+
       {/* Handle de entrada (esquerda) */}
       <Handle
         type="target"

@@ -1,8 +1,23 @@
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, ArrowDownToLine, Bot, ArrowUpFromLine } from 'lucide-react'
 import { availableNodesV1 } from '../nodeCatalog.v1'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+
+// Ícone indicador por categoria
+function getCategoryIndicator(category: string) {
+  switch (category) {
+    case 'ENTRADA':
+      return { icon: ArrowDownToLine, label: 'Entrada', color: 'text-blue-400' }
+    case 'AGENTES':
+    case 'AGENTES DE RH':
+      return { icon: Bot, label: 'IA', color: 'text-purple-400' }
+    case 'SAIDA':
+      return { icon: ArrowUpFromLine, label: 'Saída', color: 'text-emerald-400' }
+    default:
+      return null
+  }
+}
 
 interface NodePaletteProps {
   onNodeDragStart: (event: React.DragEvent, nodeType: string) => void
@@ -112,12 +127,26 @@ export function NodePalette({ onNodeDragStart }: NodePaletteProps) {
                         draggable
                         onDragStart={(e) => onNodeDragStart(e, node.id)}
                         className={cn(
-                          'flex items-start gap-3 p-3 rounded-lg cursor-grab active:cursor-grabbing',
+                          'flex items-start gap-3 p-3 rounded-lg cursor-grab active:cursor-grabbing relative',
                           'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700',
                           'border border-gray-200 dark:border-gray-700',
                           'transition-all hover:shadow-md'
                         )}
                       >
+                        {/* Ícone indicador de categoria */}
+                        {(() => {
+                          const indicator = getCategoryIndicator(node.category)
+                          if (!indicator) return null
+                          const IndicatorIcon = indicator.icon
+                          return (
+                            <div 
+                              className="absolute top-1.5 right-1.5" 
+                              title={indicator.label}
+                            >
+                              <IndicatorIcon className={cn('w-3.5 h-3.5', indicator.color)} />
+                            </div>
+                          )
+                        })()}
                         <div
                           className={cn(
                             'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
@@ -127,7 +156,7 @@ export function NodePalette({ onNodeDragStart }: NodePaletteProps) {
                         >
                           <Icon className="w-4 h-4" />
                         </div>
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 pr-4">
                           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{node.data.label}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
                             {node.data.description}
