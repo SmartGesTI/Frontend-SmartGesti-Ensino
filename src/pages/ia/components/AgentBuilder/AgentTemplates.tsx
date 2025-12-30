@@ -1,9 +1,39 @@
-import { useEffect, useRef, useState } from 'react'
-import { templateCategories } from '../mockData'
+import { useEffect, useRef, useState, useMemo } from 'react'
+import { useAgents } from '@/hooks/useAgents'
+import { categoryInfoMap } from '@/services/agents.utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { cn } from '@/lib/utils'
+import { Loader2 } from 'lucide-react'
+
+// Categorias de templates (baseado nas categorias do banco)
+const templateCategories = [
+  {
+    id: 'academico',
+    name: 'Acadêmico',
+    icon: categoryInfoMap.academico.icon,
+    color: categoryInfoMap.academico.color,
+  },
+  {
+    id: 'financeiro',
+    name: 'Financeiro',
+    icon: categoryInfoMap.financeiro.icon,
+    color: categoryInfoMap.financeiro.color,
+  },
+  {
+    id: 'rh',
+    name: 'Recursos Humanos',
+    icon: categoryInfoMap.rh.icon,
+    color: categoryInfoMap.rh.color,
+  },
+  {
+    id: 'administrativo',
+    name: 'Administrativo',
+    icon: categoryInfoMap.administrativo.icon,
+    color: categoryInfoMap.administrativo.color,
+  },
+]
 
 interface AgentTemplatesProps {
   onLoadTemplate: (template: any) => void
@@ -14,16 +44,30 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
   const templateRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['academico'])
 
+  // Buscar templates da API
+  const { data: templates = [], isLoading } = useAgents({ is_template: true })
+
+  // Agrupar templates por categoria
+  const templatesByCategory = useMemo(() => {
+    const grouped: Record<string, typeof templates> = {}
+    templates.forEach((template) => {
+      if (!grouped[template.category]) {
+        grouped[template.category] = []
+      }
+      grouped[template.category].push(template)
+    })
+    return grouped
+  }, [templates])
+
   // Encontrar a categoria do template selecionado e expandir
   useEffect(() => {
-    if (selectedTemplateId) {
-      const category = templateCategories.find((cat) =>
-        cat.templates.some((t) => t.id === selectedTemplateId)
-      )
-      if (category) {
+    if (selectedTemplateId && templates.length > 0) {
+      const template = templates.find((t) => t.id === selectedTemplateId)
+      if (template) {
+        const categoryId = template.category
         setExpandedCategories((prev) => {
-          if (!prev.includes(category.id)) {
-            return [...prev, category.id]
+          if (!prev.includes(categoryId)) {
+            return [...prev, categoryId]
           }
           return prev
         })
@@ -37,7 +81,18 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
         }
       }, 300)
     }
-  }, [selectedTemplateId])
+  }, [selectedTemplateId, templates])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+          <p className="text-xs text-gray-600 dark:text-gray-400">Carregando templates...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-4 space-y-4">
@@ -94,14 +149,14 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
                       {category.name}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                      ({category.templates.length} templates)
+                      ({(templatesByCategory[category.id] || []).length} templates)
                     </span>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-2 pt-2">
-                  {category.templates.map((template) => {
+                  {(templatesByCategory[category.id] || []).map((template) => {
                     const Icon = template.icon
                     const isSelected = selectedTemplateId === template.id
                     return (

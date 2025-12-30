@@ -14,7 +14,7 @@ import ReactFlow, {
   MarkerType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { availableNodes } from '../mockData'
+import { availableNodesV1 } from '../nodeCatalog.v1'
 import { cn } from '@/lib/utils'
 import { useTheme } from '@/contexts/ThemeContext'
 
@@ -174,7 +174,7 @@ export function WorkflowCanvas({
         }
       }
 
-      const nodeDefinition = availableNodes.find((n) => n.id === nodeType)
+      const nodeDefinition = availableNodesV1.find((n) => n.id === nodeType)
       if (nodeDefinition) {
         const newNode: Node = {
           id: `${nodeType}-${Date.now()}`,
@@ -190,7 +190,7 @@ export function WorkflowCanvas({
           },
         }
         onAddNode(newNode)
-        
+
         // Ajustar viewport para garantir que o novo node esteja visível
         setTimeout(() => {
           if (reactFlowInstance.current) {

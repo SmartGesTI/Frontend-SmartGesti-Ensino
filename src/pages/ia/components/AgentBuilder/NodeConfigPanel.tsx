@@ -1,11 +1,14 @@
 import { Node } from 'reactflow'
-import { X } from 'lucide-react'
+import { X, Info, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomNode } from './types'
+import { ModelSelector } from './ModelSelector'
+import { DEFAULT_MODEL_ID } from './openaiModels'
+import { InstructionChips } from './InstructionChips'
 
 interface NodeConfigPanelProps {
   node: Node | null
@@ -26,6 +29,11 @@ export function NodeConfigPanel({ node, onClose, onConfigChange }: NodeConfigPan
 
   const customNode = node as CustomNode
   const Icon = customNode.data.icon
+
+  const category = customNode.data.category
+  const isAgentNode = category === 'ANALISAR COM IA' || category === 'AGENTES'
+  const isInputNode = category === 'RECEBER DADOS' || category === 'ENTRADA'
+  const isOutputNode = category === 'ENVIAR E GERAR' || category === 'SAIDA'
 
   const handleConfigChange = (key: string, value: any) => {
     onConfigChange(node.id, {
@@ -65,52 +73,43 @@ export function NodeConfigPanel({ node, onClose, onConfigChange }: NodeConfigPan
           </CardContent>
         </Card>
 
+        {/* Seletor de Modelo de IA - apenas para nós de agente */}
+        {isAgentNode && (
+          <div className="mb-4">
+            <ModelSelector
+              value={customNode.data.config?.model || DEFAULT_MODEL_ID}
+              onChange={(modelId) => handleConfigChange('model', modelId)}
+            />
+          </div>
+        )}
+
         <div className="space-y-4">
-          {customNode.data.category === 'ANALISAR COM IA' && (
+          {isAgentNode && (
             <>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Instruções para IA</Label>
-                <Textarea
-                  value={customNode.data.config.instructions || ''}
-                  onChange={(e) => handleConfigChange('instructions', e.target.value)}
-                  placeholder="Digite as instruções para a IA..."
-                  className="min-h-[120px] text-sm"
+              {/* Instruções Extras - salvas no agente */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  <Label className="text-sm font-medium">Instruções Extras</Label>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Adicione instruções personalizadas que serão sempre aplicadas a este componente.
+                </p>
+                <InstructionChips
+                  value={customNode.data.config?.extraInstructions || ''}
+                  onChange={(value) => handleConfigChange('extraInstructions', value)}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full text-xs"
-                >
-                  Melhorar
-                </Button>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Provedor de IA</Label>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  OpenAI
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Modelo</Label>
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  GPT-4o Mini (Recomendado)
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Max Tokens: 128.000 • Custo por 1k tokens: $0.00015
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Capacidades: text, code, reasoning, analysis
-                </div>
-                <div className="text-xs text-purple-600 dark:text-purple-400 mt-1 font-medium">
-                  ★ Melhor custo-benefício para tarefas RH
-                </div>
+                <Textarea
+                  value={customNode.data.config?.extraInstructions || ''}
+                  onChange={(e) => handleConfigChange('extraInstructions', e.target.value)}
+                  placeholder="Ex: Use tom formal e profissional. Limite o resumo a 20 linhas..."
+                  className="min-h-[80px] text-sm"
+                />
               </div>
             </>
           )}
 
-          {customNode.data.category === 'RECEBER DADOS' && (
+          {isInputNode && (
             <>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Formatos Aceitos</Label>
@@ -129,8 +128,22 @@ export function NodeConfigPanel({ node, onClose, onConfigChange }: NodeConfigPan
             </>
           )}
 
-          {customNode.data.category === 'ENVIAR E GERAR' && (
+          {isOutputNode && (
             <>
+              <Card className="bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs flex items-center gap-2 text-emerald-900 dark:text-emerald-100">
+                    <Info className="w-3 h-3" />
+                    Formato de Entrada
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                    Este componente recebe JSON estruturado do nó anterior.
+                  </p>
+                </CardContent>
+              </Card>
+
               {customNode.data.config.format && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Formato</Label>

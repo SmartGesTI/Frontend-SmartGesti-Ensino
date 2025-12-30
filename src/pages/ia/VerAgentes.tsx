@@ -26,8 +26,38 @@ import {
   Zap,
   Sparkles
 } from 'lucide-react'
-import { agentTemplates, templateCategories } from './components/mockData'
+import { useAgents } from '@/hooks/useAgents'
+import { getCategoryInfo, categoryInfoMap } from '@/services/agents.utils'
 import { cn } from '@/lib/utils'
+import { Loader2 } from 'lucide-react'
+
+// Categorias de templates (baseado nas categorias do banco)
+const templateCategories = [
+  {
+    id: 'academico',
+    name: 'Acadêmico',
+    icon: categoryInfoMap.academico.icon,
+    color: categoryInfoMap.academico.color,
+  },
+  {
+    id: 'financeiro',
+    name: 'Financeiro',
+    icon: categoryInfoMap.financeiro.icon,
+    color: categoryInfoMap.financeiro.color,
+  },
+  {
+    id: 'rh',
+    name: 'Recursos Humanos',
+    icon: categoryInfoMap.rh.icon,
+    color: categoryInfoMap.rh.color,
+  },
+  {
+    id: 'administrativo',
+    name: 'Administrativo',
+    icon: categoryInfoMap.administrativo.icon,
+    color: categoryInfoMap.administrativo.color,
+  },
+]
 
 export default function VerAgentes() {
   const { slug } = useParams<{ slug: string }>()
@@ -36,92 +66,34 @@ export default function VerAgentes() {
   const [selectedCategory, setSelectedCategory] = useState<string>('todos')
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('todos')
   const [sortBy, setSortBy] = useState<string>('nome')
-  const [selectedTemplate, setSelectedTemplate] = useState<typeof enrichedTemplates[0] | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null)
 
-  // Enriquecer templates com dados adicionais
+  // Buscar templates da API
+  const { data: templates = [], isLoading, error } = useAgents({ 
+    is_template: true 
+  })
+
+  // Enriquecer templates com categoryTags baseado na categoria
   const enrichedTemplates = useMemo(() => {
-    return agentTemplates.map((template) => {
-      const categoryInfo = templateCategories.find((cat) => cat.id === template.category)
-      const difficultyMap: Record<string, 'iniciante' | 'intermediario' | 'avancado'> = {
-        'analisador-desempenho': 'intermediario',
-        'gerador-boletins': 'iniciante',
-        'analisador-frequencia': 'intermediario',
-        'validador-matriculas': 'iniciante',
-        'analisador-financeiro': 'avancado',
-        'calculador-mensalidades': 'iniciante',
-        'validador-pagamentos': 'intermediario',
-        'analisador-contratos': 'avancado',
-        'processador-folha': 'intermediario',
-        'avaliador-professores': 'avancado',
-        'processador-documentos': 'intermediario',
-        'gerador-relatorios-personalizados': 'avancado',
-      }
-
-      const flowMap: Record<string, string> = {
-        'analisador-desempenho': 'Input (Dados Alunos) → AI (Análise) → Output (Relatório)',
-        'gerador-boletins': 'Input (Notas) → Logic (Calcular Médias) → Logic (Validar) → Output (Boletim PDF)',
-        'analisador-frequencia': 'Input (Presença) → AI (Analisar) → Logic (Identificar Risco) → Output (Alertas)',
-        'validador-matriculas': 'Input (Formulário) → Logic (Validar) → Logic (Verificar) → Logic (Aprovar/Rejeitar)',
-        'analisador-financeiro': 'Input (Dados Financeiros) → AI (Fluxo Caixa) → AI (Tendências) → Output (Relatório)',
-        'calculador-mensalidades': 'Input (Alunos) → Logic (Calcular) → Logic (Descontos) → Output (Cobrança)',
-        'validador-pagamentos': 'Input (Comprovante) → AI (Extrair) → Logic (Processar) → Output (Confirmação)',
-        'analisador-contratos': 'Input (PDF) → AI (Análise) → Logic (Validar CLT) → Output (Relatório)',
-        'processador-folha': 'Input (Funcionários) → Logic (Benefícios) → Logic (Processar) → Output (Folha)',
-        'avaliador-professores': 'Input (Avaliações) → AI (Analisar) → AI (Sugerir) → Output (Relatório)',
-        'processador-documentos': 'Input (Documentos) → AI (Extrair) → Logic (Validar) → Output (Salvar)',
-        'gerador-relatorios-personalizados': 'Input (Parâmetros) → Input (Buscar Dados) → AI (Processar) → Output (Relatório)',
-      }
-
-      const useCaseMap: Record<string, string> = {
-        'analisador-desempenho': 'Identificar alunos com dificuldades e padrões de aprendizado para intervenção pedagógica',
-        'gerador-boletins': 'Automatizar a geração de boletins escolares com notas e frequência calculadas automaticamente',
-        'analisador-frequencia': 'Detectar alunos com frequência baixa e gerar alertas para responsáveis',
-        'validador-matriculas': 'Validar automaticamente documentos e requisitos de matrícula, acelerando o processo',
-        'analisador-financeiro': 'Analisar receitas, despesas e identificar tendências financeiras da escola',
-        'calculador-mensalidades': 'Calcular valores de mensalidade aplicando descontos e bolsas automaticamente',
-        'validador-pagamentos': 'Validar comprovantes de pagamento e atualizar status automaticamente',
-        'analisador-contratos': 'Analisar contratos trabalhistas e validar conformidade com CLT',
-        'processador-folha': 'Processar folha de pagamento calculando salários, benefícios e descontos',
-        'avaliador-professores': 'Avaliar desempenho de professores e sugerir melhorias baseadas em dados',
-        'processador-documentos': 'Extrair informações de documentos e armazenar de forma estruturada',
-        'gerador-relatorios-personalizados': 'Gerar relatórios personalizados com análise de IA sobre qualquer conjunto de dados',
-      }
-
-      const tagsMap: Record<string, string[]> = {
-        'analisador-desempenho': ['alunos', 'desempenho', 'análise', 'gpt-4', 'relatórios'],
-        'gerador-boletins': ['boletins', 'notas', 'frequência', 'pdf', 'automação'],
-        'analisador-frequencia': ['frequência', 'presença', 'alertas', 'risco', 'alunos'],
-        'validador-matriculas': ['matrícula', 'validação', 'documentos', 'automação'],
-        'analisador-financeiro': ['financeiro', 'receitas', 'despesas', 'análise', 'tendências'],
-        'calculador-mensalidades': ['mensalidade', 'cobrança', 'descontos', 'cálculo'],
-        'validador-pagamentos': ['pagamento', 'comprovante', 'validação', 'pix', 'boleto'],
-        'analisador-contratos': ['contratos', 'rh', 'jurídico', 'gpt-4', 'clt', 'pdf'],
-        'processador-folha': ['folha', 'pagamento', 'rh', 'salários', 'benefícios'],
-        'avaliador-professores': ['professores', 'avaliação', 'desempenho', 'rh', 'melhorias'],
-        'processador-documentos': ['documentos', 'extração', 'pdf', 'word', 'automação'],
-        'gerador-relatorios-personalizados': ['relatórios', 'personalizado', 'ia', 'análise', 'dados'],
-      }
-
+    return templates.map((template) => {
+      const categoryInfo = getCategoryInfo(template.category)
       return {
         ...template,
-        rating: 4.2 + Math.random() * 0.6, // Entre 4.2 e 4.8
-        difficulty: difficultyMap[template.id] || 'intermediario',
-        useCase: useCaseMap[template.id] || template.description,
-        flow: flowMap[template.id] || 'Input → Process → Output',
-        tags: tagsMap[template.id] || [],
-        estimatedTime: template.nodes.length <= 3 ? '2-3 min' : template.nodes.length <= 4 ? '3-5 min' : '5-10 min',
-        categoryTags: categoryInfo ? [categoryInfo.name] : [],
-        isPublic: true,
-        usageCount: Math.floor(Math.random() * 1000) + 50,
+        categoryTags: [categoryInfo.name],
       }
     })
-  }, [])
+  }, [templates])
 
   // Filtrar e ordenar templates
   const filteredTemplates = useMemo(() => {
+    if (isLoading || !enrichedTemplates.length) {
+      return []
+    }
+
     let filtered = enrichedTemplates.filter((template) => {
-      const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch = searchTerm === '' || 
+        template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         template.tags?.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
 
       const matchesCategory = selectedCategory === 'todos' || template.category === selectedCategory
@@ -145,10 +117,19 @@ export default function VerAgentes() {
     })
 
     return filtered
-  }, [enrichedTemplates, searchTerm, selectedCategory, selectedDifficulty, sortBy])
+  }, [enrichedTemplates, searchTerm, selectedCategory, selectedDifficulty, sortBy, isLoading])
 
   // Calcular métricas
   const metrics = useMemo(() => {
+    if (isLoading || !enrichedTemplates.length) {
+      return {
+        totalTemplates: 0,
+        categories: 0,
+        mostUsed: '-',
+        avgRating: 0,
+      }
+    }
+
     const totalTemplates = enrichedTemplates.length
     const categories = new Set(enrichedTemplates.map((t) => t.category)).size
     const mostUsed = enrichedTemplates.reduce((prev, current) =>
@@ -162,7 +143,7 @@ export default function VerAgentes() {
       mostUsed: mostUsed.name,
       avgRating: Math.round(avgRating * 10) / 10,
     }
-  }, [enrichedTemplates])
+  }, [enrichedTemplates, isLoading])
 
   const difficultyColors: Record<string, string> = {
     iniciante: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
@@ -289,6 +270,30 @@ export default function VerAgentes() {
     }
   }
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <p className="text-gray-600 dark:text-gray-400">Carregando agentes...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 mb-2">Erro ao carregar agentes</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{String(error)}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Barra de Busca e Filtros */}
@@ -404,11 +409,16 @@ export default function VerAgentes() {
       </div>
 
       {/* Grid de Templates */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTemplates.map((template) => {
-          const Icon = template.icon
-          const categoryInfo = templateCategories.find((cat) => cat.id === template.category)
-          const categoryColor = categoryInfo?.color || 'purple'
+      {filteredTemplates.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400">Nenhum agente encontrado</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTemplates.map((template) => {
+            const Icon = template.icon
+            const categoryInfo = getCategoryInfo(template.category)
+            const categoryColor = categoryInfo.color
           const colorClasses: Record<string, string> = {
             purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
             emerald: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
@@ -504,7 +514,8 @@ export default function VerAgentes() {
             </Card>
           )
         })}
-      </div>
+        </div>
+      )}
 
       {/* Modal de Detalhes do Agente */}
       <Dialog open={!!selectedTemplate} onOpenChange={(open) => !open && setSelectedTemplate(null)}>
@@ -514,8 +525,7 @@ export default function VerAgentes() {
               <div className="flex items-center gap-3 mb-2">
                 {(() => {
                   const Icon = selectedTemplate.icon
-                  const categoryInfo = templateCategories.find((cat) => cat.id === selectedTemplate.category)
-                  const categoryColor = categoryInfo?.color || 'purple'
+                  const categoryInfo = getCategoryInfo(selectedTemplate.category)
                   const colorClasses: Record<string, string> = {
                     purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
                     emerald: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
@@ -523,7 +533,7 @@ export default function VerAgentes() {
                     blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
                   }
                   return (
-                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', colorClasses[categoryColor])}>
+                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', colorClasses[categoryInfo.color])}>
                       <Icon className="w-6 h-6" />
                     </div>
                   )
@@ -547,7 +557,7 @@ export default function VerAgentes() {
                 <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Categoria</p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {templateCategories.find((cat) => cat.id === selectedTemplate.category)?.name || 'Geral'}
+                    {getCategoryInfo(selectedTemplate.category).name}
                   </p>
                 </div>
                 <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
@@ -622,7 +632,7 @@ export default function VerAgentes() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {selectedTemplate.tags?.map((tag) => (
+{selectedTemplate.tags?.map((tag: string) => (
                     <span
                       key={tag}
                       className="px-3 py-1 rounded-md text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"

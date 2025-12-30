@@ -333,8 +333,10 @@ export const availableNodes = [
       color: 'purple',
       description: 'Analisa texto usando IA e extrai informações',
       config: {
-        model: 'gpt-4o-mini',
-        instructions: '',
+        model: 'gpt-4.1',
+        instructions: `ENTRADA: Recebe texto puro ou JSON com campo "text" do nó anterior. Se receber JSON, extrai o campo "text" ou "content" para análise.
+PROCESSAMENTO: Analisa o texto usando IA, identifica tópicos principais, sentimentos (positivo/negativo/neutro), entidades nomeadas (pessoas, lugares, organizações) e palavras-chave relevantes.
+SAÍDA: Retorna APENAS JSON válido, sem markdown, sem code blocks, sem texto adicional. Formato obrigatório: {"analysis": {"sentiment": "positivo|negativo|neutro", "topics": ["tópico 1", "tópico 2"], "keywords": ["palavra1", "palavra2"]}, "entities": {"people": [], "places": [], "organizations": []}}`,
       },
     },
   },
@@ -348,8 +350,10 @@ export const availableNodes = [
       color: 'purple',
       description: 'Analisa documentos PDF, Word e extrai informações',
       config: {
-        model: 'gpt-4o-mini',
-        instructions: '',
+        model: 'gpt-4.1',
+        instructions: `ENTRADA: Recebe documento (PDF, Word, Excel) ou JSON com campos "document" e "content" contendo o texto extraído do documento.
+PROCESSAMENTO: Extrai e analisa o texto do documento, identifica estrutura (títulos, parágrafos, listas), seções importantes, tabelas e metadados (autor, data, assunto).
+SAÍDA: Retorna JSON estruturado no formato: { extracted_text: string, sections: Array<{ title: string, content: string }>, metadata: { author?: string, date?: string, subject?: string }, tables?: Array<{ headers: string[], rows: string[][] }> }`,
       },
     },
   },
@@ -363,8 +367,15 @@ export const availableNodes = [
       color: 'purple',
       description: 'Gera resumo automático de textos longos',
       config: {
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1',
         maxLength: 500,
+        instructions: `ENTRADA: Recebe texto longo ou JSON do nó anterior. Aceita múltiplos formatos: texto puro, JSON com campos "text", "content", "extracted_text", ou resultado de análise com "analysis" (usa "topics" e "entities" para criar resumo contextualizado).
+PROCESSAMENTO: Produza um resumo BEM FORMATADO em Markdown, pronto para virar PDF. Use títulos e listas.
+SAÍDA: Retorna APENAS JSON válido, sem markdown fora do campo, sem code blocks, sem texto adicional. Formato obrigatório:
+{
+  "markdown": "# Relatório\n\n## Resumo\n...\n\n## Pontos-chave\n- ...\n- ...\n\n## Observações\n...",
+  "title": "Relatório Gerado"
+}`,
       },
     },
   },
@@ -378,8 +389,11 @@ export const availableNodes = [
       color: 'purple',
       description: 'Extrai informações estruturadas de dados não estruturados',
       config: {
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1',
         schema: {},
+        instructions: `ENTRADA: Recebe texto não estruturado ou JSON com campo "text", "content" ou dados do nó anterior.
+PROCESSAMENTO: Extrai informações estruturadas conforme o schema definido em config.schema. Se schema não estiver definido, extrai informações comuns (datas, valores, nomes, emails, telefones, etc.) de forma estruturada.
+SAÍDA: Retorna JSON estruturado conforme schema definido ou formato padrão: { extracted_data: Record<string, any>, confidence: number, fields_found: string[] }`,
       },
     },
   },
@@ -393,8 +407,11 @@ export const availableNodes = [
       color: 'purple',
       description: 'Classifica e categoriza dados automaticamente',
       config: {
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1',
         categories: [],
+        instructions: `ENTRADA: Recebe dados ou JSON com campo "data", "text", "content" ou resultado de análise do nó anterior.
+PROCESSAMENTO: Classifica os dados em categorias pré-definidas (se config.categories estiver definido) ou identifica a categoria mais apropriada automaticamente. Analisa o conteúdo e determina a melhor classificação.
+SAÍDA: Retorna JSON estruturado no formato: { category: string, confidence: number (0.0-1.0), subcategories?: string[], details: { reasoning: string, matched_keywords: string[] } }`,
       },
     },
   },
@@ -478,9 +495,9 @@ export const availableNodes = [
       label: 'Gerar Relatório',
       icon: FileSpreadsheet,
       color: 'emerald',
-      description: 'Gera relatório em formato JSON ou PDF',
+      description: 'Gera relatório em formato PDF',
       config: {
-        format: 'json',
+        format: 'pdf',
       },
     },
   },
@@ -610,8 +627,11 @@ export const availableNodes = [
       color: 'purple',
       description: 'Analisa padrões de frequência dos alunos',
       config: {
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1',
         minAttendance: 75,
+        instructions: `ENTRADA: Recebe JSON com dados de frequência no formato: { student_id: string, attendance_records: Array<{ date: string, present: boolean, class: string }> } ou dados do nó anterior.
+PROCESSAMENTO: Analisa padrões de frequência dos alunos, identifica alunos com frequência abaixo do mínimo (config.minAttendance, padrão: 75%), padrões de ausência (dias da semana, horários), tendências de melhoria ou piora, e calcula estatísticas de frequência.
+SAÍDA: Retorna JSON estruturado no formato: { analysis: { average_attendance: number, below_minimum: Array<{ student_id: string, attendance_rate: number }> }, alerts: Array<{ student_id: string, severity: string, message: string }>, recommendations: Array<{ student_id: string, action: string }>, patterns: { worst_days: string[], worst_times: string[] } }`,
       },
     },
   },
@@ -669,8 +689,11 @@ export const availableNodes = [
       color: 'emerald',
       description: 'Analisa receitas e despesas com IA',
       config: {
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1',
         period: 'monthly',
+        instructions: `ENTRADA: Recebe JSON com dados financeiros no formato: { transactions: Array<{ date: string, type: "income" | "expense", amount: number, category: string, description: string }>, period: string } ou dados do nó anterior.
+PROCESSAMENTO: Analisa receitas e despesas, calcula saldo líquido, identifica tendências (crescimento/declínio), categoriza gastos, identifica padrões sazonais e anomalias financeiras. Usa o período especificado em config.period (padrão: "monthly").
+SAÍDA: Retorna JSON estruturado no formato: { summary: { total_income: number, total_expenses: number, net_balance: number, period: string }, trends: Array<{ period: string, income: number, expenses: number, balance: number }>, alerts: Array<{ type: string, severity: string, message: string }>, categories: Record<string, { total: number, percentage: number }> }`,
       },
     },
   },
@@ -720,7 +743,10 @@ export const availableNodes = [
 ]
 
 // Templates de Agentes
-export const agentTemplates: AgentTemplate[] = [
+// DEPRECATED: Agentes agora vêm da API via useAgents hook
+// Mantido apenas para referência e tipos
+// export const agentTemplates: AgentTemplate[] = [
+const agentTemplates: AgentTemplate[] = [
   // CATEGORIA: ACADÊMICO
   {
     id: 'analisador-desempenho',
@@ -752,8 +778,10 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Analisa desempenho com IA',
           config: {
-            model: 'gpt-4o-mini',
-            instructions: 'Analise o desempenho acadêmico dos alunos, identifique padrões de aprendizado e áreas que precisam de atenção',
+            model: 'gpt-4.1',
+            instructions: `ENTRADA: Recebe dados acadêmicos ou JSON com informações de alunos (notas, frequência, avaliações) do nó anterior.
+PROCESSAMENTO: Analisa o desempenho acadêmico dos alunos usando IA, identifica padrões de aprendizado, áreas que precisam de atenção, pontos fortes e fraquezas individuais.
+SAÍDA: Retorna JSON estruturado no formato: { analysis: { patterns: string[], strengths: string[], weaknesses: string[] }, recommendations: Array<{ student_id: string, action: string }>, overall_performance: { average: number, trend: string } }`,
           },
         },
         position: { x: 300, y: 100 },
@@ -873,7 +901,7 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Analisa padrões de frequência',
           config: {
-            model: 'gpt-4o-mini',
+            model: 'gpt-4.1',
             minAttendance: 75,
           },
         },
@@ -1009,7 +1037,7 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'emerald',
           description: 'Analisa receitas e despesas',
           config: {
-            model: 'gpt-4o-mini',
+            model: 'gpt-4.1',
             period: 'monthly',
           },
         },
@@ -1025,8 +1053,10 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Identifica tendências e padrões',
           config: {
-            model: 'gpt-4o-mini',
-            instructions: 'Identifique tendências financeiras e padrões de gastos',
+            model: 'gpt-4.1',
+            instructions: `ENTRADA: Recebe dados financeiros ou JSON com transações, receitas e despesas do nó anterior.
+PROCESSAMENTO: Identifica tendências financeiras e padrões de gastos usando IA, analisa sazonalidade, projeta tendências futuras e identifica anomalias.
+SAÍDA: Retorna JSON estruturado no formato: { trends: Array<{ period: string, value: number, type: string }>, patterns: { seasonal: boolean, growth: string }, anomalies: Array<{ date: string, amount: number, description: string }>, projections: Array<{ period: string, projected_value: number }> }`,
           },
         },
         position: { x: 500, y: 100 },
@@ -1147,8 +1177,10 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Extrai dados do comprovante',
           config: {
-            model: 'gpt-4o-mini',
-            instructions: 'Extraia valor, data e informações do comprovante',
+            model: 'gpt-4.1',
+            instructions: `ENTRADA: Recebe imagem de comprovante ou JSON com dados extraídos do documento do nó anterior.
+PROCESSAMENTO: Extrai informações estruturadas do comprovante usando IA, incluindo valor, data, beneficiário, descrição e outros campos relevantes.
+SAÍDA: Retorna JSON estruturado no formato: { extracted_data: { value: number, date: string, beneficiary: string, description: string, document_type: string }, confidence: number, fields_found: string[] }`,
           },
         },
         position: { x: 300, y: 100 },
@@ -1217,8 +1249,10 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Analisa contrato com GPT-4',
           config: {
-            model: 'gpt-4o-mini',
-            instructions: 'Analise cuidadosamente o contrato de trabalho fornecido e forneça uma análise jurídica completa',
+            model: 'gpt-4.1',
+            instructions: `ENTRADA: Recebe contrato de trabalho ou JSON com texto do contrato extraído do nó anterior.
+PROCESSAMENTO: Analisa cuidadosamente o contrato de trabalho usando IA, identifica cláusulas importantes, pontos de atenção jurídica, direitos e obrigações das partes.
+SAÍDA: Retorna JSON estruturado no formato: { legal_analysis: { clauses: Array<{ type: string, content: string, attention: string }>, rights: string[], obligations: string[], risks: Array<{ level: string, description: string }> }, summary: string }`,
           },
         },
         position: { x: 300, y: 100 },
@@ -1353,8 +1387,10 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Analisa desempenho com IA',
           config: {
-            model: 'gpt-4o-mini',
-            instructions: 'Analise o desempenho dos professores e identifique pontos fortes e áreas de melhoria',
+            model: 'gpt-4.1',
+            instructions: `ENTRADA: Recebe dados de avaliação de professores ou JSON com informações de desempenho do nó anterior.
+PROCESSAMENTO: Analisa o desempenho dos professores usando IA, identifica pontos fortes, áreas de melhoria, padrões de ensino e oportunidades de desenvolvimento profissional.
+SAÍDA: Retorna JSON estruturado no formato: { analysis: { strengths: Array<{ teacher_id: string, strength: string }>, improvements: Array<{ teacher_id: string, area: string, recommendation: string }>, patterns: { teaching_style: string, effectiveness: number } }, recommendations: Array<{ teacher_id: string, action: string, priority: string }> }`,
           },
         },
         position: { x: 300, y: 100 },
@@ -1369,8 +1405,10 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Gera sugestões de melhorias',
           config: {
-            model: 'gpt-4o-mini',
-            instructions: 'Sugira melhorias específicas baseadas na análise de desempenho',
+            model: 'gpt-4.1',
+            instructions: `ENTRADA: Recebe resultado de análise de desempenho ou JSON com dados analisados do nó anterior.
+PROCESSAMENTO: Gera sugestões de melhorias específicas e acionáveis baseadas na análise de desempenho usando IA, priorizando ações mais impactantes.
+SAÍDA: Retorna JSON estruturado no formato: { suggestions: Array<{ target: string, improvement: string, priority: string, expected_impact: string, steps: string[] }>, summary: string, timeline: { short_term: string[], long_term: string[] } }`,
           },
         },
         position: { x: 500, y: 100 },
@@ -1426,8 +1464,11 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Extrai informações dos documentos',
           config: {
-            model: 'gpt-4o-mini',
+            model: 'gpt-4.1',
             schema: {},
+            instructions: `ENTRADA: Recebe documento processado ou JSON com texto extraído do nó anterior.
+PROCESSAMENTO: Extrai informações estruturadas dos documentos usando IA conforme o schema definido em config.schema. Se schema não estiver definido, extrai informações comuns (datas, valores, nomes, emails, telefones, etc.) de forma estruturada.
+SAÍDA: Retorna JSON estruturado conforme schema definido ou formato padrão: { extracted_data: Record<string, any>, confidence: number, fields_found: string[] }`,
           },
         },
         position: { x: 300, y: 100 },
@@ -1508,8 +1549,10 @@ export const agentTemplates: AgentTemplate[] = [
           color: 'purple',
           description: 'Processa dados com IA',
           config: {
-            model: 'gpt-4o-mini',
-            instructions: 'Analise os dados e gere insights relevantes',
+            model: 'gpt-4.1',
+            instructions: `ENTRADA: Recebe dados processados ou JSON com informações do nó anterior.
+PROCESSAMENTO: Analisa os dados usando IA e gera insights relevantes, identificando padrões, correlações e oportunidades de ação.
+SAÍDA: Retorna JSON estruturado no formato: { insights: Array<{ type: string, description: string, impact: string, confidence: number }>, patterns: Array<{ pattern: string, frequency: number }>, recommendations: Array<{ action: string, reason: string, priority: string }> }`,
           },
         },
         position: { x: 500, y: 100 },
@@ -1536,7 +1579,9 @@ export const agentTemplates: AgentTemplate[] = [
   },
 ]
 
-// Categorias de Templates
+// DEPRECATED: Categorias agora são geradas dinamicamente a partir dos dados da API
+// Mantido apenas para referência
+// export const templateCategories: TemplateCategory[] = [
 export const templateCategories: TemplateCategory[] = [
   {
     id: 'academico',

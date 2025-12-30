@@ -4,7 +4,7 @@ import { ChevronRight, Home, Maximize2, Minimize2, ArrowLeft } from 'lucide-reac
 import { cn } from '@/lib/utils'
 import { useLayoutMode } from '@/contexts/LayoutContext'
 import { routes } from '@/lib/routes'
-import { agentTemplates } from '@/pages/ia/components/mockData'
+import { useAgent } from '@/hooks/useAgents'
 
 const NAVIGATION_HISTORY_KEY = 'navigation_history'
 
@@ -86,6 +86,10 @@ export function Breadcrumb() {
   const editId = searchParams.get('edit')
   const templateId = searchParams.get('template')
   
+  // Buscar agente/template da API se necessário
+  const agentId = editId || templateId || null
+  const { data: agentData } = useAgent(agentId)
+  
   // Rastrear navegação e armazenar no localStorage
   useEffect(() => {
     try {
@@ -141,17 +145,11 @@ export function Breadcrumb() {
   let agentName: string | null = null
   let templateName: string | null = null
   
-  if (editId && pathAfterSlug === 'ia/criar') {
-    const agent = agentTemplates.find((t) => t.id === editId)
-    if (agent) {
-      agentName = agent.name
-    }
-  }
-  
-  if (templateId && pathAfterSlug === 'ia/criar') {
-    const template = agentTemplates.find((t) => t.id === templateId)
-    if (template) {
-      templateName = template.name
+  if (agentData && pathAfterSlug === 'ia/criar') {
+    if (editId) {
+      agentName = agentData.name
+    } else if (templateId) {
+      templateName = agentData.name
     }
   }
   

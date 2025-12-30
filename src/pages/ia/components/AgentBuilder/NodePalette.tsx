@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Search } from 'lucide-react'
-import { availableNodes } from '../mockData'
+import { availableNodesV1 } from '../nodeCatalog.v1'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 
@@ -10,42 +10,29 @@ interface NodePaletteProps {
 
 export function NodePalette({ onNodeDragStart }: NodePaletteProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['RECEBER DADOS', 'ANALISAR COM IA', 'ACADÊMICO'])
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['ENTRADA', 'AGENTES', 'SAIDA'])
 
-  const categories = [
+  const categories: Array<{ id: string; label: string; nodes: typeof availableNodesV1 }> = [
     {
-      name: 'RECEBER DADOS',
-      nodes: availableNodes.filter((n) => n.category === 'RECEBER DADOS'),
+      id: 'ENTRADA',
+      label: 'ENTRADA',
+      nodes: availableNodesV1.filter((n) => n.category === 'ENTRADA'),
     },
     {
-      name: 'ANALISAR COM IA',
-      nodes: availableNodes.filter((n) => n.category === 'ANALISAR COM IA'),
+      id: 'AGENTES',
+      label: 'AGENTES',
+      nodes: availableNodesV1.filter((n) => n.category === 'AGENTES'),
     },
     {
-      name: 'VALIDAR E VERIFICAR',
-      nodes: availableNodes.filter((n) => n.category === 'VALIDAR E VERIFICAR'),
-    },
-    {
-      name: 'ENVIAR E GERAR',
-      nodes: availableNodes.filter((n) => n.category === 'ENVIAR E GERAR'),
-    },
-    {
-      name: 'ACADÊMICO',
-      nodes: availableNodes.filter((n) => n.category === 'ACADÊMICO'),
-    },
-    {
-      name: 'FINANCEIRO',
-      nodes: availableNodes.filter((n) => n.category === 'FINANCEIRO'),
-    },
-    {
-      name: 'RH',
-      nodes: availableNodes.filter((n) => n.category === 'RH'),
+      id: 'SAIDA',
+      label: 'SAÍDA',
+      nodes: availableNodesV1.filter((n) => n.category === 'SAIDA'),
     },
   ]
 
-  const toggleCategory = (category: string) => {
+  const toggleCategory = (categoryId: string) => {
     setExpandedCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+      prev.includes(categoryId) ? prev.filter((c) => c !== categoryId) : [...prev, categoryId]
     )
   }
 
@@ -59,9 +46,7 @@ export function NodePalette({ onNodeDragStart }: NodePaletteProps) {
   return (
     <div className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          Componentes
-        </h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Componentes</h3>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
@@ -72,25 +57,23 @@ export function NodePalette({ onNodeDragStart }: NodePaletteProps) {
             className="pl-9 h-9 text-sm"
           />
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          Arraste e solte para criar seu fluxo de trabalho
-        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Arraste e solte para criar seu fluxo</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2">
         {filteredCategories.map((category) => {
-          const isExpanded = expandedCategories.includes(category.name)
+          const isExpanded = expandedCategories.includes(category.id)
           const hasNodes = category.nodes.length > 0
 
           if (!hasNodes && searchTerm) return null
 
           return (
-            <div key={category.name} className="mb-4">
+            <div key={category.id} className="mb-4">
               <button
-                onClick={() => toggleCategory(category.name)}
+                onClick={() => toggleCategory(category.id)}
                 className="w-full flex items-center justify-between px-2 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
               >
-                <span>{category.name}</span>
+                <span>{category.label}</span>
                 <span className={cn('transition-transform', isExpanded && 'rotate-180')}>▼</span>
               </button>
 
@@ -140,16 +123,14 @@ export function NodePalette({ onNodeDragStart }: NodePaletteProps) {
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {node.data.label}
-                          </p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{node.data.label}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
                             {node.data.description}
                           </p>
                         </div>
                       </div>
-                    )
-                  })}
+                    )}
+                  )}
                 </div>
               )}
             </div>

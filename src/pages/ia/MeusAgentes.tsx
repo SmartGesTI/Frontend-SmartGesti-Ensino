@@ -26,8 +26,10 @@ import {
   Zap,
   Star
 } from 'lucide-react'
-import { agentTemplates, templateCategories } from './components/mockData'
+import { useAgents, useUpdateAgent, useDeleteAgent } from '@/hooks/useAgents'
+import { getCategoryInfo, categoryInfoMap } from '@/services/agents.utils'
 import { cn } from '@/lib/utils'
+import { Loader2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,85 +37,84 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
+// Categorias de templates (baseado nas categorias do banco)
+const templateCategories = [
+  {
+    id: 'academico',
+    name: 'Acadêmico',
+    icon: categoryInfoMap.academico.icon,
+    color: categoryInfoMap.academico.color,
+  },
+  {
+    id: 'financeiro',
+    name: 'Financeiro',
+    icon: categoryInfoMap.financeiro.icon,
+    color: categoryInfoMap.financeiro.color,
+  },
+  {
+    id: 'rh',
+    name: 'Recursos Humanos',
+    icon: categoryInfoMap.rh.icon,
+    color: categoryInfoMap.rh.color,
+  },
+  {
+    id: 'administrativo',
+    name: 'Administrativo',
+    icon: categoryInfoMap.administrativo.icon,
+    color: categoryInfoMap.administrativo.color,
+  },
+]
+
 export default function MeusAgentes() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('todos')
-  const [selectedAgent, setSelectedAgent] = useState<typeof myAgents[0] | null>(null)
+  const [selectedAgent, setSelectedAgent] = useState<any | null>(null)
 
-  // Mock: Agentes do usuário (simulando que alguns templates são do usuário)
+  // Buscar agentes do usuário (não templates)
+  const { data: agents = [], isLoading, error } = useAgents({ 
+    is_template: false 
+  })
+  
+  const updateAgent = useUpdateAgent()
+  const deleteAgent = useDeleteAgent()
+
+  // Enriquecer agentes com categoryTags
   const myAgents = useMemo(() => {
-    // Simular que alguns templates são do usuário atual
-    const userId = 'user-123' // Mock user ID
-    
-    return agentTemplates.slice(0, 6).map((template, index) => {
-      const difficultyMap: Record<string, 'iniciante' | 'intermediario' | 'avancado'> = {
-        'analisador-desempenho': 'intermediario',
-        'gerador-boletins': 'iniciante',
-        'analisador-frequencia': 'intermediario',
-        'validador-matriculas': 'iniciante',
-        'analisador-financeiro': 'avancado',
-        'calculador-mensalidades': 'iniciante',
-      }
-
-      const flowMap: Record<string, string> = {
-        'analisador-desempenho': 'Input (Dados Alunos) → AI (Análise) → Output (Relatório)',
-        'gerador-boletins': 'Input (Notas) → Logic (Calcular Médias) → Logic (Validar) → Output (Boletim PDF)',
-        'analisador-frequencia': 'Input (Presença) → AI (Analisar) → Logic (Identificar Risco) → Output (Alertas)',
-        'validador-matriculas': 'Input (Formulário) → Logic (Validar) → Logic (Verificar) → Logic (Aprovar/Rejeitar)',
-        'analisador-financeiro': 'Input (Dados Financeiros) → AI (Fluxo Caixa) → AI (Tendências) → Output (Relatório)',
-        'calculador-mensalidades': 'Input (Alunos) → Logic (Calcular) → Logic (Descontos) → Output (Cobrança)',
-      }
-
-      const useCaseMap: Record<string, string> = {
-        'analisador-desempenho': 'Identificar alunos com dificuldades e padrões de aprendizado',
-        'gerador-boletins': 'Automatizar a geração de boletins escolares',
-        'analisador-frequencia': 'Detectar alunos com frequência baixa',
-        'validador-matriculas': 'Validar automaticamente documentos de matrícula',
-        'analisador-financeiro': 'Analisar receitas, despesas e tendências',
-        'calculador-mensalidades': 'Calcular valores de mensalidade automaticamente',
-      }
-
-      const tagsMap: Record<string, string[]> = {
-        'analisador-desempenho': ['alunos', 'desempenho', 'análise'],
-        'gerador-boletins': ['boletins', 'notas', 'pdf'],
-        'analisador-frequencia': ['frequência', 'presença', 'alertas'],
-        'validador-matriculas': ['matrícula', 'validação'],
-        'analisador-financeiro': ['financeiro', 'análise'],
-        'calculador-mensalidades': ['mensalidade', 'cobrança'],
-      }
-
+    return agents.map((agent) => {
+      const categoryInfo = getCategoryInfo(agent.category)
       return {
-        ...template,
-        userId,
-        rating: 4.2 + Math.random() * 0.6,
-        difficulty: difficultyMap[template.id] || 'intermediario',
-        useCase: useCaseMap[template.id] || template.description,
-        flow: flowMap[template.id] || 'Input → Process → Output',
-        tags: tagsMap[template.id] || [],
-        isPublic: index % 2 === 0, // Alternar entre público e privado
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Últimos 30 dias
-        usageCount: Math.floor(Math.random() * 500) + 10,
+        ...agent,
+        categoryTags: [categoryInfo.name],
       }
     })
-  }, [])
+  }, [agents])
 
   // Filtrar agentes
   const filteredAgents = useMemo(() => {
+    if (isLoading || !myAgents.length) {
+      return []
+    }
+
     return myAgents.filter((agent) => {
-      const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        agent.description.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesSearch = searchTerm === '' ||
+        agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        agent.description?.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesCategory = selectedCategory === 'todos' || agent.category === selectedCategory
 
       return matchesSearch && matchesCategory
     })
-  }, [myAgents, searchTerm, selectedCategory])
+  }, [myAgents, searchTerm, selectedCategory, isLoading])
 
   const handleTogglePublic = (agentId: string, isPublic: boolean) => {
-    // Aqui você faria a chamada à API para atualizar o status
-    console.log(`Toggling agent ${agentId} to ${isPublic ? 'public' : 'private'}`)
+    updateAgent.mutate({
+      agentId,
+      data: {
+        visibility: isPublic ? 'public' : 'private',
+      },
+    })
   }
 
   const handleEdit = (agentId: string) => {
@@ -121,8 +122,9 @@ export default function MeusAgentes() {
   }
 
   const handleDelete = (agentId: string) => {
-    // Aqui você faria a chamada à API para deletar
-    console.log(`Deleting agent ${agentId}`)
+    if (confirm('Tem certeza que deseja excluir este agente?')) {
+      deleteAgent.mutate(agentId)
+    }
   }
 
   const handlePreview = (agentId: string) => {
@@ -244,6 +246,30 @@ export default function MeusAgentes() {
     avancado: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800',
   }
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <p className="text-gray-600 dark:text-gray-400">Carregando seus agentes...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 mb-2">Erro ao carregar agentes</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{String(error)}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Barra de Busca e Filtros */}
@@ -274,11 +300,24 @@ export default function MeusAgentes() {
       </div>
 
       {/* Grid de Agentes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAgents.map((agent) => {
-          const Icon = agent.icon
-          const categoryInfo = templateCategories.find((cat) => cat.id === agent.category)
-          const categoryColor = categoryInfo?.color || 'purple'
+      {filteredAgents.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400">Nenhum agente encontrado.</p>
+          <Button
+            variant="aiAction"
+            onClick={() => navigate(`/escola/${slug}/ia/criar`)}
+            className="mt-4 gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Criar Primeiro Agente
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAgents.map((agent) => {
+            const Icon = agent.icon
+            const categoryInfo = getCategoryInfo(agent.category)
+            const categoryColor = categoryInfo.color
           const colorClasses: Record<string, string> = {
             purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
             emerald: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
@@ -387,6 +426,7 @@ export default function MeusAgentes() {
                     checked={agent.isPublic}
                     onCheckedChange={(checked) => handleTogglePublic(agent.id, checked)}
                     onClick={(e) => e.stopPropagation()}
+                    disabled={updateAgent.isPending}
                   />
                 </div>
 
@@ -414,19 +454,6 @@ export default function MeusAgentes() {
             </Card>
           )
         })}
-      </div>
-
-      {filteredAgents.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">Nenhum agente encontrado.</p>
-          <Button
-            variant="aiAction"
-            onClick={() => navigate(`/escola/${slug}/ia/criar`)}
-            className="mt-4 gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Criar Primeiro Agente
-          </Button>
         </div>
       )}
 
@@ -438,8 +465,7 @@ export default function MeusAgentes() {
               <div className="flex items-center gap-3 mb-2">
                 {(() => {
                   const Icon = selectedAgent.icon
-                  const categoryInfo = templateCategories.find((cat) => cat.id === selectedAgent.category)
-                  const categoryColor = categoryInfo?.color || 'purple'
+                  const categoryInfo = getCategoryInfo(selectedAgent.category)
                   const colorClasses: Record<string, string> = {
                     purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
                     emerald: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
@@ -447,7 +473,7 @@ export default function MeusAgentes() {
                     blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
                   }
                   return (
-                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', colorClasses[categoryColor])}>
+                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', colorClasses[categoryInfo.color])}>
                       <Icon className="w-6 h-6" />
                     </div>
                   )
@@ -471,7 +497,7 @@ export default function MeusAgentes() {
                 <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Categoria</p>
                   <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {templateCategories.find((cat) => cat.id === selectedAgent.category)?.name || 'Geral'}
+                    {getCategoryInfo(selectedAgent.category).name}
                   </p>
                 </div>
                 <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
