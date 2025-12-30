@@ -11,9 +11,9 @@ import { Node, Edge } from 'reactflow'
 export function applyAutoLayout(nodes: Node[], edges: Edge[]): Node[] {
   if (nodes.length === 0) return nodes
 
-  // Constantes de espaçamento
-  const HORIZONTAL_SPACING = 300 // Espaçamento horizontal entre camadas
-  const VERTICAL_SPACING = 150 // Espaçamento vertical entre nodes na mesma camada
+  // Constantes de espaçamento (nós têm ~280px de largura)
+  const HORIZONTAL_SPACING = 400 // Espaçamento horizontal entre camadas
+  const VERTICAL_SPACING = 180 // Espaçamento vertical entre nodes na mesma camada
   const START_X = 100 // Posição X inicial
   const START_Y = 100 // Posição Y inicial
 
