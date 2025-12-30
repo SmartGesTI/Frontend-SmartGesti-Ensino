@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomNode } from './types'
 import { ModelSelector } from './ModelSelector'
 import { DEFAULT_MODEL_ID } from './openaiModels'
-import { InstructionChips } from './InstructionChips'
+import { InstructionChips, CURRICULUM_INSTRUCTION_CHIPS } from './InstructionChips'
 
 interface NodeConfigPanelProps {
   node: Node | null
@@ -31,7 +31,9 @@ export function NodeConfigPanel({ node, onClose, onConfigChange }: NodeConfigPan
   const Icon = customNode.data.icon
 
   const category = customNode.data.category
-  const isAgentNode = category === 'ANALISAR COM IA' || category === 'AGENTES'
+  const isAgentNode = category === 'ANALISAR COM IA' || category === 'AGENTES' || category === 'AGENTES DE RH'
+  // node.id tem formato: "analyze-curriculum-1703936587000"
+  const isCurriculumAgent = customNode.id.startsWith('analyze-curriculum')
   const isInputNode = category === 'RECEBER DADOS' || category === 'ENTRADA'
   const isOutputNode = category === 'ENVIAR E GERAR' || category === 'SAIDA'
 
@@ -98,6 +100,7 @@ export function NodeConfigPanel({ node, onClose, onConfigChange }: NodeConfigPan
                 <InstructionChips
                   value={customNode.data.config?.extraInstructions || ''}
                   onChange={(value) => handleConfigChange('extraInstructions', value)}
+                  chips={isCurriculumAgent ? CURRICULUM_INSTRUCTION_CHIPS : undefined}
                 />
                 <Textarea
                   value={customNode.data.config?.extraInstructions || ''}

@@ -15,7 +15,7 @@ import { FileText, X, CheckCircle2, Loader2, Sparkles, Maximize2, Minimize2, Clo
 import { ExecutionPhase, phaseMessages } from './ExecutionLoader'
 import { cn } from '@/lib/utils'
 import { Resizable } from 're-resizable'
-import { InstructionChips } from './InstructionChips'
+import { InstructionChips, CURRICULUM_INSTRUCTION_CHIPS } from './InstructionChips'
 import { ModelSelector } from './ModelSelector'
 import { DEFAULT_MODEL_ID } from './openaiModels'
 
@@ -192,6 +192,40 @@ export function ExecutionModal({
       setCompletedAt(Date.now())
     }
   }, [result])
+
+  // Inicializar executionParams com dados já salvos nos nós (extraInstructions, model, etc.)
+  useEffect(() => {
+    if (open && orderedNodes.length > 0) {
+      const initialParams: Record<string, any> = {}
+      
+      orderedNodes.forEach((node) => {
+        const customNode = node as CustomNode
+        const config = customNode.data.config || {}
+        
+        // Inicializar com dados salvos no nó (exceto instructions CORE)
+        if (config.extraInstructions || config.model) {
+          initialParams[node.id] = {
+            ...(config.extraInstructions && { extraInstructions: config.extraInstructions }),
+            ...(config.model && { model: config.model }),
+          }
+        }
+        
+        // Se o nó tem modelo configurado, usar como selectedModel
+        if (config.model) {
+          setSelectedModel(config.model)
+        }
+      })
+      
+      // Merge com params existentes (não sobrescrever dados de entrada do usuário)
+      setExecutionParams(prev => {
+        const merged = { ...initialParams }
+        Object.keys(prev).forEach(nodeId => {
+          merged[nodeId] = { ...initialParams[nodeId], ...prev[nodeId] }
+        })
+        return merged
+      })
+    }
+  }, [open, orderedNodes])
 
   // Formatar tempo de execução
   const formatExecutionTime = useCallback((startMs: number, endMs: number) => {
@@ -491,25 +525,63 @@ export function ExecutionModal({
     }
 
     if (isAINode) {
+      // Detectar tipo de agente para personalizar o campo
+      const isCurriculumAgent = nodeType.includes('analyze-curriculum') || nodeType.includes('curriculum')
+      
+      // Configurações dinâmicas por agente
+      const fieldConfig = isCurriculumAgent ? {
+        label: 'Requisitos da Vaga',
+        description: 'Descreva os requisitos da vaga para uma análise mais precisa do candidato:',
+        placeholder: 'Ex: Desenvolvedor Senior com 5+ anos de experiência em React, TypeScript e Node.js. Inglês avançado. Experiência com metodologias ágeis...',
+        required: true,
+        chips: CURRICULUM_INSTRUCTION_CHIPS,
+        minHeight: 'min-h-[80px]',
+      } : {
+        label: 'Instruções extras para esta execução',
+        description: 'Clique nos botões abaixo para adicionar instruções rápidas ou digite manualmente:',
+        placeholder: 'Ex: Use tom formal. Organize em tópicos. Limite a 15 linhas...',
+        required: false,
+        chips: undefined, // Usa chips padrão
+        minHeight: 'min-h-[60px]',
+      }
+
+      const hasError = fieldConfig.required && !nodeParams.extraInstructions?.trim()
+      
       return (
         <div className="space-y-3">
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Instruções extras para esta execução
+            <Label className={cn(
+              "text-sm font-medium",
+              isCurriculumAgent ? "text-amber-700 dark:text-amber-400" : "text-gray-700 dark:text-gray-300"
+            )}>
+              {fieldConfig.label}
+              {fieldConfig.required && <span className="text-red-500 ml-1">*</span>}
             </Label>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Clique nos botões abaixo para adicionar instruções rápidas ou digite manualmente:
+            <p className={cn(
+              "text-xs",
+              isCurriculumAgent ? "text-amber-600 dark:text-amber-500" : "text-gray-500 dark:text-gray-400"
+            )}>
+              {fieldConfig.description}
             </p>
             <InstructionChips
               value={nodeParams.extraInstructions || ''}
               onChange={(value) => handleParamChange(node.id, 'extraInstructions', value)}
+              chips={fieldConfig.chips}
             />
             <Textarea
               value={nodeParams.extraInstructions || ''}
               onChange={(e) => handleParamChange(node.id, 'extraInstructions', e.target.value)}
-              placeholder="Ex: Use tom formal. Organize em tópicos. Limite a 15 linhas..."
-              className="min-h-[60px] text-sm"
+              placeholder={fieldConfig.placeholder}
+              className={cn(
+                fieldConfig.minHeight, 
+                "text-sm",
+                hasError && "border-red-500 focus-visible:ring-red-500"
+              )}
+              required={fieldConfig.required}
             />
+            {hasError && (
+              <p className="text-xs text-red-500">Este campo é obrigatório para análise de currículo</p>
+            )}
           </div>
         </div>
       )

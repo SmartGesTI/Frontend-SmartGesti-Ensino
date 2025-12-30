@@ -10,7 +10,7 @@ interface NodePaletteProps {
 
 export function NodePalette({ onNodeDragStart }: NodePaletteProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['ENTRADA', 'AGENTES', 'SAIDA'])
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['ENTRADA', 'AGENTES', 'AGENTES DE RH', 'SAIDA'])
 
   const categories: Array<{ id: string; label: string; nodes: typeof availableNodesV1 }> = [
     {
@@ -22,6 +22,11 @@ export function NodePalette({ onNodeDragStart }: NodePaletteProps) {
       id: 'AGENTES',
       label: 'AGENTES',
       nodes: availableNodesV1.filter((n) => n.category === 'AGENTES'),
+    },
+    {
+      id: 'AGENTES DE RH',
+      label: 'AGENTES DE RH',
+      nodes: availableNodesV1.filter((n) => n.category === 'AGENTES DE RH'),
     },
     {
       id: 'SAIDA',

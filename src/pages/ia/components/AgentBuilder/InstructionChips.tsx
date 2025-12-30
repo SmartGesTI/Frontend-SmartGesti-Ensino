@@ -12,10 +12,15 @@ import {
   Hash,
   Star,
   X,
-  Check
+  Check,
+  GraduationCap,
+  Languages,
+  Award,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react'
 
-interface InstructionChip {
+export interface InstructionChip {
   id: string
   label: string
   icon: React.ElementType
@@ -27,9 +32,12 @@ interface InstructionChip {
   inputPlaceholder?: string
   inputSuffix?: string
   defaultValue?: string
+  /** Cor do chip (default: blue) */
+  color?: 'blue' | 'amber' | 'purple' | 'emerald'
 }
 
-const INSTRUCTION_CHIPS: InstructionChip[] = [
+// Chips padrão para agentes genéricos
+export const DEFAULT_INSTRUCTION_CHIPS: InstructionChip[] = [
   {
     id: 'limit-lines',
     label: 'Limite de Linhas',
@@ -92,15 +100,86 @@ const INSTRUCTION_CHIPS: InstructionChip[] = [
   },
 ]
 
+// Chips específicos para Análise de Currículo (adicionais aos padrões)
+const CURRICULUM_SPECIFIC_CHIPS: InstructionChip[] = [
+  {
+    id: 'experience-years',
+    label: 'Tempo de Experiência',
+    icon: Clock,
+    instruction: 'Destaque o tempo total de experiência profissional e em cada cargo.',
+    detectPattern: /tempo total de experiência profissional/i,
+    color: 'amber'
+  },
+  {
+    id: 'education',
+    label: 'Foco em Formação',
+    icon: GraduationCap,
+    instruction: 'Dê ênfase à formação acadêmica, cursos e certificações do candidato.',
+    detectPattern: /ênfase à formação acadêmica/i,
+    color: 'amber'
+  },
+  {
+    id: 'languages',
+    label: 'Idiomas',
+    icon: Languages,
+    instruction: 'Detalhe os idiomas que o candidato domina e seus níveis de proficiência.',
+    detectPattern: /idiomas que o candidato domina/i,
+    color: 'amber'
+  },
+  {
+    id: 'certifications',
+    label: 'Certificações',
+    icon: Award,
+    instruction: 'Liste todas as certificações e cursos relevantes mencionados no currículo.',
+    detectPattern: /certificações e cursos relevantes/i,
+    color: 'amber'
+  },
+  {
+    id: 'career-growth',
+    label: 'Evolução de Carreira',
+    icon: TrendingUp,
+    instruction: 'Analise a progressão de carreira e evolução profissional do candidato.',
+    detectPattern: /progressão de carreira e evolução profissional/i,
+    color: 'amber'
+  },
+  {
+    id: 'red-flags',
+    label: 'Pontos de Atenção',
+    icon: AlertCircle,
+    instruction: 'Identifique possíveis pontos de atenção como períodos sem emprego ou inconsistências.',
+    detectPattern: /pontos de atenção como períodos/i,
+    color: 'amber'
+  },
+  {
+    id: 'fit-analysis',
+    label: 'Análise de Adequação',
+    icon: Target,
+    instruction: 'Avalie o quão adequado o candidato é para a vaga com base nos requisitos informados.',
+    detectPattern: /adequado o candidato é para a vaga/i,
+    color: 'amber'
+  },
+]
+
+// Chips para Análise de Currículo = Padrões + Específicos
+export const CURRICULUM_INSTRUCTION_CHIPS: InstructionChip[] = [
+  ...DEFAULT_INSTRUCTION_CHIPS,
+  ...CURRICULUM_SPECIFIC_CHIPS,
+]
+
 interface InstructionChipsProps {
   value: string
   onChange: (value: string) => void
   className?: string
+  /** Chips personalizados (se não fornecido, usa os padrões) */
+  chips?: InstructionChip[]
 }
 
-export function InstructionChips({ value, onChange, className }: InstructionChipsProps) {
+export function InstructionChips({ value, onChange, className, chips }: InstructionChipsProps) {
   const [activeChipInput, setActiveChipInput] = useState<string | null>(null)
   const [inputValue, setInputValue] = useState('')
+
+  // Usar chips personalizados ou padrão
+  const activeChips = chips || DEFAULT_INSTRUCTION_CHIPS
 
   // Verificar quais chips já estão no texto usando padrão específico
   const isChipActive = (chip: InstructionChip): boolean => {
@@ -168,21 +247,54 @@ export function InstructionChips({ value, onChange, className }: InstructionChip
     setInputValue('')
   }
 
+  // Classes de cor por tipo
+  const colorClasses = {
+    blue: {
+      bg: 'bg-blue-50 dark:bg-blue-950/30',
+      border: 'border-blue-300 dark:border-blue-700',
+      text: 'text-blue-600 dark:text-blue-400',
+      activeBg: 'bg-blue-100 dark:bg-blue-900/30',
+      activeText: 'text-blue-700 dark:text-blue-300',
+    },
+    amber: {
+      bg: 'bg-amber-50 dark:bg-amber-950/30',
+      border: 'border-amber-300 dark:border-amber-700',
+      text: 'text-amber-600 dark:text-amber-400',
+      activeBg: 'bg-amber-100 dark:bg-amber-900/30',
+      activeText: 'text-amber-700 dark:text-amber-300',
+    },
+    purple: {
+      bg: 'bg-purple-50 dark:bg-purple-950/30',
+      border: 'border-purple-300 dark:border-purple-700',
+      text: 'text-purple-600 dark:text-purple-400',
+      activeBg: 'bg-purple-100 dark:bg-purple-900/30',
+      activeText: 'text-purple-700 dark:text-purple-300',
+    },
+    emerald: {
+      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+      border: 'border-emerald-300 dark:border-emerald-700',
+      text: 'text-emerald-600 dark:text-emerald-400',
+      activeBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      activeText: 'text-emerald-700 dark:text-emerald-300',
+    },
+  }
+
   return (
     <div className={cn('space-y-2', className)}>
       <div className="flex flex-wrap gap-1.5">
-        {INSTRUCTION_CHIPS.map((chip) => {
+        {activeChips.map((chip) => {
           const Icon = chip.icon
           const isActive = isChipActive(chip)
           const isInputMode = activeChipInput === chip.id
+          const colors = colorClasses[chip.color || 'blue']
 
           if (isInputMode) {
             return (
               <div 
                 key={chip.id}
-                className="flex items-center gap-1 bg-blue-50 dark:bg-blue-950/30 border border-blue-300 dark:border-blue-700 rounded-full px-2 py-0.5"
+                className={cn('flex items-center gap-1 rounded-full px-2 py-0.5', colors.bg, colors.border, 'border')}
               >
-                <Icon className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                <Icon className={cn('w-3 h-3', colors.text)} />
                 <Input
                   type="number"
                   value={inputValue}
@@ -196,7 +308,7 @@ export function InstructionChips({ value, onChange, className }: InstructionChip
                   }}
                 />
                 {chip.inputSuffix && (
-                  <span className="text-[10px] text-blue-600 dark:text-blue-400">
+                  <span className={cn('text-[10px]', colors.text)}>
                     {chip.inputSuffix}
                   </span>
                 )}
@@ -232,7 +344,7 @@ export function InstructionChips({ value, onChange, className }: InstructionChip
               className={cn(
                 'h-6 px-2 py-0 text-[10px] gap-1 rounded-full transition-all',
                 isActive 
-                  ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300'
+                  ? cn(colors.activeBg, colors.border, colors.activeText)
                   : 'hover:bg-gray-100 dark:hover:bg-gray-800'
               )}
             >

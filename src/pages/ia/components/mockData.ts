@@ -324,23 +324,6 @@ export const availableNodes = [
   },
   // ANALISAR COM IA - Genéricos
   {
-    id: 'analyze-text',
-    type: 'ai',
-    category: 'ANALISAR COM IA',
-    data: {
-      label: 'Analisar Texto',
-      icon: Brain,
-      color: 'purple',
-      description: 'Analisa texto usando IA e extrai informações',
-      config: {
-        model: 'gpt-4.1',
-        instructions: `ENTRADA: Recebe texto puro ou JSON com campo "text" do nó anterior. Se receber JSON, extrai o campo "text" ou "content" para análise.
-PROCESSAMENTO: Analisa o texto usando IA, identifica tópicos principais, sentimentos (positivo/negativo/neutro), entidades nomeadas (pessoas, lugares, organizações) e palavras-chave relevantes.
-SAÍDA: Retorna APENAS JSON válido, sem markdown, sem code blocks, sem texto adicional. Formato obrigatório: {"analysis": {"sentiment": "positivo|negativo|neutro", "topics": ["tópico 1", "tópico 2"], "keywords": ["palavra1", "palavra2"]}, "entities": {"people": [], "places": [], "organizations": []}}`,
-      },
-    },
-  },
-  {
     id: 'analyze-document',
     type: 'ai',
     category: 'ANALISAR COM IA',
@@ -351,9 +334,11 @@ SAÍDA: Retorna APENAS JSON válido, sem markdown, sem code blocks, sem texto ad
       description: 'Analisa documentos PDF, Word e extrai informações',
       config: {
         model: 'gpt-4.1',
-        instructions: `ENTRADA: Recebe documento (PDF, Word, Excel) ou JSON com campos "document" e "content" contendo o texto extraído do documento.
-PROCESSAMENTO: Extrai e analisa o texto do documento, identifica estrutura (títulos, parágrafos, listas), seções importantes, tabelas e metadados (autor, data, assunto).
-SAÍDA: Retorna JSON estruturado no formato: { extracted_text: string, sections: Array<{ title: string, content: string }>, metadata: { author?: string, date?: string, subject?: string }, tables?: Array<{ headers: string[], rows: string[][] }> }`,
+        instructions: `ENTRADA: Você recebe UMA STRING com o texto extraído de um documento (PDF/DOCX/XLSX) OU um JSON (stringificado). Se receber JSON, extraia o conteúdo na seguinte ordem de prioridade: 1) extracted_text 2) text 3) content. Se nada existir, use o JSON inteiro como texto.
+PROCESSAMENTO: Analise o conteúdo do documento. Identifique a estrutura, seções principais, pontos-chave, datas e valores importantes. Produza um relatório bem escrito e estruturado, em Português (pt-BR), com formatação em Markdown.
+REGRAS: Use APENAS Markdown (sem HTML). Use 1 título principal com #, subseções com ## e listas com -. Não use blocos de código. Não inclua JSON no corpo do Markdown.
+ESTRUTURA: # Análise do Documento\n\n## Resumo\n(parágrafo)\n\n## Estrutura Identificada\n- ...\n\n## Pontos-Chave\n- ...\n\n## Informações Extraídas\n- ...
+SAÍDA: Retorne APENAS JSON válido, sem texto extra. Formato: {"title":"Análise do Documento","markdown":"..."}`,
       },
     },
   },
@@ -367,15 +352,13 @@ SAÍDA: Retorna JSON estruturado no formato: { extracted_text: string, sections:
       color: 'purple',
       description: 'Gera resumo automático de textos longos',
       config: {
-        model: 'gpt-4.1',
+        model: 'gpt-4.1-mini',
         maxLength: 500,
-        instructions: `ENTRADA: Recebe texto longo ou JSON do nó anterior. Aceita múltiplos formatos: texto puro, JSON com campos "text", "content", "extracted_text", ou resultado de análise com "analysis" (usa "topics" e "entities" para criar resumo contextualizado).
-PROCESSAMENTO: Produza um resumo BEM FORMATADO em Markdown, pronto para virar PDF. Use títulos e listas.
-SAÍDA: Retorna APENAS JSON válido, sem markdown fora do campo, sem code blocks, sem texto adicional. Formato obrigatório:
-{
-  "markdown": "# Relatório\n\n## Resumo\n...\n\n## Pontos-chave\n- ...\n- ...\n\n## Observações\n...",
-  "title": "Relatório Gerado"
-}`,
+        instructions: `ENTRADA: Você recebe UMA STRING com texto OU um JSON (stringificado) vindo do nó anterior. Se receber JSON, extraia o conteúdo na seguinte ordem de prioridade: 1) markdown 2) text 3) content 4) extracted_text 5) summary. Se nada existir, use o JSON inteiro como texto (string).
+PROCESSAMENTO: Produza um relatório bem escrito e estruturado, em Português (pt-BR), com formatação em Markdown. O resultado será convertido para PDF.
+REGRAS: Use APENAS Markdown (sem HTML). Use 1 título principal com #, subseções com ## e listas com -. Não use blocos de código. Não inclua JSON no corpo do Markdown.
+ESTRUTURA: # Relatório\n\n## Resumo\n(parágrafo)\n\n## Pontos-Chave\n- ...\n\n## Observações\n- ...
+SAÍDA: Retorne APENAS JSON válido, sem texto extra. Formato: {"title":"Relatório","markdown":"..."}`,
       },
     },
   },
@@ -391,9 +374,11 @@ SAÍDA: Retorna APENAS JSON válido, sem markdown fora do campo, sem code blocks
       config: {
         model: 'gpt-4.1',
         schema: {},
-        instructions: `ENTRADA: Recebe texto não estruturado ou JSON com campo "text", "content" ou dados do nó anterior.
-PROCESSAMENTO: Extrai informações estruturadas conforme o schema definido em config.schema. Se schema não estiver definido, extrai informações comuns (datas, valores, nomes, emails, telefones, etc.) de forma estruturada.
-SAÍDA: Retorna JSON estruturado conforme schema definido ou formato padrão: { extracted_data: Record<string, any>, confidence: number, fields_found: string[] }`,
+        instructions: `ENTRADA: Você recebe UMA STRING com texto OU um JSON (stringificado) vindo do nó anterior. Se receber JSON, extraia o conteúdo na seguinte ordem de prioridade: 1) text 2) content 3) extracted_text. Se nada existir, use o JSON inteiro como texto.
+PROCESSAMENTO: Extraia informações estruturadas do texto (datas, valores monetários, nomes, empresas, endereços, emails, telefones, CPFs/CNPJs). Produza um relatório bem escrito e estruturado, em Português (pt-BR), com formatação em Markdown.
+REGRAS: Use APENAS Markdown (sem HTML). Use 1 título principal com #, subseções com ## e listas com -. Não use blocos de código. Não inclua JSON no corpo do Markdown.
+ESTRUTURA: # Informações Extraídas\n\n## Resumo\n(parágrafo)\n\n## Dados Encontrados\n### Datas\n- ...\n### Valores\n- ...\n### Pessoas/Empresas\n- ...\n### Contatos\n- ...
+SAÍDA: Retorne APENAS JSON válido, sem texto extra. Formato: {"title":"Informações Extraídas","markdown":"..."}`,
       },
     },
   },
@@ -409,9 +394,11 @@ SAÍDA: Retorna JSON estruturado conforme schema definido ou formato padrão: { 
       config: {
         model: 'gpt-4.1',
         categories: [],
-        instructions: `ENTRADA: Recebe dados ou JSON com campo "data", "text", "content" ou resultado de análise do nó anterior.
-PROCESSAMENTO: Classifica os dados em categorias pré-definidas (se config.categories estiver definido) ou identifica a categoria mais apropriada automaticamente. Analisa o conteúdo e determina a melhor classificação.
-SAÍDA: Retorna JSON estruturado no formato: { category: string, confidence: number (0.0-1.0), subcategories?: string[], details: { reasoning: string, matched_keywords: string[] } }`,
+        instructions: `ENTRADA: Você recebe UMA STRING com texto OU um JSON (stringificado) vindo do nó anterior. Se receber JSON, extraia o conteúdo na seguinte ordem de prioridade: 1) text 2) content 3) extracted_text. Se nada existir, use o JSON inteiro como texto.
+PROCESSAMENTO: Classifique o conteúdo em categorias (Acadêmico, Financeiro, Administrativo, RH, etc.) e identifique o tema principal. Produza um relatório bem escrito e estruturado, em Português (pt-BR), com formatação em Markdown.
+REGRAS: Use APENAS Markdown (sem HTML). Use 1 título principal com #, subseções com ## e listas com -. Não use blocos de código. Não inclua JSON no corpo do Markdown.
+ESTRUTURA: # Classificação de Dados\n\n## Categoria Principal\n(categoria e justificativa)\n\n## Subcategorias\n- ...\n\n## Palavras-Chave Identificadas\n- ...\n\n## Análise\n(parágrafo)
+SAÍDA: Retorne APENAS JSON válido, sem texto extra. Formato: {"title":"Classificação de Dados","markdown":"..."}`,
       },
     },
   },
