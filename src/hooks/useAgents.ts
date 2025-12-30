@@ -5,6 +5,18 @@ import { AgentsService, AgentFilters, CreateAgentData, UpdateAgentData } from '@
 import { mapApiAgentToTemplate } from '@/services/agents.utils'
 import { ErrorLogger } from '@/lib/errorLogger'
 import { getTenantFromSubdomain } from '@/lib/tenant'
+import {
+  optimisticCreate,
+  onCreateSuccess,
+  onCreateError,
+  optimisticUpdate,
+  onUpdateSuccess,
+  onUpdateError,
+  optimisticDelete,
+  onDeleteSuccess,
+  onDeleteError,
+  OptimisticContext,
+} from './agents/agents.optimistic'
 
 /**
  * Hook para listar agentes
@@ -34,7 +46,8 @@ export function useAgents(filters?: AgentFilters) {
       return agents.map(mapApiAgentToTemplate)
     },
     enabled: isReady && !!token && !!tenantSubdomain,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 0, // Sempre buscar dados frescos da API
+    refetchOnMount: 'always', // Sempre refetch ao montar componente
     retry: 1,
   })
 }
@@ -65,13 +78,15 @@ export function useAgent(agentId: string | null) {
       return mapApiAgentToTemplate(agent)
     },
     enabled: isReady && !!token && !!tenantSubdomain && !!agentId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // Sempre buscar dados frescos da API
+    refetchOnMount: 'always',
     retry: 1,
   })
 }
 
 /**
  * Hook para criar agente
+ * USA OPTIMISTIC UPDATE - feedback imediato ao usuário
  */
 export function useCreateAgent() {
   const { schoolId } = useSchool()
@@ -96,18 +111,22 @@ export function useCreateAgent() {
 
       return mapApiAgentToTemplate(agent)
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agents'] })
-      ErrorLogger.success('Agente criado', 'O agente foi criado com sucesso')
+    // OPTIMISTIC: Toast imediato no onMutate
+    onMutate: async (data: CreateAgentData) => {
+      return optimisticCreate(queryClient, tenantSubdomain, schoolId, data as any)
     },
-    onError: (error: any) => {
-      ErrorLogger.handleApiError(error, 'useAgents.createAgent')
+    onSuccess: async (createdAgent) => {
+      await onCreateSuccess(queryClient, tenantSubdomain, schoolId, createdAgent)
+    },
+    onError: (error: any, _data, context) => {
+      onCreateError(queryClient, tenantSubdomain, schoolId, context as OptimisticContext, error)
     },
   })
 }
 
 /**
  * Hook para atualizar agente
+ * USA OPTIMISTIC UPDATE - feedback imediato ao usuário
  */
 export function useUpdateAgent() {
   const { schoolId } = useSchool()
@@ -131,22 +150,26 @@ export function useUpdateAgent() {
 
       return mapApiAgentToTemplate(agent)
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['agents'] })
-      queryClient.invalidateQueries({ queryKey: ['agent', variables.agentId] })
-      ErrorLogger.success('Agente atualizado', 'O agente foi atualizado com sucesso')
+    // OPTIMISTIC: Toast imediato no onMutate
+    onMutate: async ({ agentId, data }) => {
+      return optimisticUpdate(queryClient, tenantSubdomain, schoolId, agentId, data as any)
     },
-    onError: (error: any) => {
-      ErrorLogger.handleApiError(error, 'useAgents.updateAgent')
+    onSuccess: async (_, variables) => {
+      await onUpdateSuccess(queryClient, variables.agentId)
+    },
+    onError: (error: any, variables, context) => {
+      onUpdateError(queryClient, tenantSubdomain, schoolId, variables.agentId, context as OptimisticContext, error)
     },
   })
 }
 
 /**
  * Hook para deletar agente
+ * USA OPTIMISTIC UPDATE - o card desaparece imediatamente
  */
 export function useDeleteAgent() {
   const { token } = useAccessToken()
+  const { schoolId } = useSchool()
   const tenantSubdomain = getTenantFromSubdomain()
   const queryClient = useQueryClient()
 
@@ -157,13 +180,17 @@ export function useDeleteAgent() {
       }
 
       await AgentsService.deleteAgent(token, agentId, tenantSubdomain)
+      return agentId
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agents'] })
-      ErrorLogger.success('Agente deletado', 'O agente foi deletado com sucesso')
+    // OPTIMISTIC: Remove da lista e mostra toast IMEDIATAMENTE
+    onMutate: async (agentId: string) => {
+      return optimisticDelete(queryClient, tenantSubdomain, schoolId, agentId)
     },
-    onError: (error: any) => {
-      ErrorLogger.handleApiError(error, 'useAgents.deleteAgent')
+    onSuccess: async () => {
+      await onDeleteSuccess(queryClient)
+    },
+    onError: (error: any, _agentId, context) => {
+      onDeleteError(queryClient, tenantSubdomain, schoolId, context as OptimisticContext, error)
     },
   })
 }
