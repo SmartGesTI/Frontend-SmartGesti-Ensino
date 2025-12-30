@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAgents } from '@/hooks/useAgents'
 import { categoryInfoMap } from '@/services/agents.utils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { cn } from '@/lib/utils'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Globe, Users, Copy, Pencil } from 'lucide-react'
 
 // Categorias de templates (baseado nas categorias do banco)
 const templateCategories = [
@@ -41,11 +43,23 @@ interface AgentTemplatesProps {
 }
 
 export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemplatesProps) {
+  const navigate = useNavigate()
+  const { slug } = useParams<{ slug: string }>()
   const templateRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [expandedCategories, setExpandedCategories] = useState<string[]>(['academico'])
 
-  // Buscar templates da API
-  const { data: templates = [], isLoading } = useAgents({ is_template: true })
+  // Buscar templates públicos e colaborativos da API
+  const { data: publicAgents = [], isLoading: isLoadingPublic } = useAgents({ visibility: 'public', status: 'published' })
+  const { data: collaborativeAgents = [], isLoading: isLoadingCollab } = useAgents({ visibility: 'public_collaborative', status: 'published' })
+  
+  // Combinar e marcar tipo de cada template
+  const templates = useMemo(() => {
+    const publicWithType = publicAgents.map(t => ({ ...t, visibilityType: 'public' as const }))
+    const collabWithType = collaborativeAgents.map(t => ({ ...t, visibilityType: 'public_collaborative' as const }))
+    return [...publicWithType, ...collabWithType]
+  }, [publicAgents, collaborativeAgents])
+  
+  const isLoading = isLoadingPublic || isLoadingCollab
 
   // Agrupar templates por categoria
   const templatesByCategory = useMemo(() => {
@@ -156,9 +170,11 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
               </AccordionTrigger>
               <AccordionContent>
                 <div className="space-y-2 pt-2">
-                  {(templatesByCategory[category.id] || []).map((template) => {
+                  {(templatesByCategory[category.id] || []).map((template: any) => {
                     const Icon = template.icon
                     const isSelected = selectedTemplateId === template.id
+                    const isCollaborative = template.visibilityType === 'public_collaborative'
+                    
                     return (
                       <Card
                         key={template.id}
@@ -182,6 +198,22 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
                                 <CardTitle className="text-sm">{template.name}</CardTitle>
                               </div>
                             </div>
+                            {/* Badge de tipo */}
+                            <Badge 
+                              variant="outline" 
+                              className={cn(
+                                'text-[10px] px-1.5 py-0 h-5 flex items-center gap-1',
+                                isCollaborative 
+                                  ? 'border-blue-300 text-blue-600 dark:border-blue-600 dark:text-blue-400' 
+                                  : 'border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400'
+                              )}
+                            >
+                              {isCollaborative ? (
+                                <><Users className="w-3 h-3" /> Colaborativo</>
+                              ) : (
+                                <><Globe className="w-3 h-3" /> Público</>
+                              )}
+                            </Badge>
                           </div>
                           <CardDescription className="text-xs mt-2">
                             {template.description}
@@ -192,13 +224,35 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
                             <span className="text-xs text-gray-500 dark:text-gray-400">
                               {template.nodes.length} nós • {template.edges.length} conexões
                             </span>
-                            <Button
-                              size="sm"
-                              onClick={() => onLoadTemplate(template)}
-                              className={cn('text-white text-xs h-7', colorClass.button)}
-                            >
-                              Usar Template
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              {/* Botão Usar Template - sempre visível */}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onLoadTemplate(template)}
+                                className="text-xs h-7 gap-1 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                title="Copiar fluxo para o editor"
+                              >
+                                <Copy className="w-3 h-3" />
+                                Usar
+                              </Button>
+                              {/* Botão Editar - apenas para colaborativos */}
+                              {isCollaborative && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    if (slug) {
+                                      navigate(`/escola/${slug}/ia/criar?edit=${template.id}`)
+                                    }
+                                  }}
+                                  className={cn('text-white text-xs h-7 gap-1', colorClass.button)}
+                                  title="Editar este template"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                  Editar
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </CardContent>
                       </Card>

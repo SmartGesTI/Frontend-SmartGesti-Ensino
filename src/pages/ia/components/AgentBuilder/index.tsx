@@ -9,12 +9,14 @@ import { AgentTemplates } from './AgentTemplates'
 import { ContextMenu } from './ContextMenu'
 import { applyAutoLayout } from './layoutUtils'
 import { AgentGeneralDataModal, AgentGeneralData } from './AgentGeneralDataModal'
+import { useUndoRedo } from './useUndoRedo'
 import { useAgent, useCreateAgent, useUpdateAgent, useDeleteAgent } from '@/hooks/useAgents'
 import { useAgentExecution } from '@/hooks/useAgentExecution'
 import { downloadFile } from '@/utils/pdfGenerator'
 import { mapTemplateToApiAgent, getCategoryInfo } from '@/services/agents.utils'
 import { availableNodes } from '../mockData'
-import { Loader2 } from 'lucide-react'
+import { availableNodesV1 } from '../nodeCatalog.v1'
+import { Loader2, Undo2, Redo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -55,6 +57,11 @@ export function AgentBuilder() {
   const [isSaving, setIsSaving] = useState(false)
   // Estado para controle do salvamento de rascunho
   const [isSavingDraft, setIsSavingDraft] = useState(false)
+  
+  // Hook para undo/redo
+  const { pushState, undo, redo, canUndo, canRedo } = useUndoRedo({ maxHistory: 50, debounceMs: 300 })
+  // Flag para evitar push durante undo/redo
+  const isUndoRedoRef = useRef(false)
 
   // Buscar template ou agente da API
   const templateId = searchParams.get('template')
@@ -218,13 +225,18 @@ export function AgentBuilder() {
     setEdges(templateEdges)
     setUseAutoLayout(shouldApplyLayout)
     
+    // Salvar estado inicial no histórico após carregar template
+    setTimeout(() => {
+      pushState(finalNodes, templateEdges)
+    }, 50)
+    
     // Ajustar viewport após aplicar layout
     setTimeout(() => {
       if (reactFlowInstanceRef.current) {
         reactFlowInstanceRef.current.fitView({ padding: 0.2, duration: 300 })
       }
     }, 100)
-  }, [reactFlowInstanceRef])
+  }, [reactFlowInstanceRef, pushState])
 
   // Carregar template ou agente baseado nos query params
   useEffect(() => {
@@ -574,19 +586,106 @@ export function AgentBuilder() {
     }, 100)
   }, [nodes, edges])
 
-  // Deletar com tecla Delete
+  // Função para reconstruir ícones nos nodes (perdidos no JSON.stringify)
+  const reconstructNodeIcons = useCallback((restoredNodes: Node[]): Node[] => {
+    return restoredNodes.map((node) => {
+      // Extrair o tipo base do ID (ex: "receive-document-1234567" -> "receive-document")
+      // O ID é formado por: nodeType-timestamp (timestamp tem 13 dígitos)
+      const idParts = node.id.split('-')
+      // Remover o último elemento (timestamp) e juntar o resto
+      const nodeTypeId = idParts.slice(0, -1).join('-')
+      
+      // Buscar primeiro em availableNodesV1 (catálogo atual), depois em availableNodes (legado)
+      const nodeDefinition = availableNodesV1.find((n) => n.id === nodeTypeId) 
+        || availableNodes.find((n) => n.id === nodeTypeId)
+      
+      if (nodeDefinition && nodeDefinition.data.icon) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            icon: nodeDefinition.data.icon,
+          },
+        }
+      }
+      return node
+    })
+  }, [])
+
+  // Handlers de Undo/Redo
+  const handleUndo = useCallback(() => {
+    const prevState = undo()
+    if (prevState) {
+      isUndoRedoRef.current = true
+      const nodesWithIcons = reconstructNodeIcons(prevState.nodes)
+      setNodes(nodesWithIcons)
+      setEdges(prevState.edges)
+      setSelectedNode(null)
+      setTimeout(() => {
+        isUndoRedoRef.current = false
+      }, 100)
+    }
+  }, [undo, reconstructNodeIcons])
+
+  const handleRedo = useCallback(() => {
+    const nextState = redo()
+    if (nextState) {
+      isUndoRedoRef.current = true
+      const nodesWithIcons = reconstructNodeIcons(nextState.nodes)
+      setNodes(nodesWithIcons)
+      setEdges(nextState.edges)
+      setSelectedNode(null)
+      setTimeout(() => {
+        isUndoRedoRef.current = false
+      }, 100)
+    }
+  }, [redo, reconstructNodeIcons])
+
+  // Salvar estado no histórico quando nodes/edges mudam
+  useEffect(() => {
+    // Não salvar se estiver no meio de um undo/redo
+    if (isUndoRedoRef.current) return
+    // Não salvar estado vazio inicial
+    if (nodes.length === 0 && edges.length === 0) return
+    
+    pushState(nodes, edges)
+  }, [nodes, edges, pushState])
+
+  // Keyboard shortcuts: Delete, CTRL+Z (undo), CTRL+Y (redo)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Ignorar se estiver em input/textarea
+      const target = event.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return
+      }
+
+      // Delete - deletar nó selecionado
       if (event.key === 'Delete' && selectedNode) {
         setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id))
         setEdges((eds) => eds.filter((e) => e.source !== selectedNode.id && e.target !== selectedNode.id))
         setSelectedNode(null)
+        return
+      }
+
+      // CTRL+Z - Undo
+      if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
+        event.preventDefault()
+        handleUndo()
+        return
+      }
+
+      // CTRL+Y ou CTRL+SHIFT+Z - Redo
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) {
+        event.preventDefault()
+        handleRedo()
+        return
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedNode])
+  }, [selectedNode, handleUndo, handleRedo])
 
   // Fechar menu contextual ao clicar em qualquer lugar
   useEffect(() => {
@@ -675,6 +774,29 @@ export function AgentBuilder() {
               <FileText className="w-4 h-4 mr-2" />
               Dados Gerais
             </Button>
+            {/* Botões Desfazer/Refazer */}
+            <div className="flex items-center gap-1 mr-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 px-2"
+                title="Desfazer (Ctrl+Z)"
+              >
+                <Undo2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRedo}
+                disabled={!canRedo}
+                className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-40 px-2"
+                title="Refazer (Ctrl+Y)"
+              >
+                <Redo2 className="w-4 h-4" />
+              </Button>
+            </div>
             {nodes.length > 0 && (
               <Button
                 variant="outline"

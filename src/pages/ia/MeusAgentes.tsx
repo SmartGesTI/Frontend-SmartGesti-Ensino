@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { Node, Edge, MarkerType } from 'reactflow'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -9,9 +10,14 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useAgents, useUpdateAgent, useDeleteAgent } from '@/hooks/useAgents'
+import { useAgentExecution } from '@/hooks/useAgentExecution'
 import { getCategoryInfo, categoryInfoMap } from '@/services/agents.utils'
 import { AgentCard } from './components/AgentCard'
 import { AgentDetailsModal } from './components/AgentDetailsModal'
+import { ExecutionModal } from './components/AgentBuilder/ExecutionModal'
+import { downloadFile } from '@/utils/pdfGenerator'
+import { availableNodes } from './components/mockData'
+import { availableNodesV1 } from './components/nodeCatalog.v1'
 
 // Categorias de templates (baseado nas categorias do banco)
 const templateCategories = [
@@ -47,6 +53,12 @@ export default function MeusAgentes() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('todos')
   const [selectedAgent, setSelectedAgent] = useState<any | null>(null)
+  
+  // Estado para modal de execução
+  const [executingAgent, setExecutingAgent] = useState<any | null>(null)
+  const [executionNodes, setExecutionNodes] = useState<Node[]>([])
+  const [executionEdges, setExecutionEdges] = useState<Edge[]>([])
+  const { execute, isExecuting, currentPhase, result, error: executionError, completedNodes, currentExecutingNodeId, reset } = useAgentExecution()
 
   // Buscar agentes do usuário (todos, incluindo rascunhos)
   const { data: agents = [], isLoading, error } = useAgents({ 
@@ -103,8 +115,136 @@ export default function MeusAgentes() {
     }
   }
 
-  const handleExecute = (agentId: string) => {
-    navigate(`/escola/${slug}/ia/criar?template=${agentId}`)
+  // Função para reconstruir ícones nos nodes
+  const reconstructNodeIcons = useCallback((restoredNodes: any[]): Node[] => {
+    return restoredNodes.map((node) => {
+      const idParts = node.id.split('-')
+      const nodeTypeId = idParts.slice(0, -1).join('-')
+      const nodeDefinition = availableNodesV1.find((n) => n.id === nodeTypeId) 
+        || availableNodes.find((n) => n.id === nodeTypeId)
+      
+      return {
+        id: node.id,
+        type: 'custom',
+        position: node.position || { x: 0, y: 0 },
+        data: {
+          ...node.data,
+          icon: nodeDefinition?.data?.icon || node.data?.icon,
+        },
+      }
+    })
+  }, [])
+
+  const handleExecute = (agent: any) => {
+    // Preparar nodes e edges para o modal de execução
+    const nodes = reconstructNodeIcons(agent.nodes || [])
+    const edges: Edge[] = (agent.edges || []).map((e: any) => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      type: 'smoothstep' as const,
+      animated: true,
+      style: { stroke: '#a855f7', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed' as MarkerType, color: '#a855f7' },
+    }))
+    
+    setExecutionNodes(nodes)
+    setExecutionEdges(edges)
+    setExecutingAgent(agent)
+    reset() // Resetar estado de execução anterior
+  }
+
+  const handleCloseExecution = () => {
+    setExecutingAgent(null)
+    setExecutionNodes([])
+    setExecutionEdges([])
+    reset()
+  }
+
+  const handleExecuteWorkflow = async (params: Record<string, any>) => {
+    try {
+      // Converter arquivos para base64 se necessário
+      const processedParams: Record<string, any> = {}
+      
+      for (const [nodeId, nodeParams] of Object.entries(params)) {
+        if (!nodeParams || typeof nodeParams !== 'object') {
+          processedParams[nodeId] = nodeParams
+          continue
+        }
+        
+        const processedNodeParams: any = {}
+        
+        if ((nodeParams as any).data !== undefined) {
+          if ((nodeParams as any).data instanceof File) {
+            const file = (nodeParams as any).data as File
+            const reader = new FileReader()
+            const base64 = await new Promise<string>((resolve, reject) => {
+              reader.onload = () => resolve(reader.result as string)
+              reader.onerror = reject
+              reader.readAsDataURL(file)
+            })
+            processedNodeParams.data = {
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              data: base64,
+            }
+          } else {
+            processedNodeParams.data = (nodeParams as any).data
+          }
+        }
+        
+        if ((nodeParams as any).files && Array.isArray((nodeParams as any).files) && (nodeParams as any).files.length > 0) {
+          const filesData = await Promise.all(
+            (nodeParams as any).files.map(async (file: File) => {
+              const reader = new FileReader()
+              const base64 = await new Promise<string>((resolve, reject) => {
+                reader.onload = () => resolve(reader.result as string)
+                reader.onerror = reject
+                reader.readAsDataURL(file)
+              })
+              return {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: base64,
+              }
+            })
+          )
+          processedNodeParams.files = filesData
+        }
+        
+        Object.keys(nodeParams as any).forEach(key => {
+          if (key !== 'data' && key !== 'files') {
+            processedNodeParams[key] = (nodeParams as any)[key]
+          }
+        })
+        
+        processedParams[nodeId] = processedNodeParams
+      }
+
+      await execute(executionNodes, executionEdges, processedParams)
+    } catch (err) {
+      console.error('Erro ao executar workflow:', err)
+    }
+  }
+
+  const handleDownload = () => {
+    if (result?.file && result?.fileName) {
+      let blob: Blob
+      if (typeof result.file === 'string') {
+        const byteCharacters = atob(result.file)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        blob = new Blob([byteArray], { type: 'application/pdf' })
+      } else {
+        blob = result.file
+      }
+      downloadFile(blob, result.fileName)
+    }
   }
 
   const handleCardClick = (agent: typeof myAgents[0]) => {
@@ -182,7 +322,7 @@ export default function MeusAgentes() {
               key={agent.id}
               agent={agent}
               mode="my-agents"
-              onExecute={() => handleExecute(agent.id)}
+              onExecute={() => handleExecute(agent)}
               onEdit={() => handleEdit(agent.id)}
               onDelete={() => handleDelete(agent.id)}
               onToggleVisibility={(checked) => handleTogglePublic(agent.id, checked)}
@@ -199,9 +339,25 @@ export default function MeusAgentes() {
         open={!!selectedAgent}
         onClose={() => setSelectedAgent(null)}
         mode="my-agents"
-        onExecute={() => selectedAgent && handleExecute(selectedAgent.id)}
+        onExecute={() => selectedAgent && handleExecute(selectedAgent)}
         onEdit={() => selectedAgent && handleEdit(selectedAgent.id)}
         onDelete={() => selectedAgent && handleDelete(selectedAgent.id)}
+      />
+
+      {/* Modal de Execução */}
+      <ExecutionModal
+        open={!!executingAgent}
+        onClose={handleCloseExecution}
+        nodes={executionNodes}
+        edges={executionEdges}
+        onExecute={handleExecuteWorkflow}
+        isExecuting={isExecuting}
+        currentPhase={currentPhase}
+        completedNodes={completedNodes}
+        currentExecutingNodeId={currentExecutingNodeId}
+        error={executionError}
+        result={result}
+        onDownload={handleDownload}
       />
     </div>
   )
