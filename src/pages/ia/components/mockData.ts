@@ -94,6 +94,7 @@ export interface AgentTemplate {
   isPublic?: boolean
   userId?: string
   usageCount?: number
+  useAutoLayout?: boolean
 }
 
 export interface TemplateCategory {

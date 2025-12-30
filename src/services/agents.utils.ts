@@ -43,6 +43,7 @@ export interface ApiAgent {
   updated_at?: string
   school_id?: string
   tenant_id?: string
+  use_auto_layout?: boolean
 }
 
 /**
@@ -165,6 +166,7 @@ export function mapApiAgentToTemplate(apiAgent: ApiAgent): AgentTemplate {
     categoryTags: apiAgent.category_tags || [],
     isPublic: apiAgent.visibility === 'public',
     usageCount: apiAgent.usage_count || 0,
+    useAutoLayout: apiAgent.use_auto_layout !== false, // default true
   }
 }
 
@@ -205,6 +207,7 @@ export function mapTemplateToApiAgent(template: AgentTemplate): Partial<ApiAgent
     category_tags: template.categoryTags,
     visibility: template.isPublic ? 'public' : 'private',
     is_template: false, // Será definido pelo usuário
+    use_auto_layout: template.useAutoLayout !== false, // default true
   }
 }
 

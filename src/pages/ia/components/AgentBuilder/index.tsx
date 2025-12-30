@@ -46,6 +46,7 @@ export function AgentBuilder() {
   const [agentCategory, setAgentCategory] = useState<'academico' | 'financeiro' | 'rh' | 'administrativo'>('academico')
   const hasLoadedFromParams = useRef(false)
   const reactFlowInstanceRef = useRef<{ fitView: (options?: { padding?: number; duration?: number }) => void } | null>(null)
+  const [useAutoLayout, setUseAutoLayout] = useState(true)
 
   // Buscar template ou agente da API
   const templateId = searchParams.get('template')
@@ -55,6 +56,13 @@ export function AgentBuilder() {
   const updateAgent = useUpdateAgent()
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
+    // Detectar se o usuário moveu um nó (position change)
+    const hasPositionChange = changes.some(
+      (change) => change.type === 'position' && change.dragging === false
+    )
+    if (hasPositionChange) {
+      setUseAutoLayout(false)
+    }
     setNodes((nds) => applyNodeChanges(changes, nds))
   }, [])
 
@@ -191,11 +199,15 @@ export function AgentBuilder() {
       },
     }))
 
-    // Aplicar auto layout aos nodes
-    const layoutedNodes = applyAutoLayout(templateNodes, templateEdges)
+    // Aplicar auto layout apenas se useAutoLayout for true (padrão)
+    const shouldApplyLayout = template.useAutoLayout !== false
+    const finalNodes = shouldApplyLayout 
+      ? applyAutoLayout(templateNodes, templateEdges)
+      : templateNodes
 
-    setNodes(layoutedNodes)
+    setNodes(finalNodes)
     setEdges(templateEdges)
+    setUseAutoLayout(shouldApplyLayout)
     
     // Ajustar viewport após aplicar layout
     setTimeout(() => {
@@ -275,6 +287,7 @@ export function AgentBuilder() {
         source: edge.source,
         target: edge.target,
       })),
+      useAutoLayout: useAutoLayout, // Salvar estado atual do auto-layout
     }
 
     const apiData = mapTemplateToApiAgent(template)
@@ -425,6 +438,7 @@ export function AgentBuilder() {
     // Aplicar auto layout aos nodes atuais
     const layoutedNodes = applyAutoLayout(nodes, edges)
     setNodes(layoutedNodes)
+    setUseAutoLayout(true) // Marcar que está usando auto-layout
     
     // Ajustar viewport após aplicar layout
     setTimeout(() => {
