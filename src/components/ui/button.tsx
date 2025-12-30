@@ -35,12 +35,12 @@ const buttonVariants = cva(
         // Padrão 1: Preenchido
         aiEdit:
           "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl",
-        // Padrão 2: Outline sem cor + Cor no hover (para cards)
+        // Padrão 2: Outline sem cor + Cor no hover (para cards) - Azul
         aiEditOutlineHover:
-          "border border-gray-300 dark:border-gray-600 bg-transparent hover:bg-purple-50 dark:hover:bg-purple-950/20 hover:border-purple-300 dark:hover:border-purple-700 hover:text-purple-600 dark:hover:text-purple-400",
-        // Padrão 3: Outline Colorido
+          "border border-gray-300 dark:border-gray-600 bg-transparent hover:bg-blue-50 dark:hover:bg-blue-950/20 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400",
+        // Padrão 3: Outline Colorido - Azul
         aiEditOutline:
-          "border-2 border-purple-500 text-purple-600 dark:text-purple-400 bg-transparent hover:bg-purple-50 dark:hover:bg-purple-950/50 hover:border-purple-600 dark:hover:border-purple-500",
+          "border-2 border-blue-500 text-blue-600 dark:text-blue-400 bg-transparent hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:border-blue-600 dark:hover:border-blue-500",
         // Botões de Ação da IA (Roxo - Cor EducaIA) - Analisar com IA, Gerar Relatório, Preview
         // Padrão 1: Preenchido
         aiPrimary:

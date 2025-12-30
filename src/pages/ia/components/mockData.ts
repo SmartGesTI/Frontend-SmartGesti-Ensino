@@ -95,6 +95,11 @@ export interface AgentTemplate {
   userId?: string
   usageCount?: number
   useAutoLayout?: boolean
+  bestUses?: string[]
+  howItHelps?: string
+  type?: 'public_school' | 'public_editable' | 'private' | 'restricted'
+  visibility?: 'public' | 'public_collaborative' | 'private' | 'restricted'
+  status?: 'draft' | 'published'
 }
 
 export interface TemplateCategory {

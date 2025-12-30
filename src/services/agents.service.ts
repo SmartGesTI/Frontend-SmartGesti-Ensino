@@ -7,6 +7,9 @@ export interface AgentFilters {
   type?: string
   is_template?: boolean
   search?: string
+  status?: 'draft' | 'published'
+  visibility?: 'public' | 'public_collaborative' | 'private' | 'restricted'
+  myAgents?: boolean // Para buscar apenas agentes do usuário logado
 }
 
 export interface CreateAgentData {
@@ -26,11 +29,15 @@ export interface CreateAgentData {
   estimated_time?: string
   category_tags?: string[]
   type?: 'public_school' | 'public_editable' | 'private' | 'restricted'
-  visibility?: 'public' | 'private' | 'restricted'
+  visibility?: 'public' | 'public_collaborative' | 'private' | 'restricted'
+  status?: 'draft' | 'published'
   settings?: Record<string, any>
   is_active?: boolean
   is_template?: boolean
   school_id?: string
+  use_auto_layout?: boolean
+  best_uses?: string[]
+  how_it_helps?: string
 }
 
 export interface UpdateAgentData extends Partial<CreateAgentData> {}
@@ -61,6 +68,15 @@ export class AgentsService {
     }
     if (filters?.search) {
       params.append('search', filters.search)
+    }
+    if (filters?.status) {
+      params.append('status', filters.status)
+    }
+    if (filters?.visibility) {
+      params.append('visibility', filters.visibility)
+    }
+    if (filters?.myAgents) {
+      params.append('myAgents', 'true')
     }
     if (schoolId) {
       params.append('schoolId', schoolId)

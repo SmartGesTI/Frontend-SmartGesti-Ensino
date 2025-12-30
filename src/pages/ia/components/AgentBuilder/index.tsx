@@ -8,7 +8,8 @@ import { ExecutionModal } from './ExecutionModal'
 import { AgentTemplates } from './AgentTemplates'
 import { ContextMenu } from './ContextMenu'
 import { applyAutoLayout } from './layoutUtils'
-import { useAgent, useCreateAgent, useUpdateAgent } from '@/hooks/useAgents'
+import { AgentGeneralDataModal, AgentGeneralData } from './AgentGeneralDataModal'
+import { useAgent, useCreateAgent, useUpdateAgent, useDeleteAgent } from '@/hooks/useAgents'
 import { useAgentExecution } from '@/hooks/useAgentExecution'
 import { downloadFile } from '@/utils/pdfGenerator'
 import { mapTemplateToApiAgent, getCategoryInfo } from '@/services/agents.utils'
@@ -19,7 +20,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Save, Play, LayoutGrid } from 'lucide-react'
+import { Play, LayoutGrid, FileText, Trash2, Upload } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function AgentBuilder() {
@@ -47,6 +48,13 @@ export function AgentBuilder() {
   const hasLoadedFromParams = useRef(false)
   const reactFlowInstanceRef = useRef<{ fitView: (options?: { padding?: number; duration?: number }) => void } | null>(null)
   const [useAutoLayout, setUseAutoLayout] = useState(true)
+  const [showGeneralDataModal, setShowGeneralDataModal] = useState(false)
+  const [generalData, setGeneralData] = useState<Partial<AgentGeneralData>>({})
+  const hasShownModalOnCreate = useRef(false)
+  // Estado para controle do salvamento (previne flicker durante save)
+  const [isSaving, setIsSaving] = useState(false)
+  // Estado para controle do salvamento de rascunho
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
 
   // Buscar template ou agente da API
   const templateId = searchParams.get('template')
@@ -54,6 +62,7 @@ export function AgentBuilder() {
   const { data: templateData, isLoading: isLoadingTemplate } = useAgent(templateId || editId || null)
   const createAgent = useCreateAgent()
   const updateAgent = useUpdateAgent()
+  const deleteAgent = useDeleteAgent()
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     // Detectar se o usuário moveu um nó (position change)
@@ -220,7 +229,8 @@ export function AgentBuilder() {
   // Carregar template ou agente baseado nos query params
   useEffect(() => {
     // Só carregar uma vez quando os params mudarem
-    if (hasLoadedFromParams.current || !templateData) return
+    // NÃO recarregar durante o processo de salvamento (previne flicker)
+    if (hasLoadedFromParams.current || !templateData || isSaving) return
 
     if (templateId) {
       // Carregar template automaticamente
@@ -238,14 +248,117 @@ export function AgentBuilder() {
       setAgentName(templateData.name)
       setAgentDescription(templateData.description || '')
       setAgentCategory(templateData.category as any)
+      // Carregar dados gerais do agente
+      setGeneralData({
+        name: templateData.name,
+        description: templateData.description || '',
+        category: templateData.category as any,
+        difficulty: templateData.difficulty,
+        estimatedTime: templateData.estimatedTime,
+        howItHelps: templateData.howItHelps || '',
+        bestUses: templateData.bestUses || [],
+        tags: templateData.tags || [],
+        visibility: templateData.visibility as any,
+        type: templateData.type as any,
+        useCase: templateData.useCase || '',
+      })
       hasLoadedFromParams.current = true
     }
-  }, [templateData, templateId, editId, onLoadTemplate])
+  }, [templateData, templateId, editId, onLoadTemplate, isSaving])
 
   // Resetar flag quando os params mudarem
   useEffect(() => {
     hasLoadedFromParams.current = false
+    hasShownModalOnCreate.current = false
   }, [templateId, editId])
+
+  // Abrir modal automaticamente ao criar novo agente (quando não é edição)
+  useEffect(() => {
+    // Só abrir se não for edição e não tiver aberto ainda
+    if (!editId && !templateId && !hasShownModalOnCreate.current && !isLoadingTemplate) {
+      setShowGeneralDataModal(true)
+      hasShownModalOnCreate.current = true
+    }
+  }, [editId, templateId, isLoadingTemplate])
+
+  const handleSaveGeneralData = (data: AgentGeneralData) => {
+    setGeneralData(data)
+    setAgentName(data.name)
+    setAgentDescription(data.description)
+    setAgentCategory(data.category)
+    setShowGeneralDataModal(false)
+  }
+
+  // Salvar rascunho do modal e redirecionar para edição
+  const handleSaveDraftFromModal = async (data: AgentGeneralData) => {
+    setIsSavingDraft(true)
+    
+    try {
+      // Determinar ícone baseado na categoria
+      const categoryInfo = getCategoryInfo(data.category)
+      const iconComponent = categoryInfo.icon
+
+      const template = {
+        id: '',
+        name: data.name,
+        description: data.description,
+        category: data.category,
+        icon: iconComponent,
+        difficulty: data.difficulty,
+        estimatedTime: data.estimatedTime,
+        howItHelps: data.howItHelps,
+        bestUses: data.bestUses,
+        type: data.type || 'private',
+        visibility: data.visibility || 'private',
+        tags: data.tags,
+        useCase: data.useCase,
+        nodes: [], // Nenhum nó ainda
+        edges: [], // Nenhuma conexão ainda
+        useAutoLayout: true,
+        status: 'draft' as const,
+      }
+
+      const apiData = mapTemplateToApiAgent(template)
+      
+      const result = await createAgent.mutateAsync(apiData as any)
+      
+      // Redirecionar para edição do agente criado
+      if (slug && result?.id) {
+        setShowGeneralDataModal(false)
+        navigate(`/escola/${slug}/ia/criar?edit=${result.id}`)
+      }
+    } catch (error) {
+      console.error('Erro ao salvar rascunho:', error)
+    } finally {
+      setIsSavingDraft(false)
+    }
+  }
+
+  // Cancelar rascunho (deletar o agente draft)
+  const handleCancelDraft = async () => {
+    if (!editId) {
+      // Se não tem editId, apenas navegar para a lista
+      if (slug) {
+        navigate(`/escola/${slug}/ia/meus-agentes`)
+      }
+      return
+    }
+
+    const confirmDelete = window.confirm(
+      'Tem certeza que deseja cancelar este rascunho? Esta ação irá excluir o agente permanentemente.'
+    )
+
+    if (confirmDelete) {
+      try {
+        await deleteAgent.mutateAsync(editId)
+        if (slug) {
+          navigate(`/escola/${slug}/ia/meus-agentes`)
+        }
+      } catch (error) {
+        console.error('Erro ao cancelar rascunho:', error)
+      }
+    }
+  }
 
   const handleSave = async () => {
     // Validações
@@ -259,6 +372,9 @@ export function AgentBuilder() {
       return
     }
 
+    // Marcar como salvando para prevenir flicker
+    setIsSaving(true)
+
     // Determinar ícone: usar do templateData se disponível, senão usar baseado na categoria
     const categoryInfo = getCategoryInfo(agentCategory)
     const iconComponent = templateData?.icon || categoryInfo.icon
@@ -269,6 +385,14 @@ export function AgentBuilder() {
       description: agentDescription,
       category: agentCategory,
       icon: iconComponent,
+      difficulty: generalData.difficulty,
+      estimatedTime: generalData.estimatedTime,
+      howItHelps: generalData.howItHelps,
+      bestUses: generalData.bestUses,
+      type: generalData.type || 'private',
+      visibility: generalData.visibility || 'private',
+      tags: generalData.tags,
+      useCase: generalData.useCase,
       nodes: nodes.map((node) => ({
         id: node.id,
         type: (node.type || 'input') as 'input' | 'ai' | 'validation' | 'output',
@@ -290,7 +414,10 @@ export function AgentBuilder() {
       useAutoLayout: useAutoLayout, // Salvar estado atual do auto-layout
     }
 
-    const apiData = mapTemplateToApiAgent(template)
+    const apiData = {
+      ...mapTemplateToApiAgent(template),
+      status: 'published' as const, // Sempre publicar ao clicar em "Salvar e Publicar"
+    }
 
     try {
       if (isEditMode && editId) {
@@ -299,23 +426,22 @@ export function AgentBuilder() {
           data: apiData,
         })
         // Navegar para a página de meus agentes após salvar
+        // O cache já foi invalidado e aguardado no hook
         if (slug) {
-          setTimeout(() => {
-            navigate(`/escola/${slug}/ia/meus-agentes`)
-          }, 500) // Pequeno delay para mostrar o toast de sucesso
+          navigate(`/escola/${slug}/ia/meus-agentes`)
         }
       } else {
         await createAgent.mutateAsync(apiData as any)
         // Navegar para a página de meus agentes após criar
+        // O cache já foi invalidado e aguardado no hook
         if (slug) {
-          setTimeout(() => {
-            navigate(`/escola/${slug}/ia/meus-agentes`)
-          }, 500) // Pequeno delay para mostrar o toast de sucesso
+          navigate(`/escola/${slug}/ia/meus-agentes`)
         }
       }
     } catch (error) {
       // Erro já é tratado pelo ErrorLogger nos hooks
       console.error('Erro ao salvar agente:', error)
+      setIsSaving(false) // Restaurar estado em caso de erro
     }
   }
 
@@ -522,6 +648,33 @@ export function AgentBuilder() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {/* Botão Cancelar Rascunho - só aparece se o agente for um rascunho */}
+            {templateData?.status === 'draft' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancelDraft}
+                disabled={deleteAgent.isPending}
+                className="border-red-300 dark:border-red-600 hover:bg-red-50 dark:hover:bg-red-950 text-red-600 dark:text-red-400"
+              >
+                {deleteAgent.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-2" />
+                )}
+                Cancelar Rascunho
+              </Button>
+            )}
+            {/* Botão Dados Gerais - outline + azul no hover */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowGeneralDataModal(true)}
+              className="border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Dados Gerais
+            </Button>
             {nodes.length > 0 && (
               <Button
                 variant="outline"
@@ -556,8 +709,8 @@ export function AgentBuilder() {
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
-                  Salvar Agente
+                  <Upload className="w-4 h-4" />
+                  Salvar e Publicar
                 </>
               )}
             </Button>
@@ -735,6 +888,21 @@ export function AgentBuilder() {
         )}
       </div>
 
+      {/* Modal de Dados Gerais */}
+      <AgentGeneralDataModal
+        open={showGeneralDataModal}
+        onOpenChange={setShowGeneralDataModal}
+        initialData={{
+          name: agentName,
+          description: agentDescription,
+          category: agentCategory,
+          ...generalData,
+        }}
+        onSave={handleSaveGeneralData}
+        onSaveDraft={!isEditMode ? handleSaveDraftFromModal : undefined}
+        isSavingDraft={isSavingDraft}
+        mode={isEditMode ? 'edit' : 'create'}
+      />
     </div>
   )
 }

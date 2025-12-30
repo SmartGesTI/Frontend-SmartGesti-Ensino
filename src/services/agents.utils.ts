@@ -36,7 +36,7 @@ export interface ApiAgent {
   estimated_time?: string
   category_tags?: string[]
   type?: 'public_school' | 'public_editable' | 'private' | 'restricted'
-  visibility?: 'public' | 'private' | 'restricted'
+  visibility?: 'public' | 'public_collaborative' | 'private' | 'restricted'
   is_template?: boolean
   usage_count?: number
   created_at?: string
@@ -44,6 +44,9 @@ export interface ApiAgent {
   school_id?: string
   tenant_id?: string
   use_auto_layout?: boolean
+  best_uses?: string[]
+  how_it_helps?: string
+  status?: 'draft' | 'published'
 }
 
 /**
@@ -149,6 +152,9 @@ export function mapApiAgentToTemplate(apiAgent: ApiAgent): AgentTemplate {
   // Converter ícone string para componente React
   const IconComponent = getIconComponent(apiAgent.icon || 'FileText')
 
+  // Gerar fluxo automaticamente se não existir
+  const generatedFlow = generateFlowFromWorkflow(apiAgent.workflow?.nodes || [], edges)
+
   return {
     id: apiAgent.id,
     name: apiAgent.name,
@@ -160,13 +166,18 @@ export function mapApiAgentToTemplate(apiAgent: ApiAgent): AgentTemplate {
     rating: apiAgent.rating,
     difficulty: apiAgent.difficulty,
     useCase: apiAgent.use_case,
-    flow: apiAgent.flow,
+    flow: apiAgent.flow || generatedFlow,
     tags: apiAgent.tags || [],
     estimatedTime: apiAgent.estimated_time,
     categoryTags: apiAgent.category_tags || [],
     isPublic: apiAgent.visibility === 'public',
     usageCount: apiAgent.usage_count || 0,
     useAutoLayout: apiAgent.use_auto_layout !== false, // default true
+    bestUses: apiAgent.best_uses || [],
+    howItHelps: apiAgent.how_it_helps || '',
+    type: apiAgent.type,
+    visibility: apiAgent.visibility,
+    status: apiAgent.status,
   }
 }
 
@@ -205,10 +216,79 @@ export function mapTemplateToApiAgent(template: AgentTemplate): Partial<ApiAgent
     tags: template.tags,
     estimated_time: template.estimatedTime,
     category_tags: template.categoryTags,
-    visibility: template.isPublic ? 'public' : 'private',
+    visibility: template.visibility || (template.isPublic ? 'public' : 'private'),
+    type: template.type || 'private',
     is_template: false, // Será definido pelo usuário
     use_auto_layout: template.useAutoLayout !== false, // default true
+    best_uses: template.bestUses || [],
+    how_it_helps: template.howItHelps || '',
+    status: template.status || 'draft',
   }
+}
+
+/**
+ * Gera uma string de fluxo baseada nos nós e conexões do workflow
+ * Formato: "Nó1 > Nó2 > Nó3"
+ */
+export function generateFlowFromWorkflow(
+  nodes: Array<{ id: string; data?: { label?: string } }>,
+  edges: Array<{ source: string; target: string }>
+): string {
+  if (!nodes || nodes.length === 0) return ''
+  if (!edges || edges.length === 0) {
+    // Se não há conexões, retorna os nós na ordem
+    return nodes.map(n => n.data?.label || 'Nó').join(' > ')
+  }
+
+  // Encontrar nós que são targets (têm alguém apontando para eles)
+  const targetIds = new Set(edges.map(e => e.target))
+  
+  // Nó inicial é aquele que não é target de nenhuma edge
+  const startNodes = nodes.filter(n => !targetIds.has(n.id))
+  
+  if (startNodes.length === 0) {
+    // Se todos são targets (ciclo), começa do primeiro
+    return nodes.map(n => n.data?.label || 'Nó').join(' > ')
+  }
+
+  // Construir mapa de adjacência
+  const adjacencyMap = new Map<string, string[]>()
+  edges.forEach(edge => {
+    if (!adjacencyMap.has(edge.source)) {
+      adjacencyMap.set(edge.source, [])
+    }
+    adjacencyMap.get(edge.source)!.push(edge.target)
+  })
+
+  // Mapa de id para label
+  const nodeMap = new Map<string, string>()
+  nodes.forEach(n => nodeMap.set(n.id, n.data?.label || 'Nó'))
+
+  // Percorrer o grafo a partir do nó inicial
+  const visited = new Set<string>()
+  const flowParts: string[] = []
+
+  function traverse(nodeId: string) {
+    if (visited.has(nodeId)) return
+    visited.add(nodeId)
+    
+    flowParts.push(nodeMap.get(nodeId) || 'Nó')
+    
+    const nextNodes = adjacencyMap.get(nodeId) || []
+    nextNodes.forEach(nextId => traverse(nextId))
+  }
+
+  // Começar do primeiro nó inicial
+  traverse(startNodes[0].id)
+
+  // Se ainda há nós não visitados, adiciona-os
+  nodes.forEach(n => {
+    if (!visited.has(n.id)) {
+      flowParts.push(nodeMap.get(n.id) || 'Nó')
+    }
+  })
+
+  return flowParts.join(' > ')
 }
 
 /**
