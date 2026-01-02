@@ -1,31 +1,151 @@
-import { Globe, Plus } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { LandingPageEditorV2, SiteDocumentV2, createEmptySiteDocumentV2 } from '@brunoalz/smartgesti-site-editor'
+// Importar CSS da landing page
+import '@brunoalz/smartgesti-site-editor/styles/landing-page.css'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useSchool } from '@/contexts/SchoolContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { toast } from 'sonner'
+import { apiRequest } from '@/services/api'
+import { useEffect, useState } from 'react'
 
 export default function CriarSite() {
+  const { slug, siteId } = useParams<{ slug: string; siteId?: string }>()
+  const { school } = useSchool()
+  const { session } = useAuth()
+  const navigate = useNavigate()
+  const [initialData, setInitialData] = useState<SiteDocumentV2 | null>(null)
+  const [currentSiteId, setCurrentSiteId] = useState<string | null>(siteId || null)
+
+  // Carregar site se estiver editando
+  useEffect(() => {
+    if (siteId) {
+      loadSite(siteId)
+      setCurrentSiteId(siteId)
+    } else {
+      // Se não tem siteId, criar documento vazio V2
+      setInitialData(createEmptySiteDocumentV2('Novo Site'))
+    }
+  }, [siteId])
+
+  const loadSite = async (id: string) => {
+    try {
+      const token = session?.access_token
+      const data = await apiRequest<any>(
+        `/api/sites/${id}?projectId=ensino`,
+        {
+          method: 'GET',
+        },
+        token,
+        school?.id
+      )
+      
+      // Sempre esperar SiteDocumentV2
+      if (data.template) {
+        // Verificar se é V2
+        if (data.template.schemaVersion === 2) {
+          setInitialData(data.template as SiteDocumentV2)
+        } else {
+          // V1 legado - criar novo documento vazio
+          toast.warning('Site em formato legado. Criando novo documento.')
+          setInitialData(createEmptySiteDocumentV2('Novo Site'))
+        }
+      } else {
+        setInitialData(createEmptySiteDocumentV2('Novo Site'))
+      }
+    } catch (error) {
+      console.error('Error loading site:', error)
+      toast.error('Erro ao carregar site')
+      setInitialData(createEmptySiteDocumentV2('Novo Site'))
+    }
+  }
+
+  const handleSave = async (data: SiteDocumentV2) => {
+    try {
+      const token = session?.access_token
+      const isUpdate = currentSiteId
+      
+      // Preparar dados para salvar (sempre V2)
+      const siteName = data.pages[0]?.name || 'Landing Page'
+      const siteSlug = data.pages[0]?.slug || `landing-${Date.now()}`
+      
+      const siteData = {
+        name: siteName,
+        slug: siteSlug,
+        projectId: 'ensino',
+        schoolId: school?.id,
+        template: data, // Salvar SiteDocumentV2
+      }
+
+      const response = await apiRequest<any>(
+        isUpdate ? `/api/sites/${currentSiteId}?projectId=ensino` : '/api/sites',
+        {
+          method: isUpdate ? 'PUT' : 'POST',
+          body: JSON.stringify({
+            ...siteData,
+            pages: [], // Array vazio, usando template agora
+          }),
+        },
+        token,
+        school?.id
+      )
+
+      toast.success('Landing page salva com sucesso!')
+      
+      // Se for criação, redirecionar para edição
+      if (!isUpdate && response.id) {
+        setCurrentSiteId(response.id)
+        navigate(`/escola/${slug}/sites/${response.id}/editar`)
+      }
+      
+      return response
+    } catch (error) {
+      console.error('Error saving site:', error)
+      toast.error('Erro ao salvar landing page')
+      throw error
+    }
+  }
+
+  const handlePublish = async (_data: SiteDocumentV2) => {
+    if (!currentSiteId) {
+      toast.error('Salve a landing page antes de publicar')
+      return
+    }
+
+    try {
+      const token = session?.access_token
+      const response = await apiRequest<any>(
+        `/api/sites/${currentSiteId}/publish?projectId=ensino`,
+        {
+          method: 'POST',
+        },
+        token,
+        school?.id
+      )
+
+      toast.success('Landing page publicada com sucesso!')
+      return response
+    } catch (error) {
+      console.error('Error publishing site:', error)
+      toast.error('Erro ao publicar landing page')
+      throw error
+    }
+  }
+
+  if (!initialData) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-muted-foreground">Carregando editor...</div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <Card className="shadow-2xl border-2 border-border bg-card">
-        <CardHeader className="bg-gradient-to-b from-pink-50/50 to-transparent dark:from-pink-950/30 dark:to-transparent">
-          <CardTitle className="text-pink-600 dark:text-pink-400 flex items-center gap-2">
-            <Globe className="w-5 h-5" />
-            Criador de Sites
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 rounded-xl bg-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/30 mb-4">
-              <Plus className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
-              Criador de Sites em Desenvolvimento
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 max-w-md">
-              Esta funcionalidade está sendo desenvolvida. Em breve você poderá criar novos sites para sua escola.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="h-[91vh] max-h-[91vh] -m-4 lg:-m-6 overflow-hidden">
+      <LandingPageEditorV2
+        initialData={initialData}
+        onSave={handleSave}
+        onPublish={handlePublish}
+      />
     </div>
   )
 }

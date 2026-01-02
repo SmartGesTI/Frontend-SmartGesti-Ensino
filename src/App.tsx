@@ -57,6 +57,7 @@ const NovoEvento = lazy(() => import('./pages/calendario/NovoEvento'))
 // Sites
 const MeusSites = lazy(() => import('./pages/sites/MeusSites'))
 const CriarSite = lazy(() => import('./pages/sites/CriarSite'))
+const VerSite = lazy(() => import('./pages/sites/VerSite'))
 
 // Componente wrapper para Suspense
 function LazyRoute({ children }: { children: React.ReactNode }) {
@@ -403,6 +404,23 @@ function App() {
             </SchoolProvider>
           </ProtectedRoute>
         }
+      />
+      <Route
+        path="/escola/:slug/sites/:siteId/editar"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <LazyRoute><CriarSite /></LazyRoute>
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      {/* Rota pública para visualizar site */}
+      <Route
+        path="/escola/:slug/site"
+        element={<LazyRoute><VerSite /></LazyRoute>}
       />
       {/* Rota Documentos */}
       <Route

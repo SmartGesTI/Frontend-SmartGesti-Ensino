@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@smartgesti/site-editor': path.resolve(__dirname, '../../smartgesti-site-editor/dist'),
     },
   },
   optimizeDeps: {
