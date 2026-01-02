@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Play, LayoutGrid, FileText, Trash2, Upload } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { toast } from 'sonner'
 
 export function AgentBuilder() {
   const [searchParams] = useSearchParams()
@@ -372,15 +373,39 @@ export function AgentBuilder() {
     }
   }
 
+  // Função para verificar se os dados gerais estão preenchidos
+  const isGeneralDataComplete = (): boolean => {
+    // Verificar se os campos essenciais dos dados gerais estão preenchidos
+    // Consideramos que os dados gerais estão completos se:
+    // 1. Nome e descrição estão preenchidos (podem estar em agentName/agentDescription ou generalData)
+    // 2. Os campos específicos do modal (difficulty, estimatedTime) estão preenchidos
+    const hasName = !!(generalData.name?.trim() || agentName.trim())
+    const hasDescription = !!(generalData.description?.trim() || agentDescription.trim())
+    const hasDifficulty = !!generalData.difficulty
+    const hasEstimatedTime = !!generalData.estimatedTime
+    
+    // Se não tem difficulty ou estimatedTime, significa que o modal não foi preenchido
+    // (esses campos só são definidos quando o usuário salva o modal)
+    return hasName && hasDescription && hasDifficulty && hasEstimatedTime
+  }
+
   const handleSave = async () => {
-    // Validações
-    if (!agentName.trim()) {
-      alert('Por favor, informe um nome para o agente')
+    // Validação de workflow
+    if (nodes.length === 0) {
+      toast.warning('Para publicar um agente é necessário criar o fluxo', {
+        description: 'Adicione pelo menos um nó ao workflow antes de publicar.',
+      })
       return
     }
 
-    if (nodes.length === 0) {
-      alert('Adicione pelo menos um nó ao workflow')
+    // Verificar se os dados gerais estão preenchidos
+    if (!isGeneralDataComplete()) {
+      // Mostrar toast informando que é necessário preencher os dados
+      toast.warning('É necessário preencher os dados gerais do agente antes de publicar', {
+        description: 'Por favor, complete as informações do agente no modal de dados gerais.',
+      })
+      // Abrir o modal de dados gerais
+      setShowGeneralDataModal(true)
       return
     }
 
