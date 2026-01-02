@@ -38,7 +38,7 @@ const templateCategories = [
 ]
 
 interface AgentTemplatesProps {
-  onLoadTemplate: (template: any) => void
+  onLoadTemplate: (template: any, isUsingTemplate?: boolean) => void
   selectedTemplateId?: string
 }
 

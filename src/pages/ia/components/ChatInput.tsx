@@ -10,11 +10,19 @@ interface ChatInputProps {
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [message, setMessage] = useState('')
+  const [isSending, setIsSending] = useState(false)
 
   const handleSend = () => {
-    if (message.trim() && !disabled) {
-      onSend(message.trim())
+    if (message.trim() && !disabled && !isSending) {
+      setIsSending(true)
+      const textToSend = message.trim()
       setMessage('')
+      
+      // Pequeno delay para evitar duplo envio
+      setTimeout(() => {
+        onSend(textToSend)
+        setIsSending(false)
+      }, 50)
     }
   }
 

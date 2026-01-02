@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils'
 import { Sparkles } from 'lucide-react'
 import { ChatMessage as ChatMessageType } from './mockData'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface ChatMessageProps {
   message: ChatMessageType
@@ -29,17 +31,77 @@ export function ChatMessage({ message }: ChatMessageProps) {
             : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
         )}
       >
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.text}</p>
+        {!isUser && (
+          <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">
+            EducaIA - Assistente
+          </p>
+        )}
+        <div className={cn(
+          'text-sm leading-relaxed',
+          isUser ? 'text-white' : 'text-gray-900 dark:text-gray-100'
+        )}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              // Customizar links para abrir em nova aba
+              a: ({ node, ...props }) => (
+                <a
+                  {...props}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    'underline hover:opacity-80 transition-opacity',
+                    isUser ? 'text-blue-100' : 'text-blue-600 dark:text-blue-400'
+                  )}
+                />
+              ),
+              // Customizar parágrafos
+              p: ({ node, ...props }) => (
+                <p {...props} className="mb-2 last:mb-0" />
+              ),
+              // Customizar listas
+              ul: ({ node, ...props }) => (
+                <ul {...props} className="list-disc list-inside mb-2 space-y-1 ml-2" />
+              ),
+              ol: ({ node, ...props }) => (
+                <ol {...props} className="list-decimal list-inside mb-2 space-y-1 ml-2" />
+              ),
+              // Customizar texto em negrito
+              strong: ({ node, ...props }) => (
+                <strong {...props} className="font-semibold" />
+              ),
+              // Customizar texto em itálico
+              em: ({ node, ...props }) => (
+                <em {...props} className="italic" />
+              ),
+              // Customizar código inline
+              code: ({ node, inline, ...props }: any) => (
+                inline ? (
+                  <code {...props} className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs" />
+                ) : (
+                  <code {...props} className="block bg-gray-200 dark:bg-gray-700 p-2 rounded text-xs overflow-x-auto" />
+                )
+              ),
+            }}
+          >
+            {message.text || ''}
+          </ReactMarkdown>
+        </div>
         <span
           className={cn(
-            'text-xs mt-1 block',
+            'text-xs mt-2 block',
             isUser ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
           )}
         >
-          {message.timestamp.toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
+          {message.timestamp instanceof Date 
+            ? message.timestamp.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : new Date(message.timestamp).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
         </span>
       </div>
       {isUser && (
