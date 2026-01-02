@@ -18,10 +18,6 @@ import { availableNodes } from '../mockData'
 import { availableNodesV1 } from '../nodeCatalog.v1'
 import { Loader2, Undo2, Redo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Play, LayoutGrid, FileText, Trash2, Upload } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
@@ -179,7 +175,29 @@ export function AgentBuilder() {
     )
   }, [])
 
-  const onLoadTemplate = useCallback((template: any) => {
+  // Função para limpar o estado de edição e dados gerais
+  const clearEditState = useCallback(() => {
+    setIsEditMode(false)
+    setSelectedTemplateId(null)
+    setGeneralData({})
+    setAgentName('')
+    setAgentDescription('')
+    setAgentCategory('academico')
+    setNodes([])
+    setEdges([])
+    setSelectedNode(null)
+    // Limpar URL removendo o parâmetro edit
+    if (editId && slug) {
+      navigate(`/escola/${slug}/ia/criar`, { replace: true })
+    }
+  }, [editId, slug, navigate])
+
+  const onLoadTemplate = useCallback((template: any, isUsingTemplate = false) => {
+    // Se estiver usando um template (não editando), limpar estado de edição
+    if (isUsingTemplate) {
+      clearEditState()
+    }
+
     const templateNodes: Node[] = template.nodes.map((n: any) => {
       const nodeType = n.id.split('-').slice(0, -1).join('-') || n.id
       const defaults = availableNodes.find((d) => d.id === nodeType)?.data?.config || {}
@@ -237,7 +255,7 @@ export function AgentBuilder() {
         reactFlowInstanceRef.current.fitView({ padding: 0.2, duration: 300 })
       }
     }, 100)
-  }, [reactFlowInstanceRef, pushState])
+  }, [reactFlowInstanceRef, pushState, clearEditState])
 
   // Carregar template ou agente baseado nos query params
   useEffect(() => {
@@ -246,18 +264,32 @@ export function AgentBuilder() {
     if (hasLoadedFromParams.current || !templateData || isSaving) return
 
     if (templateId) {
-      // Carregar template automaticamente
-      onLoadTemplate(templateData)
+      // Carregar template automaticamente (usar template, não editar)
+      // Limpar dados gerais ao usar um template
+      clearEditState()
+      onLoadTemplate(templateData, true) // true = isUsingTemplate
       setSelectedTemplateId(templateId)
       setActiveTab('templates') // Garantir que a aba templates esteja ativa
-      setAgentName(templateData.name)
-      setAgentDescription(templateData.description || '')
-      setAgentCategory(templateData.category as any)
+      // Não preencher dados gerais ao usar template - deixar vazio para o usuário preencher
       hasLoadedFromParams.current = true
     } else if (editId) {
-      // Carregar agente para edição
+      // Verificar se o agente é editável (colaborativo ou do usuário)
+      // Se visibility for 'public' (não colaborativo), não permitir edição
+      if (templateData.visibility === 'public') {
+        // Agente público não colaborativo - limpar estado e usar como template
+        toast.warning('Este agente não é editável. Criando uma cópia para você.', {
+          description: 'Você pode criar sua própria versão deste agente.',
+        })
+        clearEditState()
+        onLoadTemplate(templateData, true) // Usar como template
+        // Não preencher dados gerais - deixar vazio para o usuário preencher
+        hasLoadedFromParams.current = true
+        return
+      }
+
+      // Carregar agente para edição (é colaborativo ou do usuário)
       setIsEditMode(true)
-      onLoadTemplate(templateData)
+      onLoadTemplate(templateData, false) // false = não é usar template
       setAgentName(templateData.name)
       setAgentDescription(templateData.description || '')
       setAgentCategory(templateData.category as any)
@@ -277,22 +309,17 @@ export function AgentBuilder() {
       })
       hasLoadedFromParams.current = true
     }
-  }, [templateData, templateId, editId, onLoadTemplate, isSaving])
+  }, [templateData, templateId, editId, onLoadTemplate, isSaving, clearEditState])
 
   // Resetar flag quando os params mudarem
   useEffect(() => {
     hasLoadedFromParams.current = false
     hasShownModalOnCreate.current = false
-  }, [templateId, editId])
-
-  // Abrir modal automaticamente ao criar novo agente (quando não é edição)
-  useEffect(() => {
-    // Só abrir se não for edição e não tiver aberto ainda
-    if (!editId && !templateId && !hasShownModalOnCreate.current && !isLoadingTemplate) {
-      setShowGeneralDataModal(true)
-      hasShownModalOnCreate.current = true
+    // Limpar dados quando mudar de agente/template
+    if (!templateId && !editId) {
+      clearEditState()
     }
-  }, [editId, templateId, isLoadingTemplate])
+  }, [templateId, editId, clearEditState])
 
   const handleSaveGeneralData = (data: AgentGeneralData) => {
     setGeneralData(data)
@@ -389,15 +416,20 @@ export function AgentBuilder() {
     return hasName && hasDescription && hasDifficulty && hasEstimatedTime
   }
 
-  const handleSave = async () => {
-    // Validação de workflow
-    if (nodes.length === 0) {
-      toast.warning('Para publicar um agente é necessário criar o fluxo', {
-        description: 'Adicione pelo menos um nó ao workflow antes de publicar.',
-      })
-      return
-    }
+  // Função para verificar se existe um fluxo mínimo (entrada, agente, saída)
+  const hasMinimumFlow = (): boolean => {
+    if (nodes.length === 0) return false
 
+    const hasEntrada = nodes.some((node) => node.data.category === 'ENTRADA')
+    const hasAgente = nodes.some(
+      (node) => node.data.category === 'AGENTES' || node.data.category === 'AGENTES DE RH'
+    )
+    const hasSaida = nodes.some((node) => node.data.category === 'SAIDA')
+
+    return hasEntrada && hasAgente && hasSaida
+  }
+
+  const handleSave = async () => {
     // Verificar se os dados gerais estão preenchidos
     if (!isGeneralDataComplete()) {
       // Mostrar toast informando que é necessário preencher os dados
@@ -837,17 +869,20 @@ export function AgentBuilder() {
               variant="outline"
               size="sm"
               onClick={handleTest}
-              className="bg-purple-500 hover:bg-purple-600 text-white border-0"
+              disabled={!hasMinimumFlow()}
+              className="bg-purple-500 hover:bg-purple-600 text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!hasMinimumFlow() ? 'É necessário ter pelo menos uma entrada, um agente e uma saída para executar' : 'Executar workflow'}
             >
               <Play className="w-4 h-4 mr-2" />
-              Testar
+              Executar
             </Button>
             <Button
               variant="aiAction"
               size="sm"
               onClick={handleSave}
-              disabled={createAgent.isPending || updateAgent.isPending}
-              className="gap-2"
+              disabled={createAgent.isPending || updateAgent.isPending || !hasMinimumFlow()}
+              className="gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={!hasMinimumFlow() ? 'É necessário ter pelo menos uma entrada, um agente e uma saída para publicar' : 'Salvar e publicar agente'}
             >
               {createAgent.isPending || updateAgent.isPending ? (
                 <>
@@ -982,51 +1017,11 @@ export function AgentBuilder() {
                 onConfigChange={onConfigChange}
               />
             ) : (
-              <div className="p-4 space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                    Informações do Agente
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="agent-name">Nome do Agente</Label>
-                      <Input
-                        id="agent-name"
-                        value={agentName}
-                        onChange={(e) => setAgentName(e.target.value)}
-                        placeholder="Ex: Analisador de Desempenho"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="agent-description">Descrição</Label>
-                      <Textarea
-                        id="agent-description"
-                        value={agentDescription}
-                        onChange={(e) => setAgentDescription(e.target.value)}
-                        placeholder="Descreva o que este agente faz..."
-                        className="mt-1"
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="agent-category">Categoria</Label>
-                      <Select
-                        value={agentCategory}
-                        onValueChange={(value: any) => setAgentCategory(value)}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="academico">Acadêmico</SelectItem>
-                          <SelectItem value="financeiro">Financeiro</SelectItem>
-                          <SelectItem value="rh">Recursos Humanos</SelectItem>
-                          <SelectItem value="administrativo">Administrativo</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+              <div className="p-4 flex items-center justify-center h-full">
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Selecione um componente no canvas para configurá-lo
+                  </p>
                 </div>
               </div>
             )}

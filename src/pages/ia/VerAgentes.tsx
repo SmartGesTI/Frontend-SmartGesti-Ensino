@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAgents } from '@/hooks/useAgents'
 import { useAgentExecution } from '@/hooks/useAgentExecution'
 import { getCategoryInfo, categoryInfoMap } from '@/services/agents.utils'
@@ -272,7 +273,16 @@ export default function VerAgentes() {
   }
 
   const handleEdit = (template: typeof enrichedTemplates[0]) => {
-    navigate(`/escola/${slug}/ia/criar?edit=${template.id}`)
+    // Verificar se é colaborativo antes de permitir edição
+    if (template.visibility === 'public_collaborative') {
+      navigate(`/escola/${slug}/ia/criar?edit=${template.id}`)
+    } else {
+      // Se não for colaborativo, usar como template (criar cópia)
+      toast.warning('Este agente não é editável. Criando uma cópia para você.', {
+        description: 'Você pode criar sua própria versão deste agente.',
+      })
+      navigate(`/escola/${slug}/ia/criar?template=${template.id}`)
+    }
   }
 
   const handleCardClick = (template: typeof enrichedTemplates[0]) => {

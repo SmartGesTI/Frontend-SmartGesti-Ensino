@@ -229,9 +229,23 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => onLoadTemplate(template)}
+                                onClick={() => {
+                                  // Limpar URL de edição se existir e carregar como template novo
+                                  if (slug) {
+                                    navigate(`/escola/${slug}/ia/criar`, { replace: true })
+                                    // Aguardar navegação e então carregar template
+                                    // O template será carregado sem dados gerais (limpo)
+                                    // Passar true para isUsingTemplate para limpar dados
+                                    setTimeout(() => {
+                                      onLoadTemplate(template, true)
+                                    }, 100)
+                                  } else {
+                                    // Passar true para isUsingTemplate para limpar dados
+                                    onLoadTemplate(template, true)
+                                  }
+                                }}
                                 className="text-xs h-7 gap-1 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                title="Copiar fluxo para o editor"
+                                title="Copiar fluxo para o editor (criar nova versão)"
                               >
                                 <Copy className="w-3 h-3" />
                                 Usar
@@ -246,7 +260,7 @@ export function AgentTemplates({ onLoadTemplate, selectedTemplateId }: AgentTemp
                                     }
                                   }}
                                   className={cn('text-white text-xs h-7 gap-1', colorClass.button)}
-                                  title="Editar este template"
+                                  title="Editar este template colaborativo"
                                 >
                                   <Pencil className="w-3 h-3" />
                                   Editar
