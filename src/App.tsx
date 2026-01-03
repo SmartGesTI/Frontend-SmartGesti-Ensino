@@ -34,6 +34,7 @@ const Documentos = lazy(() => import('./pages/Documentos'))
 
 // IA
 const AssistenteIA = lazy(() => import('./pages/ia/AssistenteIA'))
+const AssistenteRAG = lazy(() => import('./pages/ia/AssistenteRAG'))
 const RelatorioInteligente = lazy(() => import('./pages/ia/RelatorioInteligente'))
 const CriarAgenteIA = lazy(() => import('./pages/ia/CriarAgenteIA'))
 const VerAgentes = lazy(() => import('./pages/ia/VerAgentes'))
@@ -216,6 +217,18 @@ function App() {
             <SchoolProvider>
               <Layout>
                 <LazyRoute><AssistenteIA /></LazyRoute>
+              </Layout>
+            </SchoolProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/escola/:slug/ia/knowledge-base"
+        element={
+          <ProtectedRoute>
+            <SchoolProvider>
+              <Layout>
+                <LazyRoute><AssistenteRAG /></LazyRoute>
               </Layout>
             </SchoolProvider>
           </ProtectedRoute>

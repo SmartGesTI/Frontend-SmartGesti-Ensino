@@ -120,6 +120,13 @@ export function Sidebar({ className }: SidebarProps) {
           path: `/escola/${slug}/ia/meus-agentes`,
           requirePermission: false,
         },
+        {
+          name: 'Knowledge Base',
+          icon: BookOpen,
+          iconColor: 'text-purple-300',
+          path: `/escola/${slug}/ia/knowledge-base`,
+          requirePermission: false,
+        },
       ],
     },
     {
